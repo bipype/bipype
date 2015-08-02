@@ -1,0 +1,166 @@
+#!/usr/bin/python
+
+import argparse
+from refseq_bipype import sample, aftershave
+from sys import argv as sargv
+from os import getcwd
+
+ref_fungi = '/home/pszczesny/workingdata/refseq/db/fungi/fungi_refseq'
+ref_plant1 = '/home/pszczesny/workingdata/refseq/db/plant/plant_refseq_1'
+ref_plant2 = '/home/pszczesny/workingdata/refseq/db/plant/plant_refseq_2'
+X16S_db = '/public/EMIRGE/SSU/SSU_candidate_db.udb'
+ITS_db = '/home/pszczesny/workingdata/ITS/unite.udb'
+NCBI_taxa_db = '/home/pszczesny/soft/bipype/NCBI_tax_id_name.pickle'
+SSUs_taxa_db = '/home/pszczesny/soft/bipype/SSUs_tax_id_name.pickle'
+reconstruct_db = '/home/pszczesny/storage/workingdata/mcra/mcra10k.fasta'
+
+def main(argv=None):
+	if argv is None:
+        	argv = sargv
+    	parser = argparse.ArgumentParser(fromfile_prefix_chars='@',
+		description='bipype stands for BioInformatics-PYthon-PipE',
+		formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+		epilog = 'All commands may be presented in a configuration file fed to bipype with @ prefix as "$bipype @my_conf_file", my_conf_file should contain all desired commands and their options (if applicable) one per line (space delimited)')
+	general = parser.add_argument_group('general', 'performance and I/O related options')
+        general.add_argument('--ignore',
+                help='ignore this argument',
+                type = str,
+                default = '')
+	general.add_argument("-t", "--threads",
+		help='number of threads to be used',
+		type = int,
+		default=8) 
+	general.add_argument("-m", "--mode",
+		help='available modes: test, run',
+		choices=['test', 'run'],
+		type = str,
+		default='test') 
+	general.add_argument("-r", "--root_dir",
+		help='root of the directory tree to be searched',
+		default=getcwd()) 
+	general.add_argument("--out_dir", "-o", 
+		type=str,
+		metavar = 'OUTPUT_DIRECTORY', 
+		default='in_situ',
+		help='directory for output files')
+	general.add_argument("--ins_len", 
+		default='9999',
+		help='insert length - be advised - you better use it for single run',
+		type=int)
+	general.add_argument("-postfix",
+		type = str,
+		help = 'alphanumerical postfix of processed file',
+		default = '')
+	general.add_argument("-e", 
+		help = "use existing files",
+		action='store_true')
+	general.add_argument("-c", "--chain",
+		help='run all searches: usearch on 16S and ITS as well as refesq_map\n may be used wih or without searches on contigs reconstructed with: MetaVelvet [MV_contig], Soap de nowo [SdN_contig], or both [all]''',
+		choices=['no_contig', 'MV_contig', 'SdN_contig', 'all'],
+		default=None)
+	aftershave = parser.add_argument_group('aftershave options', 'options related to aftershaving results')
+#	aftershave.add_argument("-v", "--verbose",
+#		help='detail lvl of aftershave option: 0 - no output, 1 - trees (pdf and csv) and newicks, 2 - newicks and tree csv (no pdf-for mosh and normal ssh sessions), 3 - trees (pdf and csv), newicks and total_csv (remember to set proper -ot (including map_count))',
+#		type = int,
+#		default=0) 
+	aftershave.add_argument("-ot", "--output_type", 
+		nargs = '*',
+		default= ['ITS, 16S'],
+ 		help = 'Choice of files searched for an analysis, coded: 16S and ITS on usearches - file .usearch_ITS, .usearch_16S')
+	dataclean = parser.add_argument_group('cleaning input', 'methods of cleaning input from noise')
+	dataclean.add_argument("-ic", "--initial_cleaning", 
+		choices = ['usearch', 'fastx'],
+		type = str,
+		default= '',
+ 		help = 'Choice of initial cleaning method')
+	dataclean.add_argument("--cutadapt",
+		type = str,
+		default = '',
+		nargs=2,
+		help = '-cutadapt ADAPTER_FILE search_options, location of file with adapters to be used by cutadapt (possible use of "use_filenames" to determine adapters from hardcode), and list of usearches to be run on created files - possible options are 16S, ITS, both. Please note, that mapping options -16S, -ITS are completly irrelevant if you use cutadapt. Other note - this is !!!IMPORTANT!!! to present location of file with adapters as first option of this argument')
+	mappings = parser.add_argument_group('mapping', 'mappings to be done during the run')
+	mappings.add_argument("-ITS",
+		help='usearch ITS database',
+		dest='to_calculate',
+		action='append_const',
+		const='ITS')
+	mappings.add_argument("-16S",
+		help='usearch 16S database',
+		dest='to_calculate',
+		action='append_const',
+		const='16S')
+	mappings.add_argument("-refseq",
+		help = 'map samples on refseq: p - plant, f - fungi, b - both',
+		nargs = '?',
+		choices = ['f', 'p', 'b'],
+		dest='to_calculate',
+		action = 'append',
+		const = 'f',
+		default = 'f')
+	contigs = parser.add_argument_group('contig reconstruction', 'methods of contig reconstruction to be used during the run')
+	contigs.add_argument("-MV", default=None,
+ 		help = 'MetaVelvet [initial k-mer size - default = 31, [final k-mer size, [step - default=2 (odd numbers)]]]',
+		nargs='*')
+	contigs.add_argument("-reconstruct", default=None, const="rec_",
+ 		help = 'reconstruct relating to database, options: database_loc, prefix',
+		nargs='?')
+#	contigs.add_argument("-SdN",
+#		help = 'contig reconstruction using Soap de novo', 
+#		dest='to_calculate',
+#		action='append_const',
+#		const='SdN')
+	contigs.add_argument("-humann",
+		help = 'mapping rapsearch using humann', 
+		dest='to_calculate',
+		action='append_const',
+		const='humann')
+	contigs.add_argument("-rapsearch",
+		help = 'RAPsearch on protein database', 
+                nargs = '?',
+                choices = ['masl28', 'rap_prot', 'rap_KO'],
+		dest='to_calculate',
+		action='append',
+		const='rap_prot',
+                default = 'rap_prot')
+	order = parser.add_argument_group('order of running', 'order in which processes will be performed')
+	order.add_argument("--order", default='sample',
+		choices = ['sample', 'aftershave'],
+ 		help = 'sample - run all the methods sample by sample, aftershave - analyses of outputs from calculations')
+	db_loc = parser.add_argument_group('databases', 'locations of databases to be used for searches')
+	db_loc.add_argument("--db_16S", 
+		type=str, 
+		default=X16S_db, 
+		help='location of 16S database used in usearch (bowtie indexed')
+	db_loc.add_argument("--db_ITS", 
+		type=str, 
+		default=ITS_db, 
+		help='location of ITS database used in usearch (bowtie indexed)')
+	db_loc.add_argument("--db_refseq", 
+		type = str, 
+		default=[ref_fungi, ref_plant1, ref_plant2],
+		nargs = '*', 
+		help='location of refseq database')
+	db_loc.add_argument("--db_NCBI_taxonomy",
+		type=str,
+		default=NCBI_taxa_db,
+		help = 'location of cPickled NCBI_tax_id, NCBI tax names and NCBI tax ids')
+	db_loc.add_argument("--db_SSUs_taxonomy",
+		type=str,
+		default=SSUs_taxa_db,
+		help = 'location of cPickled SSUs_tax_id, SSU and ITS {id:[taxonomy,levels] dictionaries')
+	db_loc.add_argument("--db_reconstruct",
+		type=str,
+		default=reconstruct_db,
+		help = 'location of databse for reconstruction')
+	args = parser.parse_args()
+	return args
+	
+
+if __name__ == '__main__':
+	opts = main()
+	if opts.order == 'sample':
+		sample(opts)
+	elif opts.order == 'method':
+		method(opts)
+	else:
+		aftershave(opts)
