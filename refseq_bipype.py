@@ -2,15 +2,15 @@
 from os import getcwd, walk, system, chdir, stat
 from os.path import join as pjoin
 from os.path import exists as pexists
-from re import match
 from string import split, find, join
 from itertools import combinations
-from pprint import pprint
 from datetime import datetime
 from copy import deepcopy
-from collections import defaultdict
 import cPickle as pickle
-
+# These are probably not used anymore:
+from re import match
+from pprint import pprint
+from collections import defaultdict
 
 def cat_read(mode, fileext, paired_end=True):
     double_ext = ['contigs.fa', 'txt.m8']
@@ -1206,6 +1206,19 @@ def outprint(xml_string, out_xml):
     krona_write.close()
 
 def txt_dict_clean(dicto):
+    """Cleans given file structure - removes files which do not contain words "graplan" or "tree".
+    Emptied directories are also removed.
+
+    Args:
+        dicto (dict of str: str): A dict where:
+                                    keys are names of directories,
+                                    values are lists containing names of files that are in the directory.
+                                    Example:
+                                        {"dict_name_1": ["file_1","file_2"], "dict_name_2": ["file_1"]}
+
+    Returns:
+        A dict in the same format as given one (cleaned from unwanted files)
+    """
     to_remove = set()
     for directory in dicto:
         for plik in dicto[directory]:
@@ -1222,26 +1235,60 @@ def txt_dict_clean(dicto):
     return dicto
 
 def xml_names_graphlan(input_d):
+    """Extracts values from given dict, puts the values on a list
+     and then, removes from every value those parts, which are prefixes and suffixes, common for all items on the list.
+
+    Args:
+        input_d (dict of str: str): A dict, where:
+                                    keys are names of directories,
+                                    values are lists containing filenames that are inside the directory
+    Returns:
+        A list with all filenames with were given on input, trimmed by common prefixes and suffixes.
+
+    """
     from os.path import commonprefix as CP
+
+    # create a set (and then a list) with all names of files given on input
     allnames = set()
     for path in input_d:
         files = set(input_d[path])
-        allnames = allnames|files
+        allnames = allnames | files
     allnames = list(allnames)
+
+    # get common prefix
     comm_pref = CP(allnames)
+
+    # the same as: allrev = [x[::-1] for x in allnames] ?
     allrev = []
     for plik in allnames:
         allrev.append(plik[::-1])
+
+    # get common suffix
     comm_suff = CP(allrev)[::-1]
+
+    # TODO: a co jeśli comm_pref lub comm_suff występują też wewnątrz stringu? W sumie to rare-case, ale
+    # TODO: np pliki: ./axxbxx i ./abxxx
+    # remove common prefix and suffix from every name of file
     for idx in xrange(len(allnames)):
-        plikname = allnames[idx]
-        plikname = plikname.replace(comm_pref, '')
-        plikname = plikname.replace(comm_suff, '')
-        allnames[idx] = plikname
+        file_name = allnames[idx]
+        file_name = file_name.replace(comm_pref, '')
+        file_name = file_name.replace(comm_suff, '')
+        allnames[idx] = file_name
+
     return allnames
 
 
 def tax_tree_extend(tax_tree, linia):
+    """Recursively adds elements form list linia into the tree tax_tree.
+
+    Args:
+        tax_tree: tree represented as dict of dicts.
+        linia: list of elements in order: from the oldest ancestor to the youngest descendant.
+               Elements should be formatted to contain information about ancestors (like it does linia_unique function)
+
+    Returns:
+        Extended tree in form of dict of dicts.
+    """
     if linia[0] not in tax_tree:
         tax_tree[linia[0]] = {}
     if len(linia) > 1:
@@ -1249,12 +1296,101 @@ def tax_tree_extend(tax_tree, linia):
     return tax_tree
 
 def linia_unique(linia):
+    """Creates list where every element includes information about previous elements, in order, separated by "____".
+
+    Example:
+        when takes list: ['1','2','3']
+        it returns: ['1', '1_____2', '1_____2_____3']
+
+    Args:
+        linia: a list.
+
+    Returns:
+        A list.
+   """
     line = linia[:]
     for idx in xrange(len(linia)):
         line[idx] = '_____'.join(linia[:idx+1])
     return line
 
 def tax_tree_graphlan(input_d):
+    # TODO: Currently Graphlan files have to contain only taxonomic data (formatting data after \t are not allowed)
+    # TODO: Possible workaround: "line = line.split('\t')[0]" after line "for line in kos:". But - is it really desired?
+    """Reads and interprets data of taxonomic relations from files in Graphlan-like format.
+
+    Args:
+        input_d (dict of str: str): A dict, where:
+                                    keys are names of directories,
+                                    values are lists containing filenames that are inside the directory
+
+        Example of featured file:
+            Listeriaceae.Listeria.Lgrayi
+            Listeriaceae.Listeria.Linnocua
+
+    Returns:
+        A tuple (total_tax_tree, per_file_tax_tree, multi_flat_tax_tree).
+
+        total_tax_tree: A dict of dicts, etc. In form of nested dicts, represents phylogenetic trees of entities
+            described by files featured in the input. This is a total tree - nodes from all files are merged here.
+            Example:
+            {
+                'Bacillaceae':
+                {
+                    'Bacillaceae_____Anoxybacillus': {}
+                },
+                'Listeriaceae':
+                {
+                    'Listeriaceae_____Listeria':
+                    {
+                        'Listeriaceae_____Listeria_____Lgrayi': {},
+                        'Listeriaceae_____Listeria_____Linnocua': {},
+                    }
+                }
+            }
+
+        per_file_tax_tree: A dict of dicts, etc. Keys are filenames. Similar to total_tax_tree. In form of nested dicts,
+            represents phylogenetic trees of entities described by files featured in the input.
+           Example:
+            {
+                'annot_1.txt':
+                {
+                    'Bacillaceae':
+                    {
+                        'Bacillaceae_____Anoxybacillus': {}
+                    }
+                }
+                'annot_2.txt':
+                {
+                    'Listeriaceae':
+                    {
+                        'Listeriaceae_____Listeria':
+                        {
+                            'Listeriaceae_____Listeria_____Lgrayi': {},
+                            'Listeriaceae_____Listeria_____Linnocua': {},
+                        }
+                    }
+                }
+            }
+
+        multi_flat_tax_tree: A dict of dicts.
+            First level: keys are filenames, values are dicts.
+            Second level: keys are names of nodes, values are numbers of nodes with names starting from "node_name"
+            Example:
+            {
+                'annot_1.txt':
+                {
+                    'Bacillaceae': 8,
+                    'Bacillaceae_____Anoxybacillus': 8
+                },
+                'annot_2.txt':
+                {
+                    'Listeriaceae': 16,
+                    'Listeriaceae_____Listeria': 16,
+                    'Listeriaceae_____Listeria_____Lgrayi': 8,
+                    'Listeriaceae_____Listeria_____Linnocua': 8
+                 }
+            }
+    """
     total_tax_tree = {}
     per_file_tax_tree = {}
     multi_flat_tax_tree = {}
@@ -1278,7 +1414,34 @@ def tax_tree_graphlan(input_d):
     return total_tax_tree, per_file_tax_tree, multi_flat_tax_tree
 
 def xml_counts_graphlan(tax_tree, per_file_tax_tree, xml_names, multi_flat_tax_tree):
-    """multi_flat_tax_tree - {plik:file_flat_tree} - file_flat tree is {node:count, ...}"""
+    # TODO: tax_tree is not used here
+    """Sums numbers of nodes (obtained from multi_flat_tax_tree) in two ways:
+            1. by node_name
+            2. by identificator (obtained from filename)
+
+    Args:
+        tax_tree: A dict of dicts, etc. In form of nested dicts, it shall represent phylogenetic tree.
+            Example included in description of tax_tree_graphlan() function, look for: total_tax_tree.
+
+        per_file_tax_tree: A dict of dicts, etc. Top-level keys are filenames. Similar to tax_tree.
+            In form of nested dicts, it shall represent phylogenetic tree.
+            Example included in description of tax_tree_graphlan() function.
+
+        xml_names: identificators, obtained by modifying filenames from input_d dict.
+            Example:
+            [identificator_1, identificator_2, ...]
+
+        multi_flat_tax_tree: A dict of dicts.
+            First level: keys are filenames, values are dicts.
+            Second level: keys are names of nodes, values are numbers of nodes with names starting from "node_name"
+            Example included in description of tax_tree_graphlan() function.
+
+    Returns: tuple (xml_dict, name_total_count)
+        xml_dict: A dict
+        {node: count, node_2: count}
+        name_total_count: A dict
+        {name: count, name_2: count}
+    """
     all_nodes = set()
     xml_dict = {}
     name_total_count = {}
@@ -1303,10 +1466,37 @@ def xml_counts_graphlan(tax_tree, per_file_tax_tree, xml_names, multi_flat_tax_t
 
 
 def graphlan_to_krona(input_d):
-    """xml_names - [identyfikator_1, identyfikator_2 etc.] - nazwy plikow, czy cos
-    xml_dict - {node:[val1, val2, val3, ...]} - of note, len(xml_dict[i]) = len(xml_names) dla kazdego i
-    tax_tree - {a:{aa:{}, ab:{aba:{}, abb:{abba:{}}}}}
-    name_total_count - {identyfikator_1:val1, identyfikator2:val2} - suma wszystkiego we srodku"""
+    """
+    TODO
+    Modify files (specified in inupt_d) created by Graphlan to create a set of xml strings,
+    which may be assembled into a input file for Krona.
+
+    Args:
+        input_d (dict of str: str): A dict, where:
+                                    keys are names of directories,
+                                    values are lists containing filenames that are inside the directory
+
+    Returns:
+        A tuple (xml_names, xml_dict, tax_tree, name_total_count), where:
+
+            xml_names: identificators, obtained by modifying filenames given by input_d dict.
+                Example:
+                [identificator_1, identificator_2, ...]
+
+            xml_dict: of note,
+                Example:
+                {node:[val1, val2, val3, ...]} - ,
+
+            tax_tree:
+                Example:
+                {a:{aa:{}, ab:{aba:{}, abb:{abba:{}}}}}
+
+            name_total_count: suma wszystkiego we srodku
+                Example:
+                {identificator_1:val1, identificator_2:val2}
+
+            Note, that: len(xml_dict[i]) is equal to len(xml_names) for every i.
+    """
     input_d = txt_dict_clean(input_d)
     xml_names = xml_names_graphlan(input_d)
     tax_tree, per_file_tax_tree, multi_flat_tax_tree = tax_tree_graphlan(input_d)
@@ -1314,6 +1504,11 @@ def graphlan_to_krona(input_d):
     return xml_names, xml_dict, tax_tree, name_total_count
 
 def aftershave(opts):
+    """TODO
+
+    Args:
+        opts: namespace with options explained in file "bipype"
+    """
     SSU = {}
     metag_flag = 0
     if '16S' in opts.output_type:
