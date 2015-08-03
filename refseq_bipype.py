@@ -11,489 +11,506 @@ from copy import deepcopy
 from collections import defaultdict
 import cPickle as pickle
 
+
 def cat_read(mode, fileext, paired_end=True):
-        double_ext = ['contigs.fa', 'txt.m8']
-        if fileext in double_ext:
-                cut_len = -2
-        else:
-                cut_len = -1
-        seq_dict = {}
-        if fileext == 'fa':
-                fileext_l = ['fa', 'fasta', 'FASTA', 'FA', 'fas', 'fna', 'ffn', 'frn']
-        else:
-                fileext_l = [fileext]
-        for root, folders, files in walk(getcwd()):
-                for plik in files:
-                        plik_ext = '.'.join(split(plik, '.')[cut_len:])
-                        if plik_ext in fileext_l:
-                                seq_dict = fastq_dict(seq_dict, root, plik)
-                        elif plik_ext == 'gz':
-                                prop_ext = '.'.join(split(plik, '.')[cut_len-1:-1])
-                                if prop_ext in fileext_l:
-                                        to_gunzip = pjoin(root, plik)
-                                        print 'gunzip %s'%(to_gunzip)
-                                        if mode == 'run':
-                                                system('gunzip %s'%(to_gunzip))
-                                        seq_dict = fastq_dict(seq_dict, root, plik[:-3])
-                        else:
-                                pass
-        if paired_end == True:
-                seq_dict = paired_end_match(seq_dict)
-        else:
+    double_ext = ['contigs.fa', 'txt.m8']
+    if fileext in double_ext:
+        cut_len = -2
+    else:
+        cut_len = -1
+    seq_dict = {}
+    if fileext == 'fa':
+        fileext_l = ['fa', 'fasta', 'FASTA', 'FA', 'fas', 'fna', 'ffn', 'frn']
+    else:
+        fileext_l = [fileext]
+    for root, folders, files in walk(getcwd()):
+        for plik in files:
+            plik_ext = '.'.join(split(plik, '.')[cut_len:])
+            if plik_ext in fileext_l:
+                seq_dict = fastq_dict(seq_dict, root, plik)
+            elif plik_ext == 'gz':
+                prop_ext = '.'.join(split(plik, '.')[cut_len-1:-1])
+                if prop_ext in fileext_l:
+                    to_gunzip = pjoin(root, plik)
+                    print 'gunzip %s'%(to_gunzip)
+                    if mode == 'run':
+                        system('gunzip %s'%(to_gunzip))
+                    seq_dict = fastq_dict(seq_dict, root, plik[:-3])
+            else:
                 pass
-        return seq_dict
+    if paired_end == True:
+        seq_dict = paired_end_match(seq_dict)
+    else:
+        pass
+    return seq_dict
+
 
 def exist_check(program, names, todo):
-        if program == 'refseq':
-                if pexists(names['sam']):
-                        todo.remove('bowtie')
-                        print '%s found'%(names['sam'])
-                if pexists(names['bam']):
-                        todo.remove('bam_make')
-                        print '%s found'%(names['bam'])
-                if pexists(names['sorted.bam']):
-                        todo.remove('sort_index')
-                        print '%s found'%(names['sorted.bam'])
-                if pexists(names['idxstats']):
-                        todo.remove('idxstat')
-                        print '%s found'%(names['idxstats'])
-                if pexists(names['map_count']):
-                        todo.remove('perl')
-                        print '%s found'%(names['map_count'])
-                if pexists(names['tax_count']):
-                        todo = []
-                        print '%s exists, to get intermediate files, omit -e option'%(names['tax_count'])
-        if program == 'usearch':
-                if pexists(names):
-                        todo = []
-                        print '%s found'%(names)
-        if program == 'usearch_0':
-            if stat(names).st_size == 0:
-                        todo = []
-                        print 'PANIC MODE: %s size = 0!'%(names)
-        if program == 'MV':
-                if pexists(names[0]) and pexists(names[1]):
-                        todo  = []
-                        print '%s and %s found'%(names[0], names[1])
-                elif pexists(names[0]):
-                        todo = []
-                        print '%s exists, to get intermediate files, omit -e option'%(names[0])
-                else:
-                        if pexists(names[2]) and pexists(names[3]) and pexists(names[4]):
-                                todo.remove('velveth')
-                                print '%s %s %s found'%(names[2], names[3], names[4])
-                        if pexists(names[5]) and pexists(names[6]) and pexists(names[7]) and pexists(names[8]):
-                                todo.remove('velvetg')
-                                print '%s %s %s %s found'%(names[5], names[6], names[7], names[8])
-        if program == 'rapsearch':
-                if pexists(names):
-                        todo = []
-                        print '%s found, rapsearch not executing'%(names)
-        if program == 'cutadapt':
-                if pexists(names[0]):
-                        todo.remove('cutadapt0')
-                if pexists(names[1]):
-                        todo.remove('cutadapt1')
-                if pexists(names[2]):
-                        todo.remove('flash')
-                if pexists(names[3]):
-                        todo.remove('fq2fa')
-        return todo
+    if program == 'refseq':
+        if pexists(names['sam']):
+            todo.remove('bowtie')
+            print '%s found'%(names['sam'])
+        if pexists(names['bam']):
+            todo.remove('bam_make')
+            print '%s found'%(names['bam'])
+        if pexists(names['sorted.bam']):
+            todo.remove('sort_index')
+            print '%s found'%(names['sorted.bam'])
+        if pexists(names['idxstats']):
+            todo.remove('idxstat')
+            print '%s found'%(names['idxstats'])
+        if pexists(names['map_count']):
+            todo.remove('perl')
+            print '%s found'%(names['map_count'])
+        if pexists(names['tax_count']):
+            todo = []
+            print '%s exists, to get intermediate files, omit -e option'%(names['tax_count'])
+    if program == 'usearch':
+        if pexists(names):
+            todo = []
+            print '%s found'%(names)
+    if program == 'usearch_0':
+        if stat(names).st_size == 0:
+            todo = []
+            print 'PANIC MODE: %s size = 0!'%(names)
+    if program == 'MV':
+        if pexists(names[0]) and pexists(names[1]):
+            todo  = []
+            print '%s and %s found'%(names[0], names[1])
+        elif pexists(names[0]):
+            todo = []
+            print '%s exists, to get intermediate files, omit -e option'%(names[0])
+        else:
+            if pexists(names[2]) and pexists(names[3]) and pexists(names[4]):
+                todo.remove('velveth')
+                print '%s %s %s found'%(names[2], names[3], names[4])
+            if pexists(names[5]) and pexists(names[6]) and pexists(names[7]) and pexists(names[8]):
+                todo.remove('velvetg')
+                print '%s %s %s %s found'%(names[5], names[6], names[7], names[8])
+    if program == 'rapsearch':
+        if pexists(names):
+            todo = []
+            print '%s found, rapsearch not executing'%(names)
+    if program == 'cutadapt':
+        if pexists(names[0]):
+            todo.remove('cutadapt0')
+        if pexists(names[1]):
+            todo.remove('cutadapt1')
+        if pexists(names[2]):
+            todo.remove('flash')
+        if pexists(names[3]):
+            todo.remove('fq2fa')
+    return todo
+
 
 def tax_id_reader():
-        print 'reading tax ids'
-        gi_tax_path = '/home/pszczesny/workingdata/refseq/db/tax_id/gi_taxid_nucl.dmp'
-        gi_tax_dict = {}
-        curr_t = datetime.now()
-        with open(gi_tax_path) as plik:
-                counter = 0
-                for linia in plik:
-                        gi, tax = split(linia)
-                        gi_tax_dict[int(gi)] = int(tax)
-                        counter += 1
-                        if counter%1000000 == 0:
-                                print "Added %i tax_ids"%(counter)
-        plik.close()
-        return gi_tax_dict
+    print 'reading tax ids'
+    gi_tax_path = '/home/pszczesny/workingdata/refseq/db/tax_id/gi_taxid_nucl.dmp'
+    gi_tax_dict = {}
+    curr_t = datetime.now()
+    with open(gi_tax_path) as plik:
+        counter = 0
+        for linia in plik:
+            gi, tax = split(linia)
+            gi_tax_dict[int(gi)] = int(tax)
+            counter += 1
+            if counter%1000000 == 0:
+                print "Added %i tax_ids"%(counter)
+    plik.close()
+    return gi_tax_dict
+
 
 def tax_name_reader():
-        print 'reading tax names'
-        tax_name_path = '/home/pszczesny/workingdata/refseq/db/tax_id/names.dmp'
-        tax_name_dict = {}
-        curr_t1 = datetime.now()
-        with open(tax_name_path) as plik:
-                counter = 0
-                for linia in plik:
-                        line_l = split(linia, '\t|\t')
-                        if line_l[3] == 'scientific name\t|\n':
-                                tax_id = line_l[0]
-                                if len(line_l[2]) == 0:
-                                        tax_name = line_l[1]
-                                else: 
-                                        tax_name = line_l[2]
-                                tax_name_dict[int(tax_id)] = tax_name
-                        counter += 1
-                        if counter%100000 == 0:
-                                print "Processed %i tax_name lines"%(counter)
-        plik.close()
-        return tax_name_dict
+    print 'reading tax names'
+    tax_name_path = '/home/pszczesny/workingdata/refseq/db/tax_id/names.dmp'
+    tax_name_dict = {}
+    curr_t1 = datetime.now()
+    with open(tax_name_path) as plik:
+        counter = 0
+        for linia in plik:
+            line_l = split(linia, '\t|\t')
+            if line_l[3] == 'scientific name\t|\n':
+                tax_id = line_l[0]
+                if len(line_l[2]) == 0:
+                    tax_name = line_l[1]
+                else:
+                    tax_name = line_l[2]
+                tax_name_dict[int(tax_id)] = tax_name
+            counter += 1
+            if counter%100000 == 0:
+                print "Processed %i tax_name lines"%(counter)
+    plik.close()
+    return tax_name_dict
+
 
 def idx_reader(file_path):
-        idx_file_dict = {}
-        for linia in file(file_path).readlines():
-                line_l = split(linia)
-                reads = int(line_l[2])
-                if reads != 0:          
-                        gi = int(split(line_l[0], '|')[1])
-                        idx_file_dict[gi] = reads
-        return idx_file_dict
+    idx_file_dict = {}
+    for linia in file(file_path).readlines():
+        line_l = split(linia)
+        reads = int(line_l[2])
+        if reads != 0:
+            gi = int(split(line_l[0], '|')[1])
+            idx_file_dict[gi] = reads
+    return idx_file_dict
+
 
 def idx_map(mode, plik, tax_name_dict, tax_id_dict, outfile):
-        from operator import itemgetter
-        tax_count_dict = {}
-        if mode == 'run':
-                idx_file_dict = idx_reader(plik)
-                for gi in idx_file_dict:
-                        try:
-                                tax_id = tax_id_dict[gi]
-                                if tax_id in tax_count_dict:
-                                        tax_count_dict[tax_id] += idx_file_dict[gi]
-                                else:
-                                        tax_count_dict[tax_id] = idx_file_dict[gi]
-                        except KeyError:
-                                        tax_count_dict[gi] = idx_file_dict[gi]
-                tmp_dict = deepcopy(tax_count_dict)
-                for tax_gi_id in tax_count_dict:
-                        try:    
-                                tmp_dict[tax_name_dict[tax_gi_id]] = tmp_dict.pop(tax_gi_id)
-                        except KeyError:
-                                pass
-                sorted_dict = sorted(tmp_dict.iteritems(), key=itemgetter(1), reverse=True)
-                tax_write = open(outfile, 'w')
-                for tax_pair in sorted_dict:
-                        tax_write_string = '%s;%i\n'%(tax_pair[0], tax_pair[1])
-                        tax_write.write(tax_write_string)
-                tax_write.close()
-        elif mode == 'test':
-                print 'IDX_MAP %s %s'%(plik, outfile)
-        else:
+    from operator import itemgetter
+    tax_count_dict = {}
+    if mode == 'run':
+        idx_file_dict = idx_reader(plik)
+        for gi in idx_file_dict:
+            try:
+                tax_id = tax_id_dict[gi]
+                if tax_id in tax_count_dict:
+                    tax_count_dict[tax_id] += idx_file_dict[gi]
+                else:
+                    tax_count_dict[tax_id] = idx_file_dict[gi]
+            except KeyError:
+                    tax_count_dict[gi] = idx_file_dict[gi]
+        tmp_dict = deepcopy(tax_count_dict)
+        for tax_gi_id in tax_count_dict:
+            try:
+                tmp_dict[tax_name_dict[tax_gi_id]] = tmp_dict.pop(tax_gi_id)
+            except KeyError:
                 pass
+        sorted_dict = sorted(tmp_dict.iteritems(), key=itemgetter(1), reverse=True)
+        tax_write = open(outfile, 'w')
+        for tax_pair in sorted_dict:
+            tax_write_string = '%s;%i\n'%(tax_pair[0], tax_pair[1])
+            tax_write.write(tax_write_string)
+        tax_write.close()
+    elif mode == 'test':
+        print 'IDX_MAP %s %s'%(plik, outfile)
+    else:
+        pass
 
 def pair_uni_name(file_pair):
-        file_body = '.'.join(split(file_pair[0], '.')[:-1])
-        if 'R1' in file_body:
-                R_loc = find(file_body, 'R1')
-                out_name = file_body[:R_loc] + file_body[R_loc+3:]
-        else:
-                R_loc = find(file_body, 'R2')
-                out_name = file_body[:R_loc] + file_body[R_loc+3:]
-        return out_name
+    file_body = '.'.join(split(file_pair[0], '.')[:-1])
+    if 'R1' in file_body:
+        R_loc = find(file_body, 'R1')
+        out_name = file_body[:R_loc] + file_body[R_loc+3:]
+    else:
+        R_loc = find(file_body, 'R2')
+        out_name = file_body[:R_loc] + file_body[R_loc+3:]
+    return out_name
 
 
 def refseq_ref_namespace(katalog, seq, postfix, out_dir='in_situ', map_dir='in_situ'):
-        if out_dir == 'in_situ':
-                out_dir = katalog
-        ref_namespace = {}
-        if type(seq) == tuple:
-                sample_name = pair_uni_name(seq)
-                ref_namespace['fastq'] = (pjoin(katalog, seq[0]), pjoin(katalog, seq[1]))
-        else:
-                ref_namespace['fastq'] = pjoin(katalog, seq)
-                sample_name = split(seq, '.')[0]
-        if postfix != '':
-                sample_name = sample_name + '_' + postfix
-        else:
-                pass
-        ref_namespace['sam'] = sample_name + '.sam'
-        ref_namespace['sam2'] = sample_name + '_2' + '.sam'
-        ref_namespace['bam'] = sample_name + '.bam'
-        ref_namespace['sorted'] = sample_name + '.sorted'
-        ref_namespace['sorted.bam'] = sample_name + '.sorted.bam'
-        ref_namespace['idxstats'] = sample_name + '.idxstats'
-        ref_namespace['tax_count'] = sample_name + '.tax_count'
-        for element in ref_namespace:
-                if element != 'fastq':
-                        ref_namespace[element] = pjoin(out_dir, ref_namespace[element])
-        if map_dir == 'in_situ':
-                ref_namespace['map_count'] = pjoin(out_dir, sample_name + '.map_count')
-        else:
-                ref_namespace['map_count'] = pjoin(map_dir, sample_name + '.map_count')
-        return ref_namespace
+    if out_dir == 'in_situ':
+        out_dir = katalog
+    ref_namespace = {}
+    if type(seq) == tuple:
+        sample_name = pair_uni_name(seq)
+        ref_namespace['fastq'] = (pjoin(katalog, seq[0]), pjoin(katalog, seq[1]))
+    else:
+        ref_namespace['fastq'] = pjoin(katalog, seq)
+        sample_name = split(seq, '.')[0]
+    if postfix != '':
+        sample_name = sample_name + '_' + postfix
+    else:
+        pass
+    ref_namespace['sam'] = sample_name + '.sam'
+    ref_namespace['sam2'] = sample_name + '_2' + '.sam'
+    ref_namespace['bam'] = sample_name + '.bam'
+    ref_namespace['sorted'] = sample_name + '.sorted'
+    ref_namespace['sorted.bam'] = sample_name + '.sorted.bam'
+    ref_namespace['idxstats'] = sample_name + '.idxstats'
+    ref_namespace['tax_count'] = sample_name + '.tax_count'
+    for element in ref_namespace:
+        if element != 'fastq':
+            ref_namespace[element] = pjoin(out_dir, ref_namespace[element])
+    if map_dir == 'in_situ':
+        ref_namespace['map_count'] = pjoin(out_dir, sample_name + '.map_count')
+    else:
+        ref_namespace['map_count'] = pjoin(map_dir, sample_name + '.map_count')
+    return ref_namespace
+
 
 def fastq_dict(seq_dict, root, plik):
-        if root in seq_dict:
-                seq_dict[root].append(plik)
-        else:
-                seq_dict[root] = [plik]
-        return seq_dict
+    if root in seq_dict:
+        seq_dict[root].append(plik)
+    else:
+        seq_dict[root] = [plik]
+    return seq_dict
+
 
 def paired_end_match(seq_dict):
-        pe_dict = {}
-        for katalog in seq_dict:
-                for seq1, seq2 in combinations(seq_dict[katalog], 2):
-                        seq1_s = set(split(seq1, '_'))
-                        seq2_s = set(split(seq2, '_'))
-                        if seq1_s^seq2_s == set(['R1', 'R2']):
-                                if katalog in pe_dict:
-                                        pe_dict[katalog].append((seq1, seq2))
-                                else:
-                                        pe_dict[katalog] = [(seq1, seq2)]
-        return pe_dict
+    pe_dict = {}
+    for katalog in seq_dict:
+        for seq1, seq2 in combinations(seq_dict[katalog], 2):
+            seq1_s = set(split(seq1, '_'))
+            seq2_s = set(split(seq2, '_'))
+            if seq1_s^seq2_s == set(['R1', 'R2']):
+                if katalog in pe_dict:
+                    pe_dict[katalog].append((seq1, seq2))
+                else:
+                    pe_dict[katalog] = [(seq1, seq2)]
+    return pe_dict
 
 
 def bowtie2_run(mode, proc, ref, out, inp1, inp2=False):
-        if inp2:
-                print 'bowtie2 -p %i -x %s -1 %s -2 %s -S %s'%(proc, ref, inp1, inp2, out)
-                if mode == 'run':
-                        system('bowtie2 -p %i -x %s -1 %s -2 %s -S %s'%(proc, ref, inp1, inp2, out))
-        else:
-                print 'bowtie2 -p %i -x %s -f -U %s -S %s'%(proc, ref, inp1, out)
-                if mode == 'run':
-                        system('bowtie2 -p %i -x %s -f -U %s -S %s'%(proc, ref, inp1, out))
+    if inp2:
+        print 'bowtie2 -p %i -x %s -1 %s -2 %s -S %s'%(proc, ref, inp1, inp2, out)
+        if mode == 'run':
+            system('bowtie2 -p %i -x %s -1 %s -2 %s -S %s'%(proc, ref, inp1, inp2, out))
+    else:
+        print 'bowtie2 -p %i -x %s -f -U %s -S %s'%(proc, ref, inp1, out)
+        if mode == 'run':
+            system('bowtie2 -p %i -x %s -f -U %s -S %s'%(proc, ref, inp1, out))
+
 
 def sam_merge(sam1, sam2):
-        f1 = open(sam1, 'r')
-        f2 = open(sam2, 'r')
+    f1 = open(sam1, 'r')
+    f2 = open(sam2, 'r')
 
-        f1c = f1.readlines()
-        f2c = f2.readlines()
+    f1c = f1.readlines()
+    f2c = f2.readlines()
 
-        f1.close()
-        f2.close()
+    f1.close()
+    f2.close()
 
-        f1c_idx = 0
-        for line in f1c:
-                line = line.rstrip()
-                if line[0] == '@':
-                        f1c_idx +=1
-                
+    f1c_idx = 0
+    for line in f1c:
+        line = line.rstrip()
+        if line[0] == '@':
+            f1c_idx +=1
 
-        f2c_idx = 0
-        for line in f2c:
-                line = line.rstrip()
-                if line[0] == '@':
-                        f2c_idx += 1
+    f2c_idx = 0
+    for line in f2c:
+        line = line.rstrip()
+        if line[0] == '@':
+            f2c_idx += 1
 
+    common = f1c[0:f1c_idx-1] + f2c[1:f2c_idx-1] + [f1c[f1c_idx-1]]
+    cont = f1c[f1c_idx:]+ f2c[f2c_idx:]
 
-        common = f1c[0:f1c_idx-1] + f2c[1:f2c_idx-1] + [f1c[f1c_idx-1]]
-        cont = f1c[f1c_idx:]+ f2c[f2c_idx:]
+    f3 = open(sam1, 'w')
+    f3.write(join(common,''),)
+    f3.write(join(cont, ''),)
+    f3.close()
+    remove_sam2 = 'rm %s'%(sam2)
+    system(remove_sam2)
 
-        f3 = open(sam1, 'w')
-        f3.write(join(common,''),)
-        f3.write(join(cont, ''),)
-        f3.close()
-        remove_sam2 = 'rm %s'%(sam2)
-        system(remove_sam2)
 
 def bam_make(mode, sam, bam): #multi
-        print 'samtools view -bS %s > %s'%(sam, bam)
-        if mode == 'run':
-                system('samtools view -bS %s > %s'%(sam, bam))
+    print 'samtools view -bS %s > %s'%(sam, bam)
+    if mode == 'run':
+        system('samtools view -bS %s > %s'%(sam, bam))
+
 
 def bam_sorting(mode, bam, sorted_name): #multi
-        print 'samtools sort %s %s'%(bam, sorted_name)
-        if mode == 'run':
-                system('samtools sort %s %s'%(bam, sorted_name))
+    print 'samtools sort %s %s'%(bam, sorted_name)
+    if mode == 'run':
+        system('samtools sort %s %s'%(bam, sorted_name))
+
 
 def bam_indexing(mode, sorted_bam): #multi
-        print 'samtools index %s'%(sorted_bam)
-        if mode == 'run':
-                system('samtools index %s'%(sorted_bam))
+    print 'samtools index %s'%(sorted_bam)
+    if mode == 'run':
+        system('samtools index %s'%(sorted_bam))
+
 
 def bam_idxstating(mode, sorted_bam, idxstats): #multi
-        print 'samtools idxstats %s > %s'%(sorted_bam, idxstats)
-        if mode == 'run':
-                system ('samtools idxstats %s > %s'%(sorted_bam, idxstats))
+    print 'samtools idxstats %s > %s'%(sorted_bam, idxstats)
+    if mode == 'run':
+        system ('samtools idxstats %s > %s'%(sorted_bam, idxstats))
+
 
 def idxstat_perling(mode, idxstats, map_count): #multi
-        perl_command = """perl -e 'while(<>){chomp;@a=split "\t", $_; $b+=$a[2]; $c+=$a[3];} print "$b - $c\n";' %s > %s"""%(
-                idxstats, map_count
-                )
-        print perl_command
-        if mode == 'run':
-                system(perl_command)
+    perl_command = """perl -e 'while(<>){chomp;@a=split "\t", $_; $b+=$a[2]; $c+=$a[3];} print "$b - $c\n";' %s > %s"""%(
+        idxstats, map_count
+        )
+    print perl_command
+    if mode == 'run':
+        system(perl_command)
 
 
 def refseq_mapping(mode, e, katalog, pair, postfix, refseq, tax_name_dict, tax_id_dict, threads, map_dir, refseq_2=False):
-        todo = ['bowtie', 'bam_make', 'sort_index', 'idxstat', 'perl', 'idx_map']
-        ref_namespace = refseq_ref_namespace(katalog, pair, postfix, 'in_situ', map_dir)
-        if e:
-                todo = exist_check('refseq', ref_namespace, todo)
-        if 'bowtie' in todo:
-                if type(pair) == tuple:
-                        print "\nAnalysis of %s %s vs %s\n"%(pair[0], pair[1], refseq)
-                        bowtie2_run(mode, threads, refseq, ref_namespace['sam'], ref_namespace['fastq'][0], 
-                                        ref_namespace['fastq'][1])
-                        if refseq_2:
-                                print "\nAnalysis of %s %s vs %s\n"%(pair[0], pair[1], refseq_2)
-                                bowtie2_run(
-                                        mode, threads, refseq_2, ref_namespace['sam2'], ref_namespace['fastq'][0], 
-                                        ref_namespace['fastq'][1]
-                                        )
-                else:
-                        print "\nAnalysis of %s vs %s\n"%(pair, refseq)
-                        bowtie2_run(mode, threads, refseq, ref_namespace['sam'], ref_namespace['fastq'])
-                        if refseq_2:
-                                print "\nAnalysis of %s %s vs %s\n"%(pair[0], pair[1], refseq_2)
-                                bowtie2_run(mode, threads, refseq_2, ref_namespace['sam2'], ref_namespace['fastq'])
-        if 'bam_make' in todo:
-                if refseq_2:
-                        print 'Merging %s and %s'%(ref_namespace['sam'], ref_namespace['sam2'])
-                        if mode == 'run':
-                                sam_merge(ref_namespace['sam'], ref_namespace['sam2'])
-                bam_make(mode, ref_namespace['sam'], ref_namespace['bam'])
-        if 'sort_index' in todo:
-                bam_sorting(mode, ref_namespace['bam'], ref_namespace['sorted'])
-        if 'idxstat' in todo:
-                bam_indexing(mode, ref_namespace['sorted.bam'])
-                bam_idxstating(mode, ref_namespace['sorted.bam'], ref_namespace['idxstats'])
-        if 'perl' in todo:
-                idxstat_perling(mode, ref_namespace['idxstats'], ref_namespace['map_count'])
-        if 'idx_map' in todo:
-                idx_map(mode, ref_namespace['idxstats'], tax_name_dict, tax_id_dict, ref_namespace['tax_count'])
+    todo = ['bowtie', 'bam_make', 'sort_index', 'idxstat', 'perl', 'idx_map']
+    ref_namespace = refseq_ref_namespace(katalog, pair, postfix, 'in_situ', map_dir)
+    if e:
+        todo = exist_check('refseq', ref_namespace, todo)
+    if 'bowtie' in todo:
+        if type(pair) == tuple:
+            print "\nAnalysis of %s %s vs %s\n"%(pair[0], pair[1], refseq)
+            bowtie2_run(mode, threads, refseq, ref_namespace['sam'], ref_namespace['fastq'][0],
+                    ref_namespace['fastq'][1])
+            if refseq_2:
+                print "\nAnalysis of %s %s vs %s\n"%(pair[0], pair[1], refseq_2)
+                bowtie2_run(
+                    mode, threads, refseq_2, ref_namespace['sam2'], ref_namespace['fastq'][0],
+                    ref_namespace['fastq'][1]
+                    )
+        else:
+            print "\nAnalysis of %s vs %s\n"%(pair, refseq)
+            bowtie2_run(mode, threads, refseq, ref_namespace['sam'], ref_namespace['fastq'])
+            if refseq_2:
+                print "\nAnalysis of %s %s vs %s\n"%(pair[0], pair[1], refseq_2)
+                bowtie2_run(mode, threads, refseq_2, ref_namespace['sam2'], ref_namespace['fastq'])
+    if 'bam_make' in todo:
+        if refseq_2:
+            print 'Merging %s and %s'%(ref_namespace['sam'], ref_namespace['sam2'])
+            if mode == 'run':
+                sam_merge(ref_namespace['sam'], ref_namespace['sam2'])
+        bam_make(mode, ref_namespace['sam'], ref_namespace['bam'])
+    if 'sort_index' in todo:
+        bam_sorting(mode, ref_namespace['bam'], ref_namespace['sorted'])
+    if 'idxstat' in todo:
+        bam_indexing(mode, ref_namespace['sorted.bam'])
+        bam_idxstating(mode, ref_namespace['sorted.bam'], ref_namespace['idxstats'])
+    if 'perl' in todo:
+        idxstat_perling(mode, ref_namespace['idxstats'], ref_namespace['map_count'])
+    if 'idx_map' in todo:
+        idx_map(mode, ref_namespace['idxstats'], tax_name_dict, tax_id_dict, ref_namespace['tax_count'])
+
 
 def ins_len_read(pair, cat):
-        sample_name = pair[0]
-        zeros= find(sample_name, '00') #WARNING HARDCODE 
-        try:
-            ins_len = int(sample_name[zeros-1:zeros+2])
-        except:
-            aqq = len(open(pjoin(cat,sample_name), 'r').readlines()[1].rstrip())
-            if aqq > 200:
-                ins_len = 500
-            else:
-                ins_len = 200
-        return ins_len
-        
+    sample_name = pair[0]
+    zeros= find(sample_name, '00') #WARNING HARDCODE
+    try:
+        ins_len = int(sample_name[zeros-1:zeros+2])
+    except:
+        aqq = len(open(pjoin(cat,sample_name), 'r').readlines()[1].rstrip())
+        if aqq > 200:
+            ins_len = 500
+        else:
+            ins_len = 200
+    return ins_len
+
 
 def gzip_MV(MV_dir):
-        gzip_list = [
-                'Sequences' ,'Roadmaps', 'PreGraph', 'Graph2', 'contigs.fa' , 'stats.txt',  'LastGraph', 
-                'meta-velvetg.Graph2-stats.txt', 'meta-velvetg.LastGraph', 'meta-velvetg.LastGraph-stats.txt', 
-                'meta-velvetg.split-stats.txt'
-                ]
-        to_gzip = ''
-        for element in gzip_list:
-                to_gzip += ' %s'%(pjoin(MV_dir, element))
-                to_gzip_comm = 'tar --remove-files -czf %s %s'%(pjoin(MV_dir, 'intermediates.tgz'), to_gzip)
-                system(to_gzip_comm)
-                
+    gzip_list = [
+        'Sequences' ,'Roadmaps', 'PreGraph', 'Graph2', 'contigs.fa' , 'stats.txt',  'LastGraph',
+        'meta-velvetg.Graph2-stats.txt', 'meta-velvetg.LastGraph', 'meta-velvetg.LastGraph-stats.txt',
+        'meta-velvetg.split-stats.txt'
+        ]
+    to_gzip = ''
+    for element in gzip_list:
+        to_gzip += ' %s'%(pjoin(MV_dir, element))
+        to_gzip_comm = 'tar --remove-files -czf %s %s'%(pjoin(MV_dir, 'intermediates.tgz'), to_gzip)
+        system(to_gzip_comm)
+
+
 def rapsearch(mode, e, contig_loc, rap_out, KEGG=None):
-        rap_log = rap_out + '.log'
-        rap_err = rap_out + '.err'
-        rap_loc = '/home/pszczesny/soft/RAPSearch2.12_64bits/bin/rapsearch'
-        if KEGG == 'masl28282828282828282828282828282828282828282828282828282828':
-            ref_prot_loc = '/home/pszczesny/storage/workingdata/rapsearch/masl28'
-            rap_com = '%s -q %s -d %s -o %s -z 12 -v 20 -b 1 -t n -a t 1> %s 2> %s'%(
-                rap_loc, contig_loc, ref_prot_loc, rap_out, rap_log, rap_err
-                )
-        elif KEGG == 'KO':
-            ref_prot_loc = '/home/pszczesny/soft/KEGG/ko.pep.rapsearch.db'
-            rap_com = '%s -q %s -d %s -o %s -z 12 -v 20 -b 1 -t n -a t 1> %s 2> %s'%(
-                rap_loc, contig_loc, ref_prot_loc, rap_out, rap_log, rap_err
-                )
-        else:
-            ref_prot_loc = '/home/pszczesny/workingdata/refseq/protein/refseq_protein'
-            rap_com = '%s -q %s -d %s  -o %s -z 10 -e 0.001 -b 100 -v 100 -g T -a T 1> %s 2> %s'%(
-                rap_loc, contig_loc, ref_prot_loc, rap_out, rap_log, rap_err
-                )
-        print rap_com
-        todo = [rap_com]
-        if e:
-                todo = exist_check('rapsearch', rap_out, todo)
-        if (mode == 'run') and (len(todo) != 0):
-                system(rap_com)
+    rap_log = rap_out + '.log'
+    rap_err = rap_out + '.err'
+    rap_loc = '/home/pszczesny/soft/RAPSearch2.12_64bits/bin/rapsearch'
+    if KEGG == 'masl28282828282828282828282828282828282828282828282828282828':
+        ref_prot_loc = '/home/pszczesny/storage/workingdata/rapsearch/masl28'
+        rap_com = '%s -q %s -d %s -o %s -z 12 -v 20 -b 1 -t n -a t 1> %s 2> %s'%(
+            rap_loc, contig_loc, ref_prot_loc, rap_out, rap_log, rap_err
+            )
+    elif KEGG == 'KO':
+        ref_prot_loc = '/home/pszczesny/soft/KEGG/ko.pep.rapsearch.db'
+        rap_com = '%s -q %s -d %s -o %s -z 12 -v 20 -b 1 -t n -a t 1> %s 2> %s'%(
+            rap_loc, contig_loc, ref_prot_loc, rap_out, rap_log, rap_err
+            )
+    else:
+        ref_prot_loc = '/home/pszczesny/workingdata/refseq/protein/refseq_protein'
+        rap_com = '%s -q %s -d %s  -o %s -z 10 -e 0.001 -b 100 -v 100 -g T -a T 1> %s 2> %s'%(
+            rap_loc, contig_loc, ref_prot_loc, rap_out, rap_log, rap_err
+            )
+    print rap_com
+    todo = [rap_com]
+    if e:
+        todo = exist_check('rapsearch', rap_out, todo)
+    if (mode == 'run') and (len(todo) != 0):
+        system(rap_com)
+
 
 def MV(mode, e, k_mers, cat, pair, ins_len, rap=False):
-        fileext = '.'.join(split(pair[0], '.')[1:])
-        if ins_len == 9999:
-                ins_len = ins_len_read(pair, cat)
-        out_dir_local = pair_uni_name(pair) + '_velvh_out'
-        out_dir = pjoin(cat, out_dir_local)
-        if len(k_mers) == 1:
-                k_min = int(k_mers[0])
-                k_max = int(k_min)+1
-                k_step = 2
-        elif len(k_mers) == 2:
-                k_min = int(k_mers[0])
-                k_max = int(k_mers[1])
-                k_step = 2
-        elif len(k_mers) == 3:
-                k_min = int(k_mers[0])
-                k_max = int(k_mers[1])
-                k_step = int(k_mers[2])
-        else:
-                k_min = 31
-                k_max = 32
-                k_step = 1
-        if k_min > k_max:
-                k_min, k_max = k_max, k_min
-        elif k_min == k_max:
-                k_max += 1
-        else:
-                pass
-        for idx in xrange(k_min, k_max, k_step):
-                todo = ['velveth', 'velvetg', 'meta']
-                tmp_out_dir = out_dir + '_k-mer_' + str(idx)
-                log_loc = tmp_out_dir + '/logfile'
-                velveth_run = 'velveth %s %i -%s -shortPaired %s %s'%(
-                        tmp_out_dir, idx, fileext, pjoin(cat, pair[0]), pjoin(cat, pair[1])
-                        )
-                velvetg_run = 'velvetg %s -exp_cov auto -ins_length %i'%(tmp_out_dir, ins_len)
-                meta_run = 'meta-velvetg %s -ins_length %i | tee %s'%(tmp_out_dir, ins_len, log_loc)
-                print velveth_run, '\n', velvetg_run, '\n', meta_run
-                if e:
-                        filelist = [pjoin(tmp_out_dir, 'meta-velvetg.contigs.fa')]
-                        filelist.append(pjoin(tmp_out_dir, 'intermediates.tgz'))
-                        filelist.append(pjoin(tmp_out_dir, 'Sequences'))
-                        filelist.append(pjoin(tmp_out_dir, 'Roadmaps'))
-                        filelist.append(pjoin(tmp_out_dir, 'Log'))
-                        filelist.append(pjoin(tmp_out_dir, 'contigs.fa'))
-                        filelist.append(pjoin(tmp_out_dir, 'Graph2'))
-                        filelist.append(pjoin(tmp_out_dir, 'LastGraph'))
-                        filelist.append(pjoin(tmp_out_dir, 'stats.txt'))
-                        todo = exist_check('MV', filelist, todo) 
-                if mode == 'run':
-                        if 'velveth' in todo:
-                                system(velveth_run)
-                        if 'velvetg' in todo:
-                                system(velvetg_run)
-                        if 'meta' in todo:
-                                system(meta_run)
-                        gzip_MV(tmp_out_dir)
-                if rap:
-                        rap_in = pjoin(tmp_out_dir, 'meta-velvetg.contigs.fa')
-                        rap_f =  pair_uni_name(pair) + '.rapsearch'
-                        rap_out = pjoin(tmp_out_dir, rap_f)
-                        rapsearch(mode, e, rap_in,  rap_out)
+    fileext = '.'.join(split(pair[0], '.')[1:])
+    if ins_len == 9999:
+        ins_len = ins_len_read(pair, cat)
+    out_dir_local = pair_uni_name(pair) + '_velvh_out'
+    out_dir = pjoin(cat, out_dir_local)
+    if len(k_mers) == 1:
+        k_min = int(k_mers[0])
+        k_max = int(k_min)+1
+        k_step = 2
+    elif len(k_mers) == 2:
+        k_min = int(k_mers[0])
+        k_max = int(k_mers[1])
+        k_step = 2
+    elif len(k_mers) == 3:
+        k_min = int(k_mers[0])
+        k_max = int(k_mers[1])
+        k_step = int(k_mers[2])
+    else:
+        k_min = 31
+        k_max = 32
+        k_step = 1
+    if k_min > k_max:
+        k_min, k_max = k_max, k_min
+    elif k_min == k_max:
+        k_max += 1
+    else:
+        pass
+    for idx in xrange(k_min, k_max, k_step):
+        todo = ['velveth', 'velvetg', 'meta']
+        tmp_out_dir = out_dir + '_k-mer_' + str(idx)
+        log_loc = tmp_out_dir + '/logfile'
+        velveth_run = 'velveth %s %i -%s -shortPaired %s %s'%(
+            tmp_out_dir, idx, fileext, pjoin(cat, pair[0]), pjoin(cat, pair[1])
+            )
+        velvetg_run = 'velvetg %s -exp_cov auto -ins_length %i'%(tmp_out_dir, ins_len)
+        meta_run = 'meta-velvetg %s -ins_length %i | tee %s'%(tmp_out_dir, ins_len, log_loc)
+        print velveth_run, '\n', velvetg_run, '\n', meta_run
+        if e:
+            filelist = [pjoin(tmp_out_dir, 'meta-velvetg.contigs.fa')]
+            filelist.append(pjoin(tmp_out_dir, 'intermediates.tgz'))
+            filelist.append(pjoin(tmp_out_dir, 'Sequences'))
+            filelist.append(pjoin(tmp_out_dir, 'Roadmaps'))
+            filelist.append(pjoin(tmp_out_dir, 'Log'))
+            filelist.append(pjoin(tmp_out_dir, 'contigs.fa'))
+            filelist.append(pjoin(tmp_out_dir, 'Graph2'))
+            filelist.append(pjoin(tmp_out_dir, 'LastGraph'))
+            filelist.append(pjoin(tmp_out_dir, 'stats.txt'))
+            todo = exist_check('MV', filelist, todo)
+        if mode == 'run':
+            if 'velveth' in todo:
+                system(velveth_run)
+            if 'velvetg' in todo:
+                system(velvetg_run)
+            if 'meta' in todo:
+                system(meta_run)
+            gzip_MV(tmp_out_dir)
+        if rap:
+            rap_in = pjoin(tmp_out_dir, 'meta-velvetg.contigs.fa')
+            rap_f =  pair_uni_name(pair) + '.rapsearch'
+            rap_out = pjoin(tmp_out_dir, rap_f)
+            rapsearch(mode, e, rap_in,  rap_out)
 
 
 def usearch(mode, e, search_type, infile, database, outdir, threads):
-        usearch_loc = '/home/pszczesny/soft/usearch' 
-        outfile = infile + '.usearch_' + search_type
-        usearch_command = '%s -usearch_local %s -db %s -evalue 0.01 -id 0.9 -blast6out %s -strand both -threads %i'%(
-                usearch_loc, infile, database, outfile, threads
-                )
-        todo = ['usearch']
-        print usearch_command
-        if e:
-                todo = exist_check('usearch', outfile, todo)
-        todo = exist_check('usearch_0', infile, todo)
-        if (mode == 'run') and (len(todo) != 0):
-                system(usearch_command)
+    usearch_loc = '/home/pszczesny/soft/usearch'
+    outfile = infile + '.usearch_' + search_type
+    usearch_command = '%s -usearch_local %s -db %s -evalue 0.01 -id 0.9 -blast6out %s -strand both -threads %i'%(
+        usearch_loc, infile, database, outfile, threads
+        )
+    todo = ['usearch']
+    print usearch_command
+    if e:
+        todo = exist_check('usearch', outfile, todo)
+    todo = exist_check('usearch_0', infile, todo)
+    if (mode == 'run') and (len(todo) != 0):
+        system(usearch_command)
+
 
 def adapter_read_bck(adapter_file, filename):
-        with open(adapter_file, 'r') as plik:
-                content = plik.readlines()
-                for linia in content:
-                        if linia:
-                                fastqname, adap1, adap2 = split(linia)
-                                if fastqname == filename:
-                                        fin_adap_1, fin_adap_2 = adap1, adap2
-                                else:   
-                                        print filename, fastqname
-                                        pass
-        return fin_adap_1, fin_adap_2
+    with open(adapter_file, 'r') as plik:
+        content = plik.readlines()
+        for linia in content:
+            if linia:
+                fastqname, adap1, adap2 = split(linia)
+                if fastqname == filename:
+                    fin_adap_1, fin_adap_2 = adap1, adap2
+                else:
+                    print filename, fastqname
+                    pass
+    return fin_adap_1, fin_adap_2
+
 
 def adapter_read(filename):
     adp_1 = 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT'
@@ -504,99 +521,102 @@ def adapter_read(filename):
     adp_2 = adp_2.replace('NNNNNN', identifier)
     return adp_1, adp_2
 
+
 def cutadapt(mode, e, cat, R1_file, R2_file, adapter_file, usearch_16S=False, usearch_ITS=False, threads=False):
-        R1_fastq = pjoin(cat, R1_file)
-        R2_fastq = pjoin(cat, R2_file)
-        if adapter_file == 'use_filenames': #WARNING HARDCODE 
-            adapter_1, adapter_2 = adapter_read(R1_file)
-        else:
-            adapter_1, adapter_2 = adapter_read_bck(adapter_file, R1_file)
-        outname_1 = '.'.join(split(R1_fastq, '.')[:-1]) + '.cutadapt.fastq'
-        outname_2 = '.'.join(split(R2_fastq, '.')[:-1]) + '.cutadapt.fastq'
-        outname_uni_fastq_preflash = pair_uni_name([R1_file])+ '.amplicons.cutadapt.flash.merged.fastq'
-        outname_uni_fastq_postflash = outname_uni_fastq_preflash + '.extendedFrags.fastq'
-        outname_uni_fasta = outname_uni_fastq_postflash[:-1] + 'a'
-        names = [(outname_1, R1_fastq), (outname_2, R2_fastq)]
-        outnames = [outname_1, outname_2, outname_uni_fastq_postflash, outname_uni_fasta]
-        todo = ['cutadapt0', 'cutadapt1', 'flash', 'fq2fa']
-        if e:
-                todo = exist_check('cutadapt', outnames, todo) 
-        for idx in xrange(len(names)):
-                cut_com = 'cutadapt -b %s -b %s -o %s %s'%(adapter_1, adapter_2, names[idx][0], names[idx][1])
-                print cut_com
-                if (mode == 'run') and ('cutadapt' + str(idx) in todo):
-                        system(cut_com)
-        flash_com = 'flash %s %s -o %s'%(outname_1, outname_2, outname_uni_fastq_preflash)
-        print flash_com
-        if 'flash' in todo and mode == 'run':
-                system(flash_com)
-        fq2fa_com = '/usr/local/bioinformatics/fastx_toolkit/bin/fastq_to_fasta < %s > %s -Q33'%(outname_uni_fastq_postflash, outname_uni_fasta)
-        print fq2fa_com
-        if 'fq2fa' in todo and mode == 'run':
-                system(fq2fa_com)
-        if usearch_16S:
-                usearch(mode, e, '16S', outname_uni_fasta, usearch_16S, cat, threads)
-        if usearch_ITS:
-                usearch(mode, e, 'ITS', outname_uni_fasta, usearch_ITS, cat, threads)
+    R1_fastq = pjoin(cat, R1_file)
+    R2_fastq = pjoin(cat, R2_file)
+    if adapter_file == 'use_filenames': #WARNING HARDCODE
+        adapter_1, adapter_2 = adapter_read(R1_file)
+    else:
+        adapter_1, adapter_2 = adapter_read_bck(adapter_file, R1_file)
+    outname_1 = '.'.join(split(R1_fastq, '.')[:-1]) + '.cutadapt.fastq'
+    outname_2 = '.'.join(split(R2_fastq, '.')[:-1]) + '.cutadapt.fastq'
+    outname_uni_fastq_preflash = pair_uni_name([R1_file])+ '.amplicons.cutadapt.flash.merged.fastq'
+    outname_uni_fastq_postflash = outname_uni_fastq_preflash + '.extendedFrags.fastq'
+    outname_uni_fasta = outname_uni_fastq_postflash[:-1] + 'a'
+    names = [(outname_1, R1_fastq), (outname_2, R2_fastq)]
+    outnames = [outname_1, outname_2, outname_uni_fastq_postflash, outname_uni_fasta]
+    todo = ['cutadapt0', 'cutadapt1', 'flash', 'fq2fa']
+    if e:
+        todo = exist_check('cutadapt', outnames, todo)
+    for idx in xrange(len(names)):
+        cut_com = 'cutadapt -b %s -b %s -o %s %s'%(adapter_1, adapter_2, names[idx][0], names[idx][1])
+        print cut_com
+        if (mode == 'run') and ('cutadapt' + str(idx) in todo):
+            system(cut_com)
+    flash_com = 'flash %s %s -o %s'%(outname_1, outname_2, outname_uni_fastq_preflash)
+    print flash_com
+    if 'flash' in todo and mode == 'run':
+        system(flash_com)
+    fq2fa_com = '/usr/local/bioinformatics/fastx_toolkit/bin/fastq_to_fasta < %s > %s -Q33'%(outname_uni_fastq_postflash, outname_uni_fasta)
+    print fq2fa_com
+    if 'fq2fa' in todo and mode == 'run':
+        system(fq2fa_com)
+    if usearch_16S:
+        usearch(mode, e, '16S', outname_uni_fasta, usearch_16S, cat, threads)
+    if usearch_ITS:
+        usearch(mode, e, 'ITS', outname_uni_fasta, usearch_ITS, cat, threads)
+
 
 def auto_tax_read(db_loc):
-        with open(db_loc, 'rb') as fp:
-                tax_names = pickle.load(fp)
-                tax_id = pickle.load(fp)
-        fp.close()
-        return tax_id, tax_names
+    with open(db_loc, 'rb') as fp:
+        tax_names = pickle.load(fp)
+        tax_id = pickle.load(fp)
+    fp.close()
+    return tax_id, tax_names
+
 
 def taxa_read(read_mode, db_loc=None):
-        if read_mode == 'manual':
-                tax_id_start = datetime.now()
-                tax_id_dict = tax_id_reader()
-                tax_name_start = datetime.now()
-                print 'tax_ids read in ', str(tax_name_start - tax_id_start)
-                tax_name_dict = tax_name_reader()
-                tax_name_end = datetime.now()
-                print 'tax_names read in ', str(tax_name_end - tax_name_start)
-        else:
-                tax_id_dict, tax_name_dict = auto_tax_read(db_loc)
-        return tax_id_dict, tax_name_dict
+    if read_mode == 'manual':
+        tax_id_start = datetime.now()
+        tax_id_dict = tax_id_reader()
+        tax_name_start = datetime.now()
+        print 'tax_ids read in ', str(tax_name_start - tax_id_start)
+        tax_name_dict = tax_name_reader()
+        tax_name_end = datetime.now()
+        print 'tax_names read in ', str(tax_name_end - tax_name_start)
+    else:
+        tax_id_dict, tax_name_dict = auto_tax_read(db_loc)
+    return tax_id_dict, tax_name_dict
 
 
 def reconstruct(mode, thr, e, pair, cat, prefix, rec_db_loc):
-        tmp_loc = '/tmp/' + '_'.join(str(datetime.now()).split())
-        mkdir = "mkdir %s"%(tmp_loc)
-        fq1 = pjoin(cat, pair[0])
-        fq2 = pjoin(cat, pair[1])
-        reads_fastq = pjoin(tmp_loc, 'reads.fastq')
-        merge = "cat %s %s > %s"%(fq1, fq2, reads_fastq)
-        reads_sai = pjoin(tmp_loc, 'reads.sai')
-        bwa_aln_com = "bwa aln -t %i %s %s > %s"%(thr, rec_db_loc, reads_fastq, reads_sai)
-        alnsam = pjoin(tmp_loc, 'aln.sam')
-        bwa_samse_com = "bwa samse %s %s %s > %s"%(rec_db_loc, reads_sai, reads_fastq, alnsam)
-        alnbam = pjoin(tmp_loc, 'aln.bam')
-        alnsrt = pjoin(tmp_loc, 'aln.sorted')
-        alnsrtbam = pjoin(tmp_loc, 'aln.sorted.bam')
-        if prefix[-1] != '_':
-                prefix = prefix+'_'
-        alnfastq = pjoin(cat, prefix + 'aln.fastq')
-        pile_com = "samtools mpileup -uf %s %s |bcftools view -cg - |vcfutils.pl vcf2fq > %s"%(rec_db_loc, alnsrtbam, alnfastq)
-        rm_tmp = "rm -rf %s"%(tmp_loc)
+    tmp_loc = '/tmp/' + '_'.join(str(datetime.now()).split())
+    mkdir = "mkdir %s"%(tmp_loc)
+    fq1 = pjoin(cat, pair[0])
+    fq2 = pjoin(cat, pair[1])
+    reads_fastq = pjoin(tmp_loc, 'reads.fastq')
+    merge = "cat %s %s > %s"%(fq1, fq2, reads_fastq)
+    reads_sai = pjoin(tmp_loc, 'reads.sai')
+    bwa_aln_com = "bwa aln -t %i %s %s > %s"%(thr, rec_db_loc, reads_fastq, reads_sai)
+    alnsam = pjoin(tmp_loc, 'aln.sam')
+    bwa_samse_com = "bwa samse %s %s %s > %s"%(rec_db_loc, reads_sai, reads_fastq, alnsam)
+    alnbam = pjoin(tmp_loc, 'aln.bam')
+    alnsrt = pjoin(tmp_loc, 'aln.sorted')
+    alnsrtbam = pjoin(tmp_loc, 'aln.sorted.bam')
+    if prefix[-1] != '_':
+        prefix = prefix+'_'
+    alnfastq = pjoin(cat, prefix + 'aln.fastq')
+    pile_com = "samtools mpileup -uf %s %s |bcftools view -cg - |vcfutils.pl vcf2fq > %s"%(rec_db_loc, alnsrtbam, alnfastq)
+    rm_tmp = "rm -rf %s"%(tmp_loc)
 
-        print "%s"%(mkdir)
-        system("%s"%(mkdir))
-        print "%s"%(merge)
-        print "%s"%(bwa_aln_com)
-        print "%s"%(bwa_samse_com)
-        if mode == 'run':
-                system("%s"%(merge))
-                system("%s"%(bwa_aln_com))
-                system("%s"%(bwa_samse_com))
-        bam_make(mode, alnsam, alnbam)
-        bam_sorting(mode, alnbam, alnsrt)
-        bam_indexing(mode, alnsrtbam)
-        print "%s"%(pile_com)
-        if mode == 'run':
-                system("%s"%(pile_com))
-        print "%s"%(rm_tmp)
-        system("%s"%(rm_tmp))
+    print "%s"%(mkdir)
+    system("%s"%(mkdir))
+    print "%s"%(merge)
+    print "%s"%(bwa_aln_com)
+    print "%s"%(bwa_samse_com)
+    if mode == 'run':
+        system("%s"%(merge))
+        system("%s"%(bwa_aln_com))
+        system("%s"%(bwa_samse_com))
+    bam_make(mode, alnsam, alnbam)
+    bam_sorting(mode, alnbam, alnsrt)
+    bam_indexing(mode, alnsrtbam)
+    print "%s"%(pile_com)
+    if mode == 'run':
+        system("%s"%(pile_com))
+    print "%s"%(rm_tmp)
+    system("%s"%(rm_tmp))
 
 
 def humann(mode, e, m8_dict, typ='m8'):
@@ -642,174 +662,177 @@ def humann(mode, e, m8_dict, typ='m8'):
             system(hmp_get_comm)
             system(humann_comm)
 
+
 def sample(opts):
-        if opts.to_calculate == None:
-                opts.to_calculate = []
-        refseq_test = len(set(['f', 'b', 'p'])&set(opts.to_calculate))
-        if (refseq_test > 0) and opts.mode == 'run':
-                if pexists(opts.db_NCBI_taxonomy):
-                        tax_id_dict, tax_name_dict = taxa_read('auto', opts.db_NCBI_taxonomy)
-                else:
-                        tax_id_dict, tax_name_dict = taxa_read('manual')
+    if opts.to_calculate == None:
+        opts.to_calculate = []
+    refseq_test = len(set(['f', 'b', 'p'])&set(opts.to_calculate))
+    if (refseq_test > 0) and opts.mode == 'run':
+        if pexists(opts.db_NCBI_taxonomy):
+            tax_id_dict, tax_name_dict = taxa_read('auto', opts.db_NCBI_taxonomy)
         else:
-                tax_id_dict = tax_name_dict = {}
+            tax_id_dict, tax_name_dict = taxa_read('manual')
+    else:
+        tax_id_dict = tax_name_dict = {}
+    fastq_dict = cat_read(opts.mode, 'fastq')
+    for cat in fastq_dict:
+        for pair in fastq_dict[cat]:
+            if opts.reconstruct:
+                reconstruct(opts.mode, opts.threads, opts.e, pair, cat, opts.reconstruct, opts.db_reconstruct)
+            if opts.MV != None:
+                if 'rap_prot' in opts.to_calculate:
+                    MV(opts.mode, opts.e, opts.MV, cat, pair, opts.ins_len, 1)
+                else:
+                    MV(opts.mode, opts.e, opts.MV, cat, pair, opts.ins_len)
+            if ('f' in opts.to_calculate) or ('b' in opts.to_calculate):
+                postfix = opts.postfix + 'fungi'
+                refseq_mapping(
+                    opts.mode, opts.e, cat, pair, postfix, opts.db_refseq[0], tax_name_dict, tax_id_dict,
+                    opts.threads, opts.out_dir
+                    )
+            if ('p' in opts.to_calculate) or ('b' in opts.to_calculate):
+                postfix = opts.postfix + 'plant'
+                refseq_mapping(
+                    opts.mode, opts.e, cat, pair, postfix, opts.db_refseq[1], tax_name_dict,
+                    tax_id_dict, opts.threads, opts.out_dir, opts.db_refseq[2]
+                    )
+            if opts.cutadapt != '':
+                if ('both' in opts.cutadapt) or (('16S' in opts.cutadapt) and ('ITS' in opts.cutadapt)):
+                    cutadapt(opts.mode, opts.e, cat, pair[0], pair[1], opts.cutadapt[0],
+                        opts.db_16S, opts.db_ITS, opts.threads
+                        )
+                elif '16S' in opts.cutadapt:
+                    cutadapt(opts.mode, opts.e, cat, pair[0], pair[1], opts.cutadapt[0],
+                        opts.db_16S, False, opts.threads
+                        )
+                elif 'ITS' in opts.cutadapt:
+                    cutadapt(opts.mode, opts.e, cat, pair[0], pair[1], opts.cutadapt[0],
+                        False, opts.db_ITS, opts.threads
+                        )
+                else:
+                    cutadapt(opts.mode, opts.e, cat, pair[0], pair[1], opts.cutadapt[0])
+
+    if opts.MV != None:
+        contig_dict = cat_read(opts.mode, 'fa', False)
+        for cat in contig_dict:
+            for contig in contig_dict[cat]:
+                if ('f' in opts.to_calculate) or ('b' in opts.to_calculate):
+                    postfix = opts.postfix + 'fungi'
+                    refseq_mapping(
+                        opts.mode, opts.e, cat, contig, postfix, opts.db_refseq[0], tax_name_dict,
+                        tax_id_dict, opts.threads, opts.out_dir
+                        )
+                if ('p' in opts.to_calculate) or ('b' in opts.to_calculate):
+                    postfix = opts.postfix + 'plant'
+                    refseq_mapping(
+                        opts.mode, opts.e, cat, contig, postfix, opts.db_refseq[1], tax_name_dict,
+                        tax_id_dict, opts.threads, opts.out_dir, opts.db_refseq[2]
+                        )
+    else:
+        if 'rap_prot' in opts.to_calculate:
+            contig_dict = cat_read(opts.mode, 'contigs.fa', False)
+            for cat in contig_dict:
+                for contig in contig_dict[cat]:
+                    rap_in = pjoin(cat, contig)
+                    rap_out = pjoin(cat, split(cat, '/')[-1] + '.rapsearch')
+                    rapsearch(opts.mode, opts.e, rap_in,  rap_out)
+
+    if ('rap_KEGG' in opts.to_calculate) or ('rap_KO' in opts.to_calculate):
         fastq_dict = cat_read(opts.mode, 'fastq')
-        for cat in fastq_dict:
-                for pair in fastq_dict[cat]:
-                        if opts.reconstruct:
-                                reconstruct(opts.mode, opts.threads, opts.e, pair, cat, opts.reconstruct, opts.db_reconstruct)
-                        if opts.MV != None:
-                                if 'rap_prot' in opts.to_calculate:
-                                        MV(opts.mode, opts.e, opts.MV, cat, pair, opts.ins_len, 1)
-                                else:
-                                        MV(opts.mode, opts.e, opts.MV, cat, pair, opts.ins_len)
-                        if ('f' in opts.to_calculate) or ('b' in opts.to_calculate):
-                                postfix = opts.postfix + 'fungi'
-                                refseq_mapping(
-                                        opts.mode, opts.e, cat, pair, postfix, opts.db_refseq[0], tax_name_dict, tax_id_dict,
-                                        opts.threads, opts.out_dir
-                                        )
-                        if ('p' in opts.to_calculate) or ('b' in opts.to_calculate):
-                                postfix = opts.postfix + 'plant'
-                                refseq_mapping(
-                                        opts.mode, opts.e, cat, pair, postfix, opts.db_refseq[1], tax_name_dict, 
-                                        tax_id_dict, opts.threads, opts.out_dir, opts.db_refseq[2]
-                                        )
-                        if opts.cutadapt != '':
-                                if ('both' in opts.cutadapt) or (('16S' in opts.cutadapt) and ('ITS' in opts.cutadapt)):
-                                        cutadapt(opts.mode, opts.e, cat, pair[0], pair[1], opts.cutadapt[0], 
-                                                opts.db_16S, opts.db_ITS, opts.threads
-                                                )
-                                elif '16S' in opts.cutadapt:
-                                        cutadapt(opts.mode, opts.e, cat, pair[0], pair[1], opts.cutadapt[0], 
-                                                opts.db_16S, False, opts.threads
-                                                )
-                                elif 'ITS' in opts.cutadapt:
-                                        cutadapt(opts.mode, opts.e, cat, pair[0], pair[1], opts.cutadapt[0], 
-                                                False, opts.db_ITS, opts.threads
-                                                )
-                                else:
-                                        cutadapt(opts.mode, opts.e, cat, pair[0], pair[1], opts.cutadapt[0])
-
-        if opts.MV != None:
-                contig_dict = cat_read(opts.mode, 'fa', False)
-                for cat in contig_dict:
-                        for contig in contig_dict[cat]:
-                                if ('f' in opts.to_calculate) or ('b' in opts.to_calculate):
-                                        postfix = opts.postfix + 'fungi'
-                                        refseq_mapping(
-                                                opts.mode, opts.e, cat, contig, postfix, opts.db_refseq[0], tax_name_dict, 
-                                                tax_id_dict, opts.threads, opts.out_dir
-                                                )       
-                                if ('p' in opts.to_calculate) or ('b' in opts.to_calculate):
-                                        postfix = opts.postfix + 'plant'
-                                        refseq_mapping(
-                                                opts.mode, opts.e, cat, contig, postfix, opts.db_refseq[1], tax_name_dict,
-                                                tax_id_dict, opts.threads, opts.out_dir, opts.db_refseq[2]
-                                                )
-        else:
-            if 'rap_prot' in opts.to_calculate:
-                    contig_dict = cat_read(opts.mode, 'contigs.fa', False)
-                    for cat in contig_dict:
-                            for contig in contig_dict[cat]:
-                                    rap_in = pjoin(cat, contig)
-                                    rap_out = pjoin(cat, split(cat, '/')[-1] + '.rapsearch')
-                                    rapsearch(opts.mode, opts.e, rap_in,  rap_out)
-
-        if ('rap_KEGG' in opts.to_calculate) or ('rap_KO' in opts.to_calculate):
-            fastq_dict = cat_read(opts.mode, 'fastq')
-            fasta_dict = {}
-            for path in fastq_dict:
-                fasta_dict[path] = []
-                for fastq_pair in fastq_dict[path]:
-                    for fastq in fastq_pair:
-                        fasta = fastq[:-1] + 'a'
-                        flag = True
-                        if opts.e:
-                            if pexists(pjoin(path, fasta)):
-                                print 'Found %s'%(pjoin(fasta)) 
-                                flag = None
-                        if flag:
-                            fq2fa_com = '/usr/local/bioinformatics/fastx_toolkit/bin/fastq_to_fasta < %s > %s -Q33'%(pjoin(path, fastq), pjoin(path, fasta))
-                            print fq2fa_com
-                            if opts.mode == 'run':
-                                system(fq2fa_com)
-                        fasta_dict[path].append(fasta)
-            rap_paths = []
-            for path in fasta_dict:
-                # WARNING!!! HARDCODE
-                if 'seq' in path:
-                    new_path = '_'.join(split(path,'_')[:-1])
-                    if pexists(new_path):
-                        pass
-                    else:
-                        system('mkdir %s'%(new_path))
-                else:
-                    new_path = path
-                rap_in =  pjoin(new_path, 'tmp.fasta')
-                rap_out = pjoin(new_path, split(new_path, '/')[-1]+'.txt')
-                rap_paths.append((rap_in, rap_out))
-                for fasta in fasta_dict[path]:
+        fasta_dict = {}
+        for path in fastq_dict:
+            fasta_dict[path] = []
+            for fastq_pair in fastq_dict[path]:
+                for fastq in fastq_pair:
+                    fasta = fastq[:-1] + 'a'
                     flag = True
                     if opts.e:
-                        if pexists(rap_in):
-                            print 'Found %s'%(rap_in)
-                            flag = False
+                        if pexists(pjoin(path, fasta)):
+                            print 'Found %s'%(pjoin(fasta))
+                            flag = None
                     if flag:
-                        cat_com = 'cat %s >> %s'%(pjoin(path, fasta), rap_in)
-                        print cat_com
+                        fq2fa_com = '/usr/local/bioinformatics/fastx_toolkit/bin/fastq_to_fasta < %s > %s -Q33'%(pjoin(path, fastq), pjoin(path, fasta))
+                        print fq2fa_com
                         if opts.mode == 'run':
-                            system(cat_com)
-            if 'rap_KEGG' in opts.to_calculate:
-                kegg_db = 'masl'
-            else: 
-                kegg_db = 'KO'
-            for pair in rap_paths:
-                rapsearch(opts.mode, opts.e, pair[0], pair[1], kegg_db)
-
-        if 'humann' in opts.to_calculate:
-            m8_dict = cat_read(opts.mode, 'txt.m8', False)
-            if len(m8_dict) > 0:
-                 humann(opts.mode, opts.e, m8_dict)
+                            system(fq2fa_com)
+                    fasta_dict[path].append(fasta)
+        rap_paths = []
+        for path in fasta_dict:
+            # WARNING!!! HARDCODE
+            if 'seq' in path:
+                new_path = '_'.join(split(path,'_')[:-1])
+                if pexists(new_path):
+                    pass
+                else:
+                    system('mkdir %s'%(new_path))
             else:
-                txt_dict = cat_read(opts.mode, 'txt', False)
-                tmp_dict = txt_dict.copy()
-                for key in txt_dict:
-                    if 'input' not in key:
-                        del tmp_dict[key]
-                humann(opts.mode, opts.e, tmp_dict, 'nom8')
-                                        
-        if '16S' in opts.to_calculate or 'ITS' in opts.to_calculate:
-                fasta_dict = cat_read(opts.mode, 'fa', False)
-                for cat in fasta_dict:
-                        for fasta in fasta_dict[cat]:
-                                if '16S' in opts.to_calculate:
-                                        usearch(opts.mode, opts.e, '16S', pjoin(cat, fasta), opts.db_16S, cat, opts.threads)
-                                if 'ITS' in opts.to_calculate:
-                                        usearch(opts.mode, opts.e, 'ITS', pjoin(cat, fasta), opts.db_ITS, cat, opts.threads)
+                new_path = path
+            rap_in =  pjoin(new_path, 'tmp.fasta')
+            rap_out = pjoin(new_path, split(new_path, '/')[-1]+'.txt')
+            rap_paths.append((rap_in, rap_out))
+            for fasta in fasta_dict[path]:
+                flag = True
+                if opts.e:
+                    if pexists(rap_in):
+                        print 'Found %s'%(rap_in)
+                        flag = False
+                if flag:
+                    cat_com = 'cat %s >> %s'%(pjoin(path, fasta), rap_in)
+                    print cat_com
+                    if opts.mode == 'run':
+                        system(cat_com)
+        if 'rap_KEGG' in opts.to_calculate:
+            kegg_db = 'masl'
+        else:
+            kegg_db = 'KO'
+        for pair in rap_paths:
+            rapsearch(opts.mode, opts.e, pair[0], pair[1], kegg_db)
+
+    if 'humann' in opts.to_calculate:
+        m8_dict = cat_read(opts.mode, 'txt.m8', False)
+        if len(m8_dict) > 0:
+            humann(opts.mode, opts.e, m8_dict)
+        else:
+            txt_dict = cat_read(opts.mode, 'txt', False)
+            tmp_dict = txt_dict.copy()
+            for key in txt_dict:
+                if 'input' not in key:
+                    del tmp_dict[key]
+            humann(opts.mode, opts.e, tmp_dict, 'nom8')
+
+    if '16S' in opts.to_calculate or 'ITS' in opts.to_calculate:
+        fasta_dict = cat_read(opts.mode, 'fa', False)
+        for cat in fasta_dict:
+            for fasta in fasta_dict[cat]:
+                if '16S' in opts.to_calculate:
+                    usearch(opts.mode, opts.e, '16S', pjoin(cat, fasta), opts.db_16S, cat, opts.threads)
+                if 'ITS' in opts.to_calculate:
+                    usearch(opts.mode, opts.e, 'ITS', pjoin(cat, fasta), opts.db_ITS, cat, opts.threads)
+
 
 def SSU_read(loc, typ=None):
-        tax_dict = {}
-        for linia in open(loc, 'r').readlines():
-                if linia[0] == '>':
-                        linia = linia.rstrip()
-                        if typ:
-                                linia = linia.split()
-                                tax_idx = linia[0][1:]
-                                tax_dict[tax_idx] = linia[1].split(';')
-                        else:
-                                line = linia.split('|')
-                                tax_idx = line[0][1:]
-                                if linia.count('Fungi') == 2:
-                                        tax_line = line[-1].replace(" ", "")
-                                elif linia.count('Fungi') == 1:
-                                        tax_line = line[2].replace(" ", "")
-                                        if len(tax_line.split(';')) == 1:
-                                                tax_line = line[-1].replace(" ", "")
-                                if tax_line == '-':
-                                        tax_line = 'Fungi'+';'+linia.split('|')[1].replace(" ", "_")
-                                tax_dict[tax_idx] = tax_line.split(';') 
-        return tax_dict
+    tax_dict = {}
+    for linia in open(loc, 'r').readlines():
+        if linia[0] == '>':
+            linia = linia.rstrip()
+            if typ:
+                linia = linia.split()
+                tax_idx = linia[0][1:]
+                tax_dict[tax_idx] = linia[1].split(';')
+            else:
+                line = linia.split('|')
+                tax_idx = line[0][1:]
+                if linia.count('Fungi') == 2:
+                    tax_line = line[-1].replace(" ", "")
+                elif linia.count('Fungi') == 1:
+                    tax_line = line[2].replace(" ", "")
+                    if len(tax_line.split(';')) == 1:
+                        tax_line = line[-1].replace(" ", "")
+                if tax_line == '-':
+                    tax_line = 'Fungi'+';'+linia.split('|')[1].replace(" ", "_")
+                tax_dict[tax_idx] = tax_line.split(';')
+    return tax_dict
+
 
 def tuple_to_dict(tuple_dict):
     fin_dict = {}
@@ -832,7 +855,8 @@ def tuple_to_dict(tuple_dict):
                     curr_dict[key[i]] = {}
                     curr_dict = curr_dict[key[i]]
     return fin_dict
-                        
+
+
 def tuple_to_xml_dict(tuple_dict):
     fin_dict = {}
     for taxonomy in tuple_dict:
@@ -855,89 +879,91 @@ def dict_purify(bac_dict):
         del bac_dict[klucz]
     return bac_dict
 
+
 def file_analysis(typ, name, SSU=None):
-        import operator
-        if not pexists(name):
-                return 'NA', 'NA'               
-        else:
-            with open(name, 'r') as content:
-                        linie = content.readlines()
-                        if typ in ['fmc', 'pmc']:
-                                mapped, unmapped =  linie[0].strip().split('-')
-                                try:
-                                        mapped = int(mapped)
-                                except:
-                                        mapped = 'NA'
-                                try:
-                                        unmapped = int(unmapped)
-                                except:
-                                        unampped = 'NA'
-                                if mapped == 'NA' or unmapped == 'NA':
-                                        total = 'NA'
-                                else:
-                                        total = mapped + unmapped
-                                return mapped, total
-                        if typ == 'log':
-                                data = linie[-1].split(' ')
-                                try:
-                                        n50 = int(data[8][:-1])
-                                        total = int(data[12][:-1])
-                                        using =split(data[14], '/')[0]
-                                except:
-                                        n50 = total = using = 'NA'
-                                return n50, total, using
-                        if typ == '16S':
-                                bac_arch = [0, 0]
-                                bac_dict = {}
-                                for linia in linie:
-                                        tax_id = linia.split('\t')[1]
-                                        cult_control = 0
-                                        spec_idx = -1
-                                        while cult_control == 0:
-                                                if SSU[tax_id][0] == 'Eukaryota':
-                                                        cult_control = 1
-                                                        spec = False
-                                                elif 'uncultured' in SSU[tax_id][spec_idx] or 'unidentified' in SSU[tax_id][spec_idx]:
-                                                        spec_idx -= 1
-                                                elif 'Candidate' in SSU[tax_id][spec_idx]:
-                                                    spec = tuple(SSU[tax_id][:spec_idx+1])
-                                                    cult_control = 1
-                                                else:
-                                                    spec=tuple(SSU[tax_id][:spec_idx+1])
-                                                    cult_control = 1
-                                        if SSU[tax_id][0] == 'Bacteria':
-                                                bac_arch[0] += 1
-                                        elif SSU[tax_id][0] == 'Archaea':
-                                                bac_arch[1] += 1
-                                        else:
-                                                pass
-                                        if spec:
-                                                if spec == 'Phaseolus_acutifolius_(tepary_bean)':#HARDCODE!!!
-                                                        pass
-                                                else:
-                                                        if spec not in bac_dict:
-                                                                bac_dict[spec] = 1
-                                                        else:
-                                                                bac_dict[spec] += 1
-                                        else:
-                                                pass
-                                cut_dict = dict_purify(bac_dict)
-                                full_bac_dict = tuple_to_dict(cut_dict)
-                                tax_bac_dict = tuple_to_xml_dict(cut_dict)
-                                return full_bac_dict, tax_bac_dict
-                        if typ == 'ITS':
-                                fun_dict = {}
-                                for linia in linie:
-                                        tax_id = linia.split('\t')[1].split('|')[0]
-                                        spec_name = tuple(SSU[tax_id])
-                                        if spec_name not in fun_dict:
-                                                fun_dict[spec_name] = 1
-                                        else:
-                                                fun_dict[spec_name] += 1
-                                cut_dict = dict_purify(fun_dict)
-                                full_fun_dict = tuple_to_dict(cut_dict)
-                                tax_fun_dict = tuple_to_xml_dict(cut_dict)
-                                return full_fun_dict, tax_fun_dict
+    import operator
+    if not pexists(name):
+        return 'NA', 'NA'
+    else:
+        with open(name, 'r') as content:
+            linie = content.readlines()
+            if typ in ['fmc', 'pmc']:
+                mapped, unmapped =  linie[0].strip().split('-')
+                try:
+                    mapped = int(mapped)
+                except:
+                    mapped = 'NA'
+                try:
+                    unmapped = int(unmapped)
+                except:
+                    unampped = 'NA'
+                if mapped == 'NA' or unmapped == 'NA':
+                    total = 'NA'
+                else:
+                    total = mapped + unmapped
+                return mapped, total
+            if typ == 'log':
+                data = linie[-1].split(' ')
+                try:
+                    n50 = int(data[8][:-1])
+                    total = int(data[12][:-1])
+                    using =split(data[14], '/')[0]
+                except:
+                    n50 = total = using = 'NA'
+                return n50, total, using
+            if typ == '16S':
+                bac_arch = [0, 0]
+                bac_dict = {}
+                for linia in linie:
+                    tax_id = linia.split('\t')[1]
+                    cult_control = 0
+                    spec_idx = -1
+                    while cult_control == 0:
+                        if SSU[tax_id][0] == 'Eukaryota':
+                            cult_control = 1
+                            spec = False
+                        elif 'uncultured' in SSU[tax_id][spec_idx] or 'unidentified' in SSU[tax_id][spec_idx]:
+                            spec_idx -= 1
+                        elif 'Candidate' in SSU[tax_id][spec_idx]:
+                            spec = tuple(SSU[tax_id][:spec_idx+1])
+                            cult_control = 1
+                        else:
+                            spec=tuple(SSU[tax_id][:spec_idx+1])
+                            cult_control = 1
+                    if SSU[tax_id][0] == 'Bacteria':
+                        bac_arch[0] += 1
+                    elif SSU[tax_id][0] == 'Archaea':
+                        bac_arch[1] += 1
+                    else:
+                        pass
+                    if spec:
+                        if spec == 'Phaseolus_acutifolius_(tepary_bean)':#HARDCODE!!!
+                            pass
+                        else:
+                            if spec not in bac_dict:
+                                bac_dict[spec] = 1
+                            else:
+                                bac_dict[spec] += 1
+                    else:
+                        pass
+                cut_dict = dict_purify(bac_dict)
+                full_bac_dict = tuple_to_dict(cut_dict)
+                tax_bac_dict = tuple_to_xml_dict(cut_dict)
+                return full_bac_dict, tax_bac_dict
+            if typ == 'ITS':
+                fun_dict = {}
+                for linia in linie:
+                    tax_id = linia.split('\t')[1].split('|')[0]
+                    spec_name = tuple(SSU[tax_id])
+                    if spec_name not in fun_dict:
+                        fun_dict[spec_name] = 1
+                    else:
+                        fun_dict[spec_name] += 1
+                cut_dict = dict_purify(fun_dict)
+                full_fun_dict = tuple_to_dict(cut_dict)
+                tax_fun_dict = tuple_to_xml_dict(cut_dict)
+                return full_fun_dict, tax_fun_dict
+
 
 def input_locations(mode, out_types):
     in_dict = {}
@@ -947,6 +973,7 @@ def input_locations(mode, out_types):
         else:
             in_dict[out_type] = cat_read(mode, out_type, False)
     return in_dict
+
 
 def dict_prepare(typ, indict, SSU):
     all_dicts = {}
@@ -959,6 +986,7 @@ def dict_prepare(typ, indict, SSU):
             all_tax_dict[plik_id] = tax_dict
     return all_dicts, all_tax_dict
 
+
 def dict_sum(dicto, val):
     for key in dicto.keys():
         if isinstance(dicto[key], dict):
@@ -966,6 +994,7 @@ def dict_sum(dicto, val):
         else:
             val += dicto[key]
     return val
+
 
 def update_dict(tax_tree, curr_tax):
     for key in curr_tax:
@@ -977,7 +1006,8 @@ def update_dict(tax_tree, curr_tax):
             else:
                 tax_tree[key] = update_dict(tax_tree[key], curr_tax[key])
     return tax_tree
-            
+
+
 def tree_of_life(full_dict):
     file_total_count = {}
     full_tree = {}
@@ -987,6 +1017,7 @@ def tree_of_life(full_dict):
             curr_tax = full_dict[typ][plik]
             full_tree = update_dict(full_tree, curr_tax)
     return full_tree, file_total_count
+
 
 def xml_name_parse(full_dic):
     name_set = set()
@@ -1003,6 +1034,7 @@ def xml_name_parse(full_dic):
             name_set.add(display_name)
     name_list = list(name_set)
     return name_list
+
 
 def xml_vals(xml_names, tax_dict):
     all_tax_set = set()
@@ -1021,6 +1053,7 @@ def xml_vals(xml_names, tax_dict):
                         xml_dict[tax].append(0)
     return xml_dict
 
+
 def prettify(elem):
     import xml.etree.ElementTree as ET
     from xml.dom import minidom
@@ -1030,15 +1063,18 @@ def prettify(elem):
     reparsed = minidom.parseString(rough_string)
     return reparsed.toprettyxml(indent="    ")
 
+
 def dict_depth(d, depth=0):
     if not isinstance(d, dict) or not d:
         return depth
     return max(dict_depth(v, depth+1) for k, v in d.iteritems())
 
+
 def deunique(node):
     "change graphlan nodes lvl1_____lvl2_____..._____lvln to lvln"""
     clean_node = node.split('_____')[-1]
     return clean_node
+
 
 def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
     """xml_names - [identyfikator_1, identyfikator_2 etc.] - nazwy plikow, czy cos
@@ -1129,6 +1165,7 @@ def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
 
     return prettify(krona)
 
+
 def name_total_reduction(xml_names, file_total_count):
     name_total_count = {}
     for name in xml_names:
@@ -1147,20 +1184,21 @@ def xml_format(full_dict, tax_dict):
     name_total_count = name_total_reduction(xml_names, file_total_count)
     return xml_names, xml_dict, tax_tree, name_total_count
 
+
 def out_namespace(curr, out_type):
-        if curr == 'in_situ':
-                curr = getcwd()
-        if type(out_type) == str:
-            if out_type != 'txt':
-                out_xml = pjoin(curr, out_type+'.krona')
-            else:
-                out_xml = pjoin(curr, 'humann-graphlan.krona')
-        elif type(out_type) == list:
-            out_xml = pjoin(curr, '_'.join(out_type)+'.krona')
+    if curr == 'in_situ':
+        curr = getcwd()
+    if type(out_type) == str:
+        if out_type != 'txt':
+            out_xml = pjoin(curr, out_type+'.krona')
         else:
-            print 'Unkown type of output type:', out_type, ' is ', type(out_type)
-        out_html = out_xml.replace('krona', 'html')
-        return out_xml, out_html
+            out_xml = pjoin(curr, 'humann-graphlan.krona')
+    elif type(out_type) == list:
+        out_xml = pjoin(curr, '_'.join(out_type)+'.krona')
+    else:
+        print 'Unkown type of output type:', out_type, ' is ', type(out_type)
+    out_html = out_xml.replace('krona', 'html')
+    return out_xml, out_html
 
 def outprint(xml_string, out_xml):
     krona_write = open(out_xml, 'w')
@@ -1171,7 +1209,7 @@ def txt_dict_clean(dicto):
     to_remove = set()
     for directory in dicto:
         for plik in dicto[directory]:
-            if ('graphlan' not in plik) or ('tree' not in plik): 
+            if ('graphlan' not in plik) or ('tree' not in plik):
                 to_remove.add((directory, plik))
     for pair in to_remove:
         dicto[pair[0]].remove(pair[1])
@@ -1276,38 +1314,38 @@ def graphlan_to_krona(input_d):
     return xml_names, xml_dict, tax_tree, name_total_count
 
 def aftershave(opts):
-        SSU = {}
-        metag_flag = 0
-        if '16S' in opts.output_type:
-            SSU['16S'] = SSU_read('/home/pszczesny/soft/bipype/SSU_candidate_db.fasta', '16S')
-            metag_flag = 1
-        if 'ITS' in opts.output_type:
-            SSU['ITS'] = SSU_read('/home/pszczesny/soft/bipype/UNITE_public_from_27.01.13.fasta')
-            metag_flag = 1
-        input_dic = input_locations(opts.mode, opts.output_type)
-        analysed_dict = {}
-        tax_dict = {}
-        pure_tax = {}
-        for out_type in opts.output_type:
-            try:
-                analysed_dicto, tax_dicto = dict_prepare(out_type, input_dic[out_type], SSU[out_type])
-                analysed_dict[out_type] = analysed_dicto
-                tax_dict[out_type] = tax_dicto
-                pure_tax.update(tax_dicto)
-            except KeyError:
-                if len(input_dic) == 1:
-                    input_dicto = input_dic['txt']
-        if metag_flag == 1:
-            krona_xml_name, krona_html_name = out_namespace(opts.out_dir, opts.output_type)
-            xml_names, xml_dict, tax_tree, name_total_count = xml_format(analysed_dict, pure_tax)
-            krona_unit = 'reads'
-        else:
-            if opts.output_type[0] == 'txt':
-                krona_xml_name, krona_html_name = out_namespace(opts.out_dir, opts.output_type[0])
-                xml_names, xml_dict, tax_tree, name_total_count = graphlan_to_krona(input_dicto)
-                krona_unit = 'processes'
-        xml_string = xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, krona_unit)
-        outprint(xml_string, krona_xml_name)
-        krona_to_html_comm = 'ktImportXML -o %s %s'%(krona_html_name, krona_xml_name)
-        if opts.mode == 'run':
-            system(krona_to_html_comm)
+    SSU = {}
+    metag_flag = 0
+    if '16S' in opts.output_type:
+        SSU['16S'] = SSU_read('/home/pszczesny/soft/bipype/SSU_candidate_db.fasta', '16S')
+        metag_flag = 1
+    if 'ITS' in opts.output_type:
+        SSU['ITS'] = SSU_read('/home/pszczesny/soft/bipype/UNITE_public_from_27.01.13.fasta')
+        metag_flag = 1
+    input_dic = input_locations(opts.mode, opts.output_type)
+    analysed_dict = {}
+    tax_dict = {}
+    pure_tax = {}
+    for out_type in opts.output_type:
+        try:
+            analysed_dicto, tax_dicto = dict_prepare(out_type, input_dic[out_type], SSU[out_type])
+            analysed_dict[out_type] = analysed_dicto
+            tax_dict[out_type] = tax_dicto
+            pure_tax.update(tax_dicto)
+        except KeyError:
+            if len(input_dic) == 1:
+                input_dicto = input_dic['txt']
+    if metag_flag == 1:
+        krona_xml_name, krona_html_name = out_namespace(opts.out_dir, opts.output_type)
+        xml_names, xml_dict, tax_tree, name_total_count = xml_format(analysed_dict, pure_tax)
+        krona_unit = 'reads'
+    else:
+        if opts.output_type[0] == 'txt':
+            krona_xml_name, krona_html_name = out_namespace(opts.out_dir, opts.output_type[0])
+            xml_names, xml_dict, tax_tree, name_total_count = graphlan_to_krona(input_dicto)
+            krona_unit = 'processes'
+    xml_string = xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, krona_unit)
+    outprint(xml_string, krona_xml_name)
+    krona_to_html_comm = 'ktImportXML -o %s %s'%(krona_html_name, krona_xml_name)
+    if opts.mode == 'run':
+        system(krona_to_html_comm)
