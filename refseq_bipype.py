@@ -1071,7 +1071,7 @@ def dict_depth(d, depth=0):
 
 
 def deunique(node):
-    "change graphlan nodes lvl1_____lvl2_____..._____lvln to lvln"""
+    """change graphlan nodes lvl1_____lvl2_____..._____lvln to lvln"""
     clean_node = node.split('_____')[-1]
     return clean_node
 
@@ -1196,7 +1196,7 @@ def out_namespace(curr, out_type):
     elif type(out_type) == list:
         out_xml = pjoin(curr, '_'.join(out_type)+'.krona')
     else:
-        print 'Unkown type of output type:', out_type, ' is ', type(out_type)
+        print 'Unknown type of output type:', out_type, ' is ', type(out_type)
     out_html = out_xml.replace('krona', 'html')
     return out_xml, out_html
 
@@ -1283,7 +1283,7 @@ def xml_counts_graphlan(tax_tree, per_file_tax_tree, xml_names, multi_flat_tax_t
     xml_dict = {}
     name_total_count = {}
     for plik in multi_flat_tax_tree:
-        all_nodes = all_nodes|set(multi_flat_tax_tree[plik].keys())
+        all_nodes = all_nodes | set(multi_flat_tax_tree[plik].keys())
     for node in all_nodes:
         xml_dict[node] = []
         for name in xml_names:
