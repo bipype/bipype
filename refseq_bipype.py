@@ -13,6 +13,24 @@ from pprint import pprint
 from collections import defaultdict
 
 def cat_read(mode, fileext, paired_end=True):
+    """Return dictionary with paths to sequence files 
+    from current working directory.
+
+    Dictionary has following format:
+    {directory_path1:[file1_in_this_directory_path,
+                      file2_in_this_directory_path,
+                      file3_in_this_directory_path],
+     directory_path2:[file4_in_this_directory_path,
+                      file5_in_this_directory_path,
+                      file6_in_this_directory_path]
+    }
+    Keyword arguments:
+    mode -- if mode=='run', gunzip will be used
+    fileext -- extension of sequence files, which will be putted into
+               the dictionary  
+    paired_end -- if True, only paired-end reads are included 
+                  in dictionary (default True)
+    """
     double_ext = ['contigs.fa', 'txt.m8']
     if fileext in double_ext:
         cut_len = -2
@@ -24,18 +42,18 @@ def cat_read(mode, fileext, paired_end=True):
     else:
         fileext_l = [fileext]
     for root, folders, files in walk(getcwd()):
-        for plik in files:
-            plik_ext = '.'.join(split(plik, '.')[cut_len:])
-            if plik_ext in fileext_l:
-                seq_dict = fastq_dict(seq_dict, root, plik)
-            elif plik_ext == 'gz':
-                prop_ext = '.'.join(split(plik, '.')[cut_len-1:-1])
+        for file_ in files:
+            file_ext = '.'.join(split(file_, '.')[cut_len:])
+            if file_ext in fileext_l:
+                seq_dict = fastq_dict(seq_dict, root, file_)
+            elif file_ext == 'gz':
+                prop_ext = '.'.join(split(file_, '.')[cut_len-1:-1])
                 if prop_ext in fileext_l:
-                    to_gunzip = pjoin(root, plik)
+                    to_gunzip = pjoin(root, file_)
                     print 'gunzip %s'%(to_gunzip)
                     if mode == 'run':
                         system('gunzip %s'%(to_gunzip))
-                    seq_dict = fastq_dict(seq_dict, root, plik[:-3])
+                    seq_dict = fastq_dict(seq_dict, root, file_[:-3])
             else:
                 pass
     if paired_end == True:
@@ -104,31 +122,42 @@ def exist_check(program, names, todo):
 
 
 def tax_id_reader():
+    """Return {GI:TaxID} dictionary from file.
+    
+    HARCODED:
+    /home/pszczesny/workingdata/refseq/db/tax_id/gi_taxid_nucl.dmp   
+    """
     print 'reading tax ids'
     gi_tax_path = '/home/pszczesny/workingdata/refseq/db/tax_id/gi_taxid_nucl.dmp'
     gi_tax_dict = {}
     curr_t = datetime.now()
-    with open(gi_tax_path) as plik:
+    with open(gi_tax_path) as file_:
         counter = 0
-        for linia in plik:
-            gi, tax = split(linia)
+        for line in file_:
+            gi, tax = split(line)
             gi_tax_dict[int(gi)] = int(tax)
             counter += 1
             if counter%1000000 == 0:
                 print "Added %i tax_ids"%(counter)
-    plik.close()
+    file_.close()
     return gi_tax_dict
 
 
 def tax_name_reader():
+    """Return {TaxID:scientific name} dictionary from file.
+    
+    Lines with not scientific names are omitted.
+    HARCODED:
+    /home/pszczesny/workingdata/refseq/db/tax_id/names.dmp  
+    """
     print 'reading tax names'
     tax_name_path = '/home/pszczesny/workingdata/refseq/db/tax_id/names.dmp'
     tax_name_dict = {}
     curr_t1 = datetime.now()
-    with open(tax_name_path) as plik:
+    with open(tax_name_path) as file_:
         counter = 0
-        for linia in plik:
-            line_l = split(linia, '\t|\t')
+        for line in file_:
+            line_l = split(line, '\t|\t')
             if line_l[3] == 'scientific name\t|\n':
                 tax_id = line_l[0]
                 if len(line_l[2]) == 0:
@@ -139,7 +168,7 @@ def tax_name_reader():
             counter += 1
             if counter%100000 == 0:
                 print "Processed %i tax_name lines"%(counter)
-    plik.close()
+    file_.close()
     return tax_name_dict
 
 
@@ -227,25 +256,39 @@ def refseq_ref_namespace(katalog, seq, postfix, out_dir='in_situ', map_dir='in_s
     return ref_namespace
 
 
-def fastq_dict(seq_dict, root, plik):
+
+def fastq_dict(seq_dict, root, file_): # Why not defaultdict from collections? 
+    """Add file_ to list available under seq_dict[root]
+
+    If key 'root' is not present, function will create it.
+    """
     if root in seq_dict:
-        seq_dict[root].append(plik)
+        seq_dict[root].append(file_)
     else:
-        seq_dict[root] = [plik]
+        seq_dict[root] = [file_]
     return seq_dict
 
 
 def paired_end_match(seq_dict):
+    """Return dictionary with paths to parired-end reads only.
+    
+    Dictionary has following format:
+    {directory_path1:[(paired-end_read1R1_path, paired-end_read1R2_path),
+                      (paired-end_read2R1_path, paired-end_read2R2_path),
+                      (paired-end_read3R1_path, paired-end_read3R2_path)],
+     directory_path2:[(paired-end_read4R1_path, paired-end_read4R2_path)]
+    }
+    """ 
     pe_dict = {}
-    for katalog in seq_dict:
-        for seq1, seq2 in combinations(seq_dict[katalog], 2):
+    for directory in seq_dict:
+        for seq1, seq2 in combinations(seq_dict[directory], 2):
             seq1_s = set(split(seq1, '_'))
             seq2_s = set(split(seq2, '_'))
             if seq1_s^seq2_s == set(['R1', 'R2']):
-                if katalog in pe_dict:
-                    pe_dict[katalog].append((seq1, seq2))
+                if directory in pe_dict:
+                    pe_dict[directory].append((seq1, seq2))
                 else:
-                    pe_dict[katalog] = [(seq1, seq2)]
+                    pe_dict[directory] = [(seq1, seq2)]
     return pe_dict
 
 
