@@ -1146,6 +1146,31 @@ def dict_purify(bac_dict):
 
 
 def file_analysis(typ, name, SSU=None):
+    # TODO
+    """
+
+    Args:
+        typ: an "output type" - typically: 'ITS', '16S' or 'txt'.
+
+        name: name of file to analise (only name, not full path)?????!!! TODO
+
+        SSU: A dict with taxonomical data, where:
+                keys are sequence identificators; values are lists of taxonomic
+                terms, in order: from the most generic to the most specific one.
+            Explicit examples included in description of SSU_read() function.
+
+    Returns:
+        It returns one from following tuples:
+
+        1. ('NA', 'NA')
+        2. (mapped, total)
+        3. (n50, total, using)
+        4. (full_bac_dict, tax_bac_dict)
+        5. (full_fun_dict, tax_fun_dict)
+
+    """
+
+    # TODO: following import is not used
     import operator
     if not pexists(name):
         return 'NA', 'NA'
@@ -1153,7 +1178,7 @@ def file_analysis(typ, name, SSU=None):
         with open(name, 'r') as content:
             linie = content.readlines()
             if typ in ['fmc', 'pmc']:
-                mapped, unmapped =  linie[0].strip().split('-')
+                mapped, unmapped = linie[0].strip().split('-')
                 try:
                     mapped = int(mapped)
                 except:
@@ -1172,7 +1197,7 @@ def file_analysis(typ, name, SSU=None):
                 try:
                     n50 = int(data[8][:-1])
                     total = int(data[12][:-1])
-                    using =split(data[14], '/')[0]
+                    using = split(data[14], '/')[0]
                 except:
                     n50 = total = using = 'NA'
                 return n50, total, using
@@ -1188,12 +1213,14 @@ def file_analysis(typ, name, SSU=None):
                             cult_control = 1
                             spec = False
                         elif 'uncultured' in SSU[tax_id][spec_idx] or 'unidentified' in SSU[tax_id][spec_idx]:
+                            # TODO: there is PROBABLY missing init of spec, so line:
+                            # TODO: "if spec == 'Phaseolus_acutifolius_(tepary_bean)" may cause an error
                             spec_idx -= 1
                         elif 'Candidate' in SSU[tax_id][spec_idx]:
                             spec = tuple(SSU[tax_id][:spec_idx+1])
                             cult_control = 1
                         else:
-                            spec=tuple(SSU[tax_id][:spec_idx+1])
+                            spec = tuple(SSU[tax_id][:spec_idx+1])
                             cult_control = 1
                     if SSU[tax_id][0] == 'Bacteria':
                         bac_arch[0] += 1
@@ -1236,7 +1263,8 @@ def input_locations(mode, out_types):
 
     Args:
         mode: a parameter passed to cat_read function.
-            If mode=='run', gunzip will be used
+            If mode is 'run', the gunzip command will be executed,
+            to extract compressed files.
 
         out_types: a list with "output types",
             typically consisting  of: 'ITS', '16S' or 'txt'.
@@ -1270,27 +1298,33 @@ def input_locations(mode, out_types):
 
 
 def dict_prepare(typ, indict, SSU):
+    # TODO
     """
 
     Args:
-        out_type: an "output type" - typically: 'ITS', '16S' or 'txt'.
+        typ: an "output type" - typically: 'ITS', '16S' or 'txt'.
 
-        indict:
+        indict: A dict where keys are directories and values are lists of files.
+            Example included in description of cat_read() function.
 
         SSU: A dict with taxonomical data, where:
                 keys are sequence identificators; values are lists of taxonomic
                 terms, in order: from the most generic to the most specific one.
-            Explicit examples included in SSU_read() function.
+            Explicit example included in description of SSU_read() function.
 
     Returns:
+        A tuple: (all_dicts, all_tax_dict)
 
+        all_dicts: A dict
+
+        all_tax_dict: A dict
 
     """
     all_dicts = {}
     all_tax_dict = {}
     for path in indict.keys():
         for plik in indict[path]:
-            plik_id = '_'.join([typ, split(plik,'.')[0]])
+            plik_id = '_'.join([typ, split(plik, '.')[0]])
             analysed_dict, tax_dict = file_analysis(typ, plik, SSU)
             all_dicts[plik_id] = analysed_dict
             all_tax_dict[plik_id] = tax_dict
