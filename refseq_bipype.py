@@ -1032,6 +1032,17 @@ def dict_prepare(typ, indict, SSU):
 
 
 def dict_sum(dicto, val):
+    """Sums the values in the given dict,
+    using recurrence to handle nested dicts.
+
+    Args:
+        dicto: a dict, where values are of any type with defined + operation
+        val: an int - initial value
+
+    Returns:
+        val: an int - sum of all values in given dict plus
+            value given as second argument
+    """
     for key in dicto.keys():
         if isinstance(dicto[key], dict):
             val = dict_sum(dicto[key], val)
@@ -1053,6 +1064,18 @@ def update_dict(tax_tree, curr_tax):
 
 
 def tree_of_life(full_dict):
+    """Rewrites the data from a dict containing information arranged by
+    type and by file into two dicts:
+        1. A dict without information about type and file (full_tree)
+        2. A dict, within information about files were kept (file_total_count)
+
+    Args:
+        full_dict:
+
+    Returns:
+        full_tree:
+        file_total_count:
+    """
     file_total_count = {}
     full_tree = {}
     for typ in full_dict:
@@ -1109,6 +1132,8 @@ def prettify(elem):
 
 
 def dict_depth(d, depth=0):
+    # TODO: needed only if line "recurse_depth = dict_depth(tax_tree)"
+    # TODO: from xml_prepare will be kept.
     if not isinstance(d, dict) or not d:
         return depth
     return max(dict_depth(v, depth+1) for k, v in d.iteritems())
@@ -1146,6 +1171,7 @@ def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
             Values are lists of constant length, where every item on position *X* means:
             number of occurrences of nodes with prefix equal to *name of node* in file *X*.
             *file X* is that file, which is on position *X* on list xml_names.
+             Note, that for all i: len(xml_dict[i]) is equal to len(xml_names).
             Example:
             {node: [count_1, count_2, ... count_x], node_2: [count_1, count_2, ... count_x]}
 
@@ -1161,7 +1187,6 @@ def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
 
         unit: A string. Defines units to be coded in Krona XML. Default = 'reads'
 
-        Note, that for all i: len(xml_dict[i]) is equal to len(xml_names).
 
     Returns:
     """
@@ -1179,7 +1204,7 @@ def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
     for name in xml_names:
         val = ET.SubElement(reads, 'val')
         val.text = str(name_total_count[name])
-    recurse_depth = dict_depth(tax_tree)
+    recurse_depth = dict_depth(tax_tree)    # TODO: this line is not needed
     # WARNING HARDCODE - however it ignores all absent levels!
     # which is actually kind of cool
     for lvl_1 in tax_tree:
@@ -1263,7 +1288,8 @@ def name_total_reduction(xml_names, file_total_count):
 
 
 def xml_format(full_dict, tax_dict):
-
+    """
+    """
     tax_tree, file_total_count = tree_of_life(full_dict)
     xml_names = xml_name_parse(full_dict)
     xml_dict = xml_vals(xml_names, tax_dict)
@@ -1336,7 +1362,7 @@ def txt_dict_clean(dicto):
             keys are names of directories,
             values are lists containing filenames that are in the directory.
             Example:
-                {'dict_name_1': ['file_1','file_2'], 'dict_name_2': ['file_1']}
+            {'dict_name_1': ['file_1','file_2'], 'dict_name_2': ['file_1']}
 
     Returns:
         A dict in the same format as given one (cleaned from unwanted files)
@@ -1425,8 +1451,8 @@ def linia_unique(linia):
     Compare with: deunique
 
     Example:
-        when takes list: ['1','2','3'],
-        it returns: ['1', '1_____2', '1_____2_____3']
+        input: ['1','2','3'],
+        output: ['1', '1_____2', '1_____2_____3']
 
     Args:
         linia: a list.
@@ -1625,6 +1651,7 @@ def graphlan_to_krona(input_d):
             Values are lists of constant length, where every item on position *X* means:
             number of occurrences of nodes with prefix equal to *name of node* in file *X*.
             *file X* is that file, which is on position *X* on list xml_names.
+            Note, that for all i: len(xml_dict[i]) is equal to len(xml_names).
             Example:
             {node: [count_1, count_2, ... count_x], node_2: [count_1, count_2, ... count_x]}
 
@@ -1638,7 +1665,6 @@ def graphlan_to_krona(input_d):
             Example:
             {identificator_1: count_1, identificator_2: count_2}
 
-        Note, that for all i: len(xml_dict[i]) is equal to len(xml_names).
     """
     input_d = txt_dict_clean(input_d)
     xml_names = xml_names_graphlan(input_d)
