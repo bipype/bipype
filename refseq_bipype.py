@@ -25,12 +25,12 @@ def cat_read(mode, fileext, paired_end=True):
                       file5_in_this_directory_path,
                       file6_in_this_directory_path]
     }
-    Keyword arguments:
-    mode -- if mode=='run', gunzip will be used
-    fileext -- extension of sequence files, which will be putted into
-               the dictionary  
-    paired_end -- if True, only paired-end reads are included 
-                  in dictionary (default True)
+    Args:
+        mode:       if mode=='run', gunzip will be used
+        fileext:    extension of sequence files, which will be putted into
+                    the dictionary  
+        paired_end: if True, only paired-end reads are included 
+                    in dictionary (default True)
     """
     double_ext = ['contigs.fa', 'txt.m8']
     if fileext in double_ext:
@@ -123,7 +123,16 @@ def exist_check(program, names, todo):
 
 
 def tax_id_reader():
-    """Return {GI:TaxID} dictionary from file.
+    """Returns {GI:TaxID} dictionary from file.
+    
+    Keys and values are integers.
+    
+    File has following format:
+    13	9913
+    15	9915
+    16	9771
+    17	9771
+    where first column is a GI number, second is a TaxID.
     
     HARCODED:
     /home/pszczesny/workingdata/refseq/db/tax_id/gi_taxid_nucl.dmp   
@@ -145,9 +154,25 @@ def tax_id_reader():
 
 
 def tax_name_reader():
-    """Return {TaxID:scientific name} dictionary from file.
+    """Returns {TaxID:scientific_name} dictionary from file.
     
     Lines with not scientific names are omitted.
+    
+    Keys are integers, values are strings.
+    
+    Example (appropriate file format included):
+    
+        File:
+    2	|	prokaryotes	|	prokaryotes <Bacteria>	|	in-part	|
+    6	|	Azorhizobium	|		|	scientific name	|
+    6	|	Azorhizobium Dreyfus et al. 1988	|		|	synonym	|
+    6	|	Azotirhizobium	|		|	equivalent name	|
+    7	|	ATCC 43989	|		|	type material	|
+    7	|	Azorhizobium caulinodans	|		|	scientific name	|
+     
+        Output:
+            {6:'Azotirhizobium', 7:'Azorhizobium caulinodans'}
+         
     HARCODED:
     /home/pszczesny/workingdata/refseq/db/tax_id/names.dmp  
     """
@@ -174,9 +199,20 @@ def tax_name_reader():
 
 
 def idx_reader(file_path):
+    """Reads file in samtools idxstats output format.
+    
+    Arg:    
+        file_path: path to samtools idxstats output file
+                   'File is TAB-delimited with each line consisting of
+                    reference sequence name, sequence length, 
+                    # mapped reads and # unmapped reads.' 
+        
+    Returns:
+        {GI:#_mapped_reads} dictionary (keys and values are integers).  
+    """
     idx_file_dict = {}
-    for linia in file(file_path).readlines():
-        line_l = split(linia)
+    for line in file(file_path).readlines():
+        line_l = split(line)
         reads = int(line_l[2])
         if reads != 0:
             gi = int(split(line_l[0], '|')[1])
@@ -184,11 +220,40 @@ def idx_reader(file_path):
     return idx_file_dict
 
 
-def idx_map(mode, plik, tax_name_dict, tax_id_dict, outfile):
+def idx_map(mode, file_, tax_name_dict, tax_id_dict, outfile):
+    '''Parses and writes data from samtools idxstats output file.
+        
+    Firstly, using idx_reader(file_), create {GI:#_mapped_reads} 
+    dictionary.
+    Secondly, replace every GI number (key) with TaxID if appropriate
+    one is available in tax_id_dict.
+    Than, replace every GI number/TaxID (key) with scientific name if
+    appropriate one is available in tax_name_dict.
+    Finally, write data to outfile in key;value format, where
+        key   is GI number/TaxID/scientific name
+        value is number of mapped reads 
+        
+    Args:
+        mode:          if (mode == 'run') function do mentioned things.
+                       elif (mode == 'test') function prints
+                            file_ and outfile arguments.
+                       else: pass
+                       
+        file_:         Path to samtools idxstats output file. 
+                       For more information refer to idx_reader()
+                       
+        tax_name_dict: {TaxID:scientific_name} dictionary.
+                       For more information refer to tax_name_reader()
+                                             
+        tax_id_dict:   {GI:TaxID},        
+                       For more information refer to tax_id_reader()
+                       
+        outfile:       Path to output file.
+    '''
     from operator import itemgetter
     tax_count_dict = {}
     if mode == 'run':
-        idx_file_dict = idx_reader(plik)
+        idx_file_dict = idx_reader(file_)
         for gi in idx_file_dict:
             try:
                 tax_id = tax_id_dict[gi]
@@ -211,7 +276,7 @@ def idx_map(mode, plik, tax_name_dict, tax_id_dict, outfile):
             tax_write.write(tax_write_string)
         tax_write.close()
     elif mode == 'test':
-        print 'IDX_MAP %s %s'%(plik, outfile)
+        print 'IDX_MAP %s %s'%(file_, outfile)
     else:
         pass
 
@@ -283,7 +348,7 @@ Other keys: 'sam','sam2', 'bam', 'sorted','sorted.bam', 'idxstats', 'tax_count',
 
 
 def fastq_dict(seq_dict, root, file_): # Why not defaultdict from collections? 
-    """Add file_ to list available under seq_dict[root]
+    """Adds file_ to list available under seq_dict[root]
 
     If key 'root' is not present, function will create it.
     """
@@ -295,7 +360,7 @@ def fastq_dict(seq_dict, root, file_): # Why not defaultdict from collections?
 
 
 def paired_end_match(seq_dict):
-    """Return dictionary with paths to parired-end reads only.
+    """Returns dictionary with paths to parired-end reads only.
     
     Dictionary has following format:
     {directory_path1:[(paired-end_read1R1_path, paired-end_read1R2_path),
@@ -673,6 +738,16 @@ def cutadapt(mode, e, cat, R1_file, R2_file, adapter_file, usearch_16S=False, us
 
 
 def auto_tax_read(db_loc):
+    '''Reads {GI:TaxID} & {TaxID:scientific_name} dictionaries from pickle
+    
+    Args:
+        db_loc: path to pickle file
+        
+    Returns:
+        Two dictionaries:
+          {GI:TaxID}              Keys are integers, values are strings
+          {TaxID:scientific_name} Keys and values are integers
+    '''
     with open(db_loc, 'rb') as fp:
         tax_names = pickle.load(fp)
         tax_id = pickle.load(fp)
@@ -681,6 +756,26 @@ def auto_tax_read(db_loc):
 
 
 def taxa_read(read_mode, db_loc=None):
+    '''Returns {GI:TaxID} & {TaxID:scientific_name} dictionaries.
+    
+    Args:
+        read_mode: if (read_mode == 'manual'):
+                     tax_id_reader() and tax_name_reader() functions
+                     will be used and data is read from text files.
+                     Refer to mentioned functions for more information.
+                   else:
+                     auto_tax_read(db_loc) function will be used 
+                     and data is read from pickle file.
+                     Refer to mentioned function for more information.
+                       
+        db_loc: path to pickle file, unused in 'manual' mode
+                (Default = None).
+        
+    Returns:
+        Two dictionaries:
+          {GI:TaxID}              Keys are integers, values are strings
+          {TaxID:scientific_name} Keys and values are integers
+    '''
     if read_mode == 'manual':
         tax_id_start = datetime.now()
         tax_id_dict = tax_id_reader()
