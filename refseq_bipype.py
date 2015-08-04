@@ -215,6 +215,18 @@ def idx_map(mode, plik, tax_name_dict, tax_id_dict, outfile):
         pass
 
 def pair_uni_name(file_pair):
+    """ Returns one name for tuple contains pair of files.
+
+Args:
+
+	file_pair: tuple of paired_end read
+		
+
+Example:
+
+	input: ('Amp15_BFk_B_p_CGTACG_L001_R1_001.fastq','Amp15_BFk_B_p_CGTACG_L001_R2_001.fastq')
+	output: 'Amp15_BFk_B_p_CGTACG_L001_001'
+"""
     file_body = '.'.join(split(file_pair[0], '.')[:-1])
     if 'R1' in file_body:
         R_loc = find(file_body, 'R1')
@@ -226,6 +238,18 @@ def pair_uni_name(file_pair):
 
 
 def refseq_ref_namespace(katalog, seq, postfix, out_dir='in_situ', map_dir='in_situ'):
+    """ Return dictionary which keys are names of file extensions and values are paths to file with corresponding extension
+
+Arg:
+	(katalog, seq, postfix, out_dir='in_situ', map_dir='in_situ')
+	seq: sequence file or pair of such files
+	
+Example:
+
+	for seq: abcd.fastq we have output_dictionary['fastq']= pjoin(katalog, abcd.fastq)
+
+Other keys: 'sam','sam2', 'bam', 'sorted','sorted.bam', 'idxstats', 'tax_count', 'map_count'
+"""
     if out_dir == 'in_situ':
         out_dir = katalog
     ref_namespace = {}
@@ -304,6 +328,16 @@ def bowtie2_run(mode, proc, ref, out, inp1, inp2=False):
 
 
 def sam_merge(sam1, sam2):
+    """ Merges two files in SAM format into one.
+
+Args:
+	sam1: SAM file
+	sam2: SAM file
+
+Returns:
+	sam1 file in SAM format which contains now lines from both 		files.Function also removes sam2 file.
+
+"""
     f1 = open(sam1, 'r')
     f2 = open(sam2, 'r')
 
@@ -337,18 +371,40 @@ def sam_merge(sam1, sam2):
 
 
 def bam_make(mode, sam, bam): #multi
+    """ If mode=="run" and @SQ lines are present in the header, function converts  SAM to BAM
+
+Args:
+	mode: string type
+	sam: SAM file
+	bam: BAM file
+"""
+
     print 'samtools view -bS %s > %s'%(sam, bam)
     if mode == 'run':
         system('samtools view -bS %s > %s'%(sam, bam))
 
 
 def bam_sorting(mode, bam, sorted_name): #multi
+    """ If mode=="run" function reads bam (file in BAM format),sort it by aligned read position and write it out to BAM file whose name is: sorted_name.
+
+Args: 
+	mode: string type
+	bam: BAM file
+	sorted_name: name of output file
+"""
     print 'samtools sort %s %s'%(bam, sorted_name)
     if mode == 'run':
         system('samtools sort %s %s'%(bam, sorted_name))
 
 
 def bam_indexing(mode, sorted_bam): #multi
+    """ If mode=="run" creates an index file sorted_bam.bam.bai for the sorted_bam.bam file.
+
+Args:
+
+	mode: string type
+	sorted_bam: BAM file
+"""
     print 'samtools index %s'%(sorted_bam)
     if mode == 'run':
         system('samtools index %s'%(sorted_bam))
@@ -542,6 +598,13 @@ def usearch(mode, e, search_type, infile, database, outdir, threads):
 
 
 def adapter_read_bck(adapter_file, filename):
+    """ Function read all the lines of adapter_file and separate words in each line. If first word in line is equal filename, second and third are returned as tuple.
+
+Arg: adapter_file, filename
+
+Return: fin_adap_1, fin_adap_2
+
+"""
     with open(adapter_file, 'r') as plik:
         content = plik.readlines()
         for linia in content:
@@ -556,6 +619,13 @@ def adapter_read_bck(adapter_file, filename):
 
 
 def adapter_read(filename):
+    """ Replace 'NNNNNN' part of adp_2 by this part of the file name which contains only letters that are symbols of nucleotides.
+
+Example:
+
+	input: Amp18_BFp_B_p_GACGAC_L001_R1_001.fastq
+	output: ('AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCACGACGACATCTCGTATGCCGTCTTCTGCTTG')
+"""
     adp_1 = 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT'
     adp_2 = 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCACNNNNNNATCTCGTATGCCGTCTTCTGCTTG'
     nameparts = split(filename, '_')
