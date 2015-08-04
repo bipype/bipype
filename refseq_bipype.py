@@ -1122,6 +1122,22 @@ def dict_sum(dicto, val):
 
 
 def update_dict(tax_tree, curr_tax):
+    """Updates the dict with keys form another one.
+    If during walking the dict, the 'subsum' string is found (as key or value),
+    recurrence stops and nodes deeper inside that branch are ignored.
+    The dicts have to contain only other dicts or 'subsum'!
+
+    Args:
+        tax_tree: a dict to update.
+        curr_tax: a dictionary to be added into tax_tree
+
+    Returns:
+        tax_tree: updated dict
+
+    Example:
+        input: {'a':{'a':{}}},{'a':{'b':{}},'b':{},'c':'subsum','subsum':{}}
+        output: {'a': {'a': {}, 'b': {}}, 'b': {}, 'c': {}}
+    """
     for key in curr_tax:
         if key != 'subsum':
             if key not in tax_tree:
@@ -1135,16 +1151,16 @@ def update_dict(tax_tree, curr_tax):
 
 def tree_of_life(full_dict):
     """Rewrites the data from a dict containing information arranged by
-    type and by file into two dicts:
-        1. A dict without information about type and file (full_tree)
-        2. A dict, within information about files were kept (file_total_count)
+    type and then by file into two dicts: full_tree and file_total_count.
 
     Args:
-        full_dict:
+        full_dict: a dict of dicts,
 
     Returns:
-        full_tree:
-        file_total_count:
+        full_tree: A dict without information about type and file.
+        file_total_count: A dict where:
+            - information about files are kept,
+            - values of every child dict are summed into a single value
     """
     file_total_count = {}
     full_tree = {}
