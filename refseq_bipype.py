@@ -14,7 +14,7 @@ from collections import defaultdict
 
 
 def cat_read(mode, fileext, paired_end=True):
-    """Return dictionary with paths to sequence files 
+    """Returns dictionary with paths to sequence files
     from current working directory.
 
     Dictionary has following format:
@@ -25,12 +25,15 @@ def cat_read(mode, fileext, paired_end=True):
                       file5_in_this_directory_path,
                       file6_in_this_directory_path]
     }
+    Paths to files (dictionary values) are relative.
+    
     Args:
-        mode:       if mode=='run', gunzip will be used
-        fileext:    extension of sequence files, which will be putted into
-                    the dictionary  
-        paired_end: if True, only paired-end reads are included 
-                    in dictionary (default True)
+        mode:       If mode is 'run', the gunzip command will be 
+                    executed to extract compressed files.
+        fileext:    Extension of sequence files, which will be putted into
+                    the dictionary.  
+        paired_end: If True, only paired-end reads are included 
+                    in dictionary (default True).
     """
     double_ext = ['contigs.fa', 'txt.m8']
     if fileext in double_ext:
@@ -477,12 +480,37 @@ Args:
 
 
 def bam_idxstating(mode, sorted_bam, idxstats): #multi
+    """Launch samtools idxstats.
+    
+    Args:
+        mode:       if mode=='run', launch program.
+        sorted_bam: path to file in BAM format, which is the input
+                    to samtools.
+        idxstats:   path to file, where the output from samtools will be
+                    writed.
+    """
     print 'samtools idxstats %s > %s'%(sorted_bam, idxstats)
     if mode == 'run':
         system ('samtools idxstats %s > %s'%(sorted_bam, idxstats))
-
-
+ 
+                    
 def idxstat_perling(mode, idxstats, map_count): #multi
+    """Counts and writes to map_count both
+       (sum of all (numbers of mapped reads) in idxstats) and 
+       (sum of all (numbers of unmapped reads) in idxstats).
+    
+    Function launches short "one-liner" in perl.
+    
+    Output has following format:
+         #mapped - #unmapped
+    For example: 123 - 456  
+    
+    Args:
+        mode:      If mode=='run' "one-liner" is launched.
+        idxstats:  Path to samtools idxstats output file.
+                   Please refer to idx_reader() for more information.
+        map_count: Path to file, where difference will be writed.
+    """
     perl_command = """perl -e 'while(<>){chomp;@a=split "\t", $_; $b+=$a[2]; $c+=$a[3];} print "$b - $c\n";' %s > %s"""%(
         idxstats, map_count
         )
