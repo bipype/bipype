@@ -1193,8 +1193,8 @@ def file_analysis(typ, name, SSU=None):
         1. ('NA', 'NA')
         2. (mapped, total)
         3. (n50, total, using)
-        4. (full_bac_dict, tax_bac_dict)
-        5. (full_fun_dict, tax_fun_dict)
+        4. (full_bac_dict, tax_bac_dict) - '16S'
+        5. (full_fun_dict, tax_fun_dict) - 'ITS'
 
     """
 
@@ -1230,8 +1230,8 @@ def file_analysis(typ, name, SSU=None):
                     n50 = total = using = 'NA'
                 return n50, total, using
             if typ == '16S':
-                bac_arch = [0, 0]
-                bac_dict = {}
+                bac_arch = [0, 0]   # a list to count occurrences: [0] of bacteria [1] of archeona
+                bac_dict = {}   # a dict to count species/strains of bacteria
                 for linia in linie:
                     tax_id = linia.split('\t')[1]
                     cult_control = 0
@@ -1241,8 +1241,6 @@ def file_analysis(typ, name, SSU=None):
                             cult_control = 1
                             spec = False
                         elif 'uncultured' in SSU[tax_id][spec_idx] or 'unidentified' in SSU[tax_id][spec_idx]:
-                            # TODO: there is PROBABLY missing init of spec, so line:
-                            # TODO: "if spec == 'Phaseolus_acutifolius_(tepary_bean)" may cause an error
                             spec_idx -= 1
                         elif 'Candidate' in SSU[tax_id][spec_idx]:
                             spec = tuple(SSU[tax_id][:spec_idx+1])
