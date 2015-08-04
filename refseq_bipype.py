@@ -1128,6 +1128,16 @@ def SSU_read(loc, typ=None):
 
 
 def tuple_to_dict(tuple_dict):
+    """ Input dictionary has tuples as keys and int type values. In dictionary returned by function keys are elements from input dictionary's tuples, values are dictioneries.
+
+Arg: tuple_dict
+	example: {('pierwszy','drugi','trzeci'):10, ('pierwszy','trzeci','piąty':30)...}
+
+Example will show why this function can be useful: 
+	
+	input: {("zwierzeta","ssaki","pies"):10,("bakterie","Enterobacteriaceae","Escherichia coli"):20, ("zwierzeta","ssaki","kot"):30}
+	output: {'zwierzeta': {'ssaki': {'pies': {'subsum': 10}, 'kot': {'subsum': 30}}}, 'bakterie': {'Enterobacteriaceae': {'Escherichia coli': {'subsum': 20}}}}
+"""
     fin_dict = {}
     for key in tuple_dict.keys():
         curr_dict = fin_dict
@@ -1151,6 +1161,15 @@ def tuple_to_dict(tuple_dict):
 
 
 def tuple_to_xml_dict(tuple_dict):
+    """Input dictionary has tuples as keys and int type values.In dictionary returned by function all elements from input dictionary's tuples are single keys but their current values are the sum of the values of all tuples, in which they were.
+
+Arg: tuple_dict
+	example: {('pierwszy','drugi','trzeci'):10, ('pierwszy','trzeci','piąty':30)...}
+
+Example: 
+	input: {("zwierzeta","ssaki","pies"):10,("bakterie","Enterobacteriaceae","Escherichia coli"):20, ("zwierzeta","ssaki","kot"):30}
+	output: {'zwierzeta': 40, 'kot': 30, 'Enterobacteriaceae': 20, 'ssaki': 40, 'Escherichia coli': 20, 'bakterie': 20, 'pies': 10}
+"""
     fin_dict = {}
     for taxonomy in tuple_dict:
         for level in taxonomy:
