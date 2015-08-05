@@ -655,6 +655,12 @@ Example:
     return ins_len
 
 def gzip_MV(MV_dir):
+    """
+Returns archive with catalogs Sequences, Roadmaps, PreGraph, Graph2, LastGraph and files with statistics.
+Args:
+	MV_dir: folder with Velvet results
+
+"""
     gzip_list = [
         'Sequences' ,'Roadmaps', 'PreGraph', 'Graph2', 'contigs.fa' , 'stats.txt',  'LastGraph',
         'meta-velvetg.Graph2-stats.txt', 'meta-velvetg.LastGraph', 'meta-velvetg.LastGraph-stats.txt',
