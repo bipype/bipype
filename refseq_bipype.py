@@ -103,7 +103,7 @@ def exist_check(program, names, todo):
     Please, pay attention to mutual compability of arguments.
     For more information please refer to adequate one of the following
     functions code:
-        - refseq_ref_namespace()
+        - refseq_ref_namespace() & refseq_mapping()
         - usearch()
         - MV()
         - rapsearch()
@@ -111,7 +111,6 @@ def exist_check(program, names, todo):
                
     Result:
         todo:     Checked list of tokens.
-    
     """
     if program == 'refseq':
         if pexists(names['sam']):
@@ -293,7 +292,7 @@ def idx_map(mode, file_, tax_name_dict, tax_id_dict, outfile):
         tax_name_dict: {TaxID:scientific_name} dictionary.
                        For more information refer to tax_name_reader()
                                              
-        tax_id_dict:   {GI:TaxID},        
+        tax_id_dict:   {GI:TaxID} dictionary,        
                        For more information refer to tax_id_reader()
                        
         outfile:       Path to output file.
@@ -351,27 +350,27 @@ Example:
     return out_name
 
 
-def refseq_ref_namespace(katalog, seq, postfix, out_dir='in_situ', map_dir='in_situ'):
+def refseq_ref_namespace(directory, seq, postfix, out_dir='in_situ', map_dir='in_situ'):
     """ Return dictionary which keys are names of file extensions and values are paths to file with corresponding extension
 
 Arg:
-	(katalog, seq, postfix, out_dir='in_situ', map_dir='in_situ')
+	(directory, seq, postfix, out_dir='in_situ', map_dir='in_situ')
 	seq: sequence file or pair of such files
 	
 Example:
 
-	for seq: abcd.fastq we have output_dictionary['fastq']= pjoin(katalog, abcd.fastq)
+	for seq: abcd.fastq we have output_dictionary['fastq']= pjoin(directory, abcd.fastq)
 
 Other keys: 'sam','sam2', 'bam', 'sorted','sorted.bam', 'idxstats', 'tax_count', 'map_count'
 """
     if out_dir == 'in_situ':
-        out_dir = katalog
+        out_dir = directory
     ref_namespace = {}
     if type(seq) == tuple:
         sample_name = pair_uni_name(seq)
-        ref_namespace['fastq'] = (pjoin(katalog, seq[0]), pjoin(katalog, seq[1]))
+        ref_namespace['fastq'] = (pjoin(directory, seq[0]), pjoin(directory, seq[1]))
     else:
-        ref_namespace['fastq'] = pjoin(katalog, seq)
+        ref_namespace['fastq'] = pjoin(directory, seq)
         sample_name = split(seq, '.')[0]
     if postfix != '':
         sample_name = sample_name + '_' + postfix
@@ -589,9 +588,80 @@ def idxstat_perling(mode, idxstats, map_count): #multi
         system(perl_command)
 
 
-def refseq_mapping(mode, e, katalog, pair, postfix, refseq, tax_name_dict, tax_id_dict, threads, map_dir, refseq_2=False):
+def refseq_mapping(mode, e, directory, pair, postfix, refseq, tax_name_dict, tax_id_dict, threads, map_dir, refseq_2=False):
+    """Aligns reads to reference sequence(s) using Bowtie 2, 
+       than parses and writes data to files.
+    
+    Firstly, Bowtie 2 align reads to reference sequence (or sequences,
+        if refseq_2 is not False and merge output SAM files).
+    Secondly, BAM files are made, sorted and indexed.
+    Thirdly, Function launches 'samtools idxstats'.
+    In the next step, perl 'one-liner' counts and writes to file
+        sums of mapped reads and unmapped reads.
+    Finally, idx_map() function is called: 
+        Parse data from samtools idxstats output file and
+        writes data to outfile in    key;value    format, where:
+        key     is    GI number/TaxID/scientific name
+        value   is    number of mapped reads.   
+                        
+    Args:
+        mode:            If mode=='run', function operate on data
+                         and print informations about it.
+                         Else, prints informations, without operating
+                         on data (it is kind of test).
+        
+        e:               If True, checks if a part of workflow is
+                         actually done and don't duplicate this jobs.
+                         For more information, please refer to
+                         exist_check() function.
+
+        directory:       Path to directory, where files will be writed.      
+        
+        pair:            Touple of paths to file (paired-end reads) OR
+                         String: path to sequence file.
+        
+        postfix:         String added to the end of files basenames.
+                         Argument for refseq_ref_namespace().
+        
+        refseq:          'The basename of the index for the reference
+                         genome.' Argument for bowtie2_run().
+                               
+        tax_name_dict:   {TaxID:scientific_name} dictionary.
+                         For more information refer to tax_name_reader()
+                         Argument for idx_map().
+                                             
+        tax_id_dict:     {GI:TaxID} dictionary,        
+                         For more information refer to tax_id_reader()
+                         Argument for idx_map().
+
+        threads          Number of threads for Bowtie 2 calculations.
+
+        map_dir          Directory where sums of mapped and unmapped
+                         reads will be writed. For more information
+                         refer to idxstat_perling().
+
+        refseq_2:        'The basename of the index for the reference
+                         genome.' Argument for bowtie2_run().
+                         If selected, launches Bowtie 2 on it, than
+                         merge output with output from Bowtie 2
+                         launched on 'refseq'.
+                         If refseq_2==False, Bowtie 2 is working only
+                         on 'refseq' argument.
+                         (False by default).
+                         
+    For more information take a look at:  refseq_ref_namespace()
+                                          exist_check()
+                                          bowtie2_run()
+                                          sam_merge()
+                                          bam_make()
+                                          bam_sorting()
+                                          bam_indexing()
+                                          bam_idxstating()
+                                          idxstat_perling()
+                                          idx_map()
+    """
     todo = ['bowtie', 'bam_make', 'sort_index', 'idxstat', 'perl', 'idx_map']
-    ref_namespace = refseq_ref_namespace(katalog, pair, postfix, 'in_situ', map_dir)
+    ref_namespace = refseq_ref_namespace(directory, pair, postfix, 'in_situ', map_dir)
     if e:
         todo = exist_check('refseq', ref_namespace, todo)
     if 'bowtie' in todo:
