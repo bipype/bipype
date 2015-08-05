@@ -1237,6 +1237,9 @@ def file_analysis(typ, name, SSU=None):
     """Using given SSU as databases, performs 'statistical' analysis
     of taxonomy from given file <name>. The function is able to handle
     many different "output types".
+    
+    The threshold hardcoded in dict_purify is used,
+    to remove neglectable entities.
 
     Args:
         typ: an "output type" - typically: 'ITS', '16S' or 'txt'.
@@ -1266,14 +1269,14 @@ def file_analysis(typ, name, SSU=None):
             {
                 'Bacillaceae':
                 {
-                    'Anoxybacillus': 5
+                    'Anoxybacillus': {'subsum': 15}
                 },
                 'Listeriaceae':
                 {
                     'Listeria':
                     {
-                        'Lgrayi': 16,
-                        'Linnocua': 3
+                        'Lgrayi': {'subsum': 22},
+                        'Linnocua': {'subsum': 11}
                     }
                 }
             }
@@ -1284,12 +1287,12 @@ def file_analysis(typ, name, SSU=None):
 
             Example:
             {
-                'Bacillaceae': 5,
-                'Anoxybacillus': 5,
-                'Listeriaceae': 19,
-                'Listeria': 19,
-                'Lgrayi': 16,
-                'Linnocua': 3
+                'Bacillaceae': 15,
+                'Anoxybacillus': 15,
+                'Listeriaceae': 33,
+                'Listeria': 33,
+                'Lgrayi': 22,
+                'Linnocua': 11
             }
 
 
@@ -1459,13 +1462,20 @@ def dict_prepare(typ, indict, SSU):
 
             Example:
             {
-                'file_1':
+                'filename_1':
                 {
-                    'Bacillaceae': {'Anoxybacillus': 5}
+                    'Bacillaceae': {'Anoxybacillus': {'subsum': 15}}
                 },
-                'file_2':
+                'filename_2':
                 {
-                    Listeriaceae': {'Listeria': {'Lgrayi': 16, 'Linnocua': 3} }
+                    'Listeriaceae':
+                    {
+                        'Listeria':
+                        {
+                            'Lgrayi': {'subsum': 22},
+                            'Linnocua': {'subsum': 11}
+                        }
+                    }
                 }
             }
 
@@ -1477,11 +1487,11 @@ def dict_prepare(typ, indict, SSU):
 
             Example:
             {
-                'file_1':
+                'filename_1':
                 {
                     'Bacillaceae': 5, 'Anoxybacillus': 5
                 },
-                'file_2':
+                'filename_2':
                 {
                     'Listeriaceae': 19, 'Listeria': 19, 'Lgrayi': 16, 'Linnocua': 3
                 }
@@ -1520,8 +1530,8 @@ def dict_sum(dicto, val):
 
 def update_dict(tax_tree, curr_tax):
     """Updates the dict with keys form another one.
-    If during walking the dict, the 'subsum' string is found (as key or value),
-    recurrence stops and nodes deeper inside that branch are ignored.
+    If during walking the dict, the 'subsum' string is found,
+    recurrence stops and nodes beneath are ignored.
     The dicts have to contain only other dicts or 'subsum'!
 
     Args:
@@ -1532,8 +1542,32 @@ def update_dict(tax_tree, curr_tax):
         tax_tree: updated dict
 
     Example:
-        input: {'a':{'a':{}}},{'a':{'b':{}},'b':{},'c':'subsum','subsum':{}}
-        output: {'a': {'a': {}, 'b': {}}, 'b': {}, 'c': {}}
+        input (tax_tree, curr_tax):
+            (
+                {
+                    'Listeriaceae':
+                    {
+                        'Listeria': { 'Lgrayi': {} }
+                    }
+                },
+                {
+                    'Listeriaceae':
+                    {
+                        'Listeria': { 'Linnocua': {'subsum': 11} }
+                    }
+                }
+            )
+        output:
+            {
+                'Listeriaceae':
+                {
+                    'Listeria':
+                    {
+                        'Lgrayi': {},
+                        'Linnocua': {}
+                    }
+                }
+            }
     """
     for key in curr_tax:
         if key != 'subsum':
@@ -1548,17 +1582,65 @@ def update_dict(tax_tree, curr_tax):
 
 def tree_of_life(full_dict):
     """Rewrites the data from a dict containing information arranged by
-    type and then by file into two dicts: full_tree and file_total_count.
+    type and then by file into two dicts:
+        - first represents full taxonomic tree
+        - second presents how many species are inside particular files
 
     Args:
-        full_dict: a dict of dicts, with structure:
-            {type_1: {file_1: {}, file_2: {}}, type_2: {file_3: {}}}
+        full_dict: a dict of dicts, with structure like:
+        {
+            'output_type_1':
+            {
+                'filename_1':
+                {
+                    'Bacillaceae': {'Anoxybacillus': {'subsum': 15}}
+                },
+                'filename_2':
+                {
+                    'Listeriaceae':
+                    {
+                        'Listeria':
+                        {
+                            'Lgrayi': {'subsum': 22},
+                            'Linnocua': {'subsum': 11}
+                        }
+                    }
+                }
+                
+            },
+            'output_type_2':
+            {
+                'filename_2':
+                {
+                    'Bacillaceae': {'Anoxybacillus': {'subsum': 15}}
+                }
+            }
+        }
 
     Returns:
+        A tuple (full_tree, file_total_count)
+    
         full_tree: A dict without information about type and file.
-        file_total_count: A dict where:
-            - information about files are kept,
-            - values of every child dict are summed into a single value
+            Example:
+            {
+                'Bacillaceae':
+                {
+                    'Anoxybacillus': {}
+                },
+                'Listeriaceae':
+                {
+                    'Listeria':
+                    {
+                        'Lgrayi': {}, 'Linnocua': {}
+                    }
+                }
+            }
+        
+        file_total_count: A dict within information about files are kept
+            and values of every leaf are summed into values representing
+            total count of species inside particular file.
+            Example:
+            {'filename_1': 15, 'filename_2': 33}
     """
     file_total_count = {}
     full_tree = {}
@@ -1574,14 +1656,45 @@ def xml_name_parse(full_dic):
     """
 
     Args:
+        full_dic: a dict of dicts, with structure like:
+            {
+                'output_type_1':
+                {
+                    'filename_1':
+                    {
+                        'Bacillaceae': {'Anoxybacillus': {'subsum': 15}}
+                    },
+                    'filename_2':
+                    {
+                        'Listeriaceae':
+                        {
+                            'Listeria':
+                            {
+                                'Lgrayi': {'subsum': 22},
+                                'Linnocua': {'subsum': 11}
+                            }
+                        }
+                    }
+                    
+                },
+                'output_type_2':
+                {
+                    'filename_2':
+                    {
+                        'Bacillaceae': {'Anoxybacillus': {'subsum': 15}}
+                    }
+                }
+            }
 
     Returns:
 
-
     """
+    # Make set for names.
+    # It allows to get rid of duplicates, but order of elements is lost.
     name_set = set()
     for typ in full_dic:
         for plik in full_dic[typ]:
+            # Remove extension from filename
             display_name = split(plik, '.')[0]
             try:
                 nameparts = split(plik, '_')
@@ -1667,40 +1780,42 @@ def deunique(node):
 
 
 def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
+    # TODO
     """Generates xml for Krona
     
     Args:
-        xml_names: identifiers, obtained by modifying filenames,
-            given by input_d dict.
-            Example:
-            [identifier_1, identifier_2, ..., identifier_x]
+        
+        #xml_names: identifiers, obtained by modifying filenames,
+        #    given by input_d dict.
+        #    Example:
+        #    [identifier_1, identifier_2, ..., identifier_x]
 
-        xml_dict: A dict. Contains lists of numbers of occurrences of nodes by node. Keys are names of nodes.
-            Values are lists of constant length, where every item on position *X* means:
-            number of occurrences of nodes with prefix equal to *name of node* in file *X*.
-            *file X* is that file, which is on position *X* on list xml_names.
-             Note, that for all i: len(xml_dict[i]) is equal to len(xml_names).
-            Example:
-            {node: [count_1, count_2, ... count_x], node_2: [count_1, count_2, ... count_x]}
+        #xml_dict: A dict. Contains lists of numbers of occurrences of nodes by node. Keys are names of nodes.
+        #    Values are lists of constant length, where every item on position *X* means:
+        #    number of occurrences of nodes with prefix equal to *name of node* in file *X*.
+        #    *file X* is that file, which is on position *X* on list xml_names.
+        #     Note, that for all i: len(xml_dict[i]) is equal to len(xml_names).
+        #    Example:
+        #    {node: [count_1, count_2, ... count_x], node_2: [count_1, count_2, ... count_x]}
 
-        tax_tree: A dict of dicts, etc. In form of nested dicts, it represents phylogenetic tree.
-            Example:
-            {a:{aa:{}, ab:{aba:{}, abb:{abba:{}}}}}
-            Explicit example in description of tax_tree_graphlan, look for: total_tax_tree.
+        #tax_tree: A dict of dicts, etc. In form of nested dicts, it represents phylogenetic tree.
+        #    Example:
+        #    {a:{aa:{}, ab:{aba:{}, abb:{abba:{}}}}}
+        #    Explicit example in description of tax_tree_graphlan, look for: total_tax_tree.
 
-        name_total_count: A dict. Contains summed numbers of occurrences of nodes by file.
-            Keys are identifiers (derived from filenames - look for xml_names), values ale sums.
-            Example:
-            {identifier_1: count_1, identifier_2: count_2}
+        #name_total_count: A dict. Contains summed numbers of occurrences of nodes by file.
+        #    Keys are identifiers (derived from filenames - look for xml_names), values ale sums.
+        #    Example:
+        #    {identifier_1: count_1, identifier_2: count_2}
 
-        unit: A string. Defines units to be coded in Krona XML. Default = 'reads'
+        #unit: A string. Defines units to be coded in Krona XML. Default = 'reads'
 
 
     Returns:
     
     HARDCODED:
-        depth .... is currently not generated
-        accordingly to tax_tree depth, but is hardcoded to 9 levels  
+        #depth .... is currently not generated
+        #accordingly to tax_tree depth, but is hardcoded to 9 levels  
     """
     import xml.etree.ElementTree as ET
     krona = ET.Element('krona')
@@ -1813,12 +1928,45 @@ def xml_format(full_dict, tax_dict):
     Args:
         full_dict: a dict of dicts with structure like:
             {
-                type_1:
-                    {file_1: {}, file_2: {}},
-                type_2:
-                    {file_3: {}}}
+                'output_type_1':
+                {
+                    'filename_1':
+                    {
+                        'Bacillaceae': {'Anoxybacillus': {'subsum': 15}}
+                    },
+                    'filename_2':
+                    {
+                        'Listeriaceae':
+                        {
+                            'Listeria':
+                            {
+                                'Lgrayi': {'subsum': 22},
+                                'Linnocua': {'subsum': 11}
+                            }
+                        }
+                    }
+                    
+                },
+                'output_type_2':
+                {
+                    'filename_2':
+                    {
+                        'Bacillaceae': {'Anoxybacillus': {'subsum': 15}}
+                    }
+                }
             }
-            Type is an "output type" and typically is 'ITS', '16S' or 'txt'.
+            "output type" typically will be 'ITS', '16S'.
+
+    Pipe:
+    
+    tree_of_life
+    
+    Rewrites the data from a dict containing information arranged by
+    type and then by file into two dicts:
+        - first represents full taxonomic tree
+        - second presents how many species are inside particular files
+
+    xml_name_parse
 
     Returns:
 
@@ -2192,7 +2340,7 @@ def xml_counts_graphlan(tax_tree, per_file_tax_tree, xml_names, multi_flat_tax_t
 
 def graphlan_to_krona(input_d):
     """
-    Modifies files given by <in inupt_d> from Graphlan format to set of
+    Modifies files given by <inupt_d> from Graphlan format to set of
     xml strings, which may be assembled into a input for Krona.
 
     Args:
@@ -2254,7 +2402,7 @@ def aftershave(opts):
   
 			opts.output_type:
                 Allows to choice on which files the analisis will be
-                performed and determines basenames of output files.
+                performed and also determines basenames of output files.
                 
                 One of: ['ITS', '16S', 'txt']
                 
