@@ -68,6 +68,51 @@ def cat_read(mode, fileext, paired_end=True):
 
 
 def exist_check(program, names, todo):
+    """Checks if a part of program is actually done.
+    
+    Function tries to find output files from different parts of program
+    and based on the results, removes corresponding tokens from
+    todo list.
+    
+    In one special case (program=='usearch_0') function checks size of
+    the file specified by 'names' argument in bits. If size==0: todo=[]
+    and PANIC MODE information is printed. 
+    
+    Args:
+        program:  One of the following strings reprenting programs
+                  (de facto functions):
+                        'refseq'            (&)        
+                        'usearch'           (@)
+                        'usearch_0'         (@)
+                        'MV'                (^)
+                        'rapsearch'         (@)
+                        'cutadapt'          (^)
+                        
+                        
+        names:    There are three possibilities:
+                    (&) Dictionary in following format:
+        {file extension : path to file with corresponding extension}          
+                    (@) String (one path)
+                    (^) List of paths
+                  Paths are hypothetical - if one really exists, 
+                  appropriate token is removed from todo list.
+
+        todo:     List of tokens representing different parts of
+                  function specified by 'program' argument.
+    
+    Please, pay attention to mutual compability of arguments.
+    For more information please refer to adequate one of the following
+    functions code:
+        - refseq_ref_namespace()
+        - usearch()
+        - MV()
+        - rapsearch()
+        - cutadapt()
+               
+    Result:
+        todo:     Checked list of tokens.
+    
+    """
     if program == 'refseq':
         if pexists(names['sam']):
             todo.remove('bowtie')
@@ -584,6 +629,19 @@ def refseq_mapping(mode, e, katalog, pair, postfix, refseq, tax_name_dict, tax_i
 
 
 def ins_len_read(pair, cat):
+    """
+Returns 200 in case, when read length is less, then 200 and 500 in other case.
+
+Args:
+	pair: tuple of paired_end read
+	cat: name of folder with the sample files
+
+Example:
+	input: ('Amp15_BFk_B_p_CGTACG_L001_R1_001.fastq','Amp15_BFk_B_p_CGTACG_L001_R2_001.fastq'), 'catalog_name'
+	output: 500
+
+"""
+
     sample_name = pair[0]
     zeros= find(sample_name, '00') #WARNING HARDCODE
     try:
@@ -595,7 +653,6 @@ def ins_len_read(pair, cat):
         else:
             ins_len = 200
     return ins_len
-
 
 def gzip_MV(MV_dir):
     gzip_list = [
@@ -638,6 +695,20 @@ def rapsearch(mode, e, contig_loc, rap_out, KEGG=None):
 
 
 def MV(mode, e, k_mers, cat, pair, ins_len, rap=False):
+   """
+Runs Velvet. Runs function gzip_MV on folder wiht Velvet results, which name was created with command 
+	pair_uni_name(pair) + '_velvh_out'
+If parameter rap is true, then the function also run function rapsearch.
+
+Args:
+	mode: if mode=="run" program runs velveth or velvetg or metavelvetg
+	e: boolean parameter. If e==True, then program changes todo list with exist_check function
+	k_mers: k-length nucleotids reads list
+	cat: name of current folder
+	pair: tuple of paired_end read
+	ins_len: If ins_len==9999, then ins_len is the output from ins_len_read function
+	rap: If rap==True, then program runs rapsearch function. Default rap=False
+"""
     fileext = '.'.join(split(pair[0], '.')[1:])
     if ins_len == 9999:
         ins_len = ins_len_read(pair, cat)
