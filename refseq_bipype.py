@@ -1234,7 +1234,9 @@ def dict_purify(bac_dict):
 
 def file_analysis(typ, name, SSU=None):
     # TODO: WIP
-    """
+    """Using given SSU as databases, performs 'statistical' analysis
+    of taxonomy from given file <name>. The function is able to handle
+    many different "output types".
 
     Args:
         typ: an "output type" - typically: 'ITS', '16S' or 'txt'.
@@ -1247,7 +1249,7 @@ def file_analysis(typ, name, SSU=None):
             Explicit examples included in description of SSU_read() function.
 
     Returns:
-        It returns one from following tuples:
+        It returns one of following tuples:
 
         1. ('NA', 'NA')
         2. (mapped, total)
@@ -1295,7 +1297,6 @@ def file_analysis(typ, name, SSU=None):
         In '16S' analysis, if spec is 'Phaseolus_acutifolius_(tepary_bean)',
         then it is not counted neither as bacteria nor archaea.
     """
-
     # TODO: following import is not used
     import operator
     if not pexists(name):
@@ -1384,6 +1385,14 @@ def file_analysis(typ, name, SSU=None):
 def input_locations(mode, out_types):
     """Generates list of locations were input files are located.
     Lists are grouped by directories and later, by "output types".
+    
+    As input files considered are only files,
+    which meet all the following conditions:
+        - they are located in current working directory
+          or in subdirectories of current working directory,
+        - have suffix of filename equal to <out_type>,
+        - if <out_type> is 'ITS' or '16S', filenames also 
+          have to contain 'usearch_' before the <out_type> in name.
 
     Args:
         mode: a parameter passed to cat_read function.
@@ -1429,13 +1438,16 @@ def dict_prepare(typ, indict, SSU):
     Args:
         typ: an "output type" - typically: 'ITS', '16S' or 'txt'.
 
-        indict: A dict where keys are directories and values are lists of files.
-            Example included in description of cat_read() function.
+        indict: A dict with file structure, where:
+                keys are directories,
+                values are lists of files.
+            Example in description od output of cat_read() function.
 
         SSU: A dict with taxonomical data, where:
-                keys are sequence identifiers; values are lists of taxonomic
-                terms, in order: from the most generic to the most specific one.
-            Explicit example included in description of SSU_read() function.
+                keys are sequence identifiers;
+                values are lists of taxonomic terms, in order:
+                from the most generic to the most specific one.
+            Example in description of output of SSU_read() function.
 
     Returns:
         A tuple: (all_dicts, all_tax_dict)
@@ -1655,8 +1667,8 @@ def deunique(node):
 
 
 def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
-    #TODO
-    """
+    """Generates xml for Krona
+    
     Args:
         xml_names: identifiers, obtained by modifying filenames,
             given by input_d dict.
@@ -1685,6 +1697,10 @@ def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
 
 
     Returns:
+    
+    HARDCODED:
+        depth .... is currently not generated
+        accordingly to tax_tree depth, but is hardcoded to 9 levels  
     """
     import xml.etree.ElementTree as ET
     krona = ET.Element('krona')
@@ -1742,7 +1758,7 @@ def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
                             node6 = ET.SubElement(node5, 'node', name=deunique(lvl_6))
                             reads6 = ET.SubElement(node6, unit)
                             for element in xml_dict[lvl_6]:
-                                print 'lvl6', lvl_6, xml_dict[lvl_6]
+                                print 'lvl6', lvl_6, xml_dict[lvl_6] # TODO: is there any aim of this print statement? What it is for? 
                                 val = ET.SubElement(reads6, 'val')
                                 val.text = str(element)
                             tmp_7_d = tmp_6_d[lvl_6]
@@ -1750,7 +1766,7 @@ def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
                                 node7 = ET.SubElement(node6, 'node', name=deunique(lvl_7))
                                 reads7 = ET.SubElement(node7, unit)
                                 for element in xml_dict[lvl_7]:
-                                    print 'lvl7', lvl_7, xml_dict[lvl_7]
+                                    print 'lvl7', lvl_7, xml_dict[lvl_7]# TODO: is there any aim of this print statement? What it is for? 
                                     val = ET.SubElement(reads7, 'val')
                                     val.text = str(element)
                                 tmp_8_d = tmp_7_d[lvl_7]
@@ -1758,7 +1774,7 @@ def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
                                     node8 = ET.SubElement(node7, 'node', name=deunique(lvl_8))
                                     reads8 = ET.SubElement(node8, unit)
                                     for element in xml_dict[lvl_8]:
-                                        print 'lvl8', lvl_8, xml_dict[lvl_8]
+                                        print 'lvl8', lvl_8, xml_dict[lvl_8]# TODO: is there any aim of this print statement? What it is for? 
                                         val = ET.SubElement(reads8, 'val')
                                         val.text = str(element)
                                     tmp_9_d = tmp_8_d[lvl_8]
@@ -1816,21 +1832,29 @@ def xml_format(full_dict, tax_dict):
 
 
 def out_namespace(curr, out_type):
-    """"Generates paths to xml and html files, where krona xml and krona html
-    files are or will be placed. Path composition varies, according to given
+    """"Generates paths to places, where krona xml and krona html files
+    are or will be placed. Path composition varies, according to given
     arguments and always contains some string representation of <out_type>.
-    Path may starts in current working directory or in any give directory.
+    Paths may start in current working directory or in directory specified by <curr>.
+    
     A basename is generated accordingly to the following table:
-
-        out_type                  basename (filename without extension)
-        'txt'                    'humann-graphlan'
-        a str other than 'txt'   out_type
-        a list of strings        '_'.join(out_type)
+    
+        out_type                |   basename (filename without extension)
+        
+        'txt'                   |  'humann-graphlan'
+        a str other than 'txt'  |  out_type
+        a list of strings       |  '_'.join(out_type)
+    
+    Examples of generated basenames, basing on <out_type>:
+    
+        for 'ITS':                ('ITS.krona', 'ITS.html')
+        for ['ITS', '16S']:       ('ITS_16S.krona', 'ITS_16S.html')
+        for 'txt':                'humann-graphlan'
 
 
     Args:
         curr: A string - path to directory where the files are/will be placed.
-              If == 'in_situ', the path will start in current working directory.
+              If curr is 'in_situ', the path will start in current working directory.
 
         out_type: A variable that determines the basename of file.
 
@@ -1840,11 +1864,11 @@ def out_namespace(curr, out_type):
     Returns:
         A tuple (out_xml, out_html):
 
-        out_xml: a string with path to file. The filename is derived from
-        (out_type) and file has '.krona' extension.
+        out_xml: a string with path to file. The filename is derived
+            from (out_type) and file has '.krona' extension.
 
-        out_html: a string with path to file. The filename is derived from
-        (out_type) and file has '.html' extension.
+        out_html: a string with path to file. The filename is derived
+            from (out_type) and file has '.html' extension.
     """
     if curr == 'in_situ':
         curr = getcwd()
@@ -1881,14 +1905,17 @@ def txt_dict_clean(dicto):
     Emptied directories are also removed.
 
     Args:
-        dicto (dict of str: str): A dict where:
+        dicto: A dict where:
             keys are names of directories,
-            values are lists containing filenames that are in the directory.
+            values are lists with filenames, which are in the directory.
+            
             Example:
-            {'dict_name_1': ['file_1','file_2'], 'dict_name_2': ['file_1']}
+            {'dir_name_1': ['file_1','file_2'], 'dir_name_2': ['file_1']}
+            
+            Explicit example in description of output of cat_read(). 
 
     Returns:
-        A dict in the same format as given one (cleaned from unwanted files)
+        A dict in the same format, as given one (without unwanted files)
     """
     to_remove = set()
     for directory in dicto:
@@ -1911,9 +1938,15 @@ def xml_names_graphlan(input_d):
      which are prefixes and suffixes, common for all items on the list.
 
     Args:
-        input_d (dict of str: str): A dict, where:
+        input_d: A dict where:
             keys are names of directories,
-            values are lists containing filenames that are inside the directory
+            values are lists with filenames, which are in the directory.
+            
+            Example:
+            {'dir_name_1': ['file_1','file_2'], 'dir_name_2': ['file_1']}
+            
+            Explicit example in description of output of cat_read().
+            
     Returns:
         A list with all filenames with were given on input,
         trimmed by common prefixes and suffixes.
@@ -1995,9 +2028,14 @@ def tax_tree_graphlan(input_d):
     from files in Graphlan-like format.
 
     Args:
-        input_d (dict of str: str): A dict, where:
+        input_d: A dict where:
             keys are names of directories,
-            values are lists containing filenames that are inside the directory
+            values are lists with filenames, which are in the directory.
+            
+            Example:
+            {'dir_name_1': ['file_1','file_2'], 'dir_name_2': ['file_1']}
+            
+            Explicit example in description of output of cat_read(). 
 
         Example of featured file:
             Listeriaceae.Listeria.Lgrayi
@@ -2154,14 +2192,18 @@ def xml_counts_graphlan(tax_tree, per_file_tax_tree, xml_names, multi_flat_tax_t
 
 def graphlan_to_krona(input_d):
     """
-    Modify files (specified in inupt_d) created by Graphlan to create
-    a set of xml strings, which may be assembled into a input file for Krona.
+    Modifies files given by <in inupt_d> from Graphlan format to set of
+    xml strings, which may be assembled into a input for Krona.
 
     Args:
-        input_d (dict of str: str): A dict, where:
+        input_d: A dict where:
             keys are names of directories,
-            values are lists containing filenames,
-            which are inside the directory
+            values are lists with filenames, which are in the directory.
+            
+            Example:
+            {'dir_name_1': ['file_1','file_2'], 'dir_name_2': ['file_1']}
+            
+            Explicit example in description of output of cat_read(). 
 
     Returns:
         A tuple (xml_names, xml_dict, tax_tree, name_total_count):
@@ -2201,25 +2243,74 @@ def graphlan_to_krona(input_d):
 
 
 def aftershave(opts):
-    """TODO
+    """Performs statistical analysis of taxonomy from appropraite files
+    from current working directory: counts occurrences of different taxa
+    and prepares the results to be presented in HTML format.
+    Results will be converted to HTML (with the Krona program),
+    but only when <opts.mode> is set to 'run'.
 
     Args:
-        opts: namespace with options explained in file "bipype"
+        opts: A namespace, where:
+  
+			opts.output_type:
+                Allows to choice on which files the analisis will be
+                performed and determines basenames of output files.
+                
+                One of: ['ITS', '16S', 'txt']
+                
+			opts.mode:
+                A mode in which the program will be runned.
+                
+                One of: ['test', 'run']
+     
+            opts.out_dir:
+                Indicates, where the output files should be located.
+                To specify current working directory, use 'in_situ'. 
+                
+                One of: ['in_situ', a_string_with_path_to_dir]
+     
+    Input:
+    
+        Analysis will be performed on files, meeting all the following conditions:
+            - files are located in current working directory
+              or in subdirectories of current working directory,
+            - suffix of filename is equal to <opts.output_type>,
+            - if <opts.output_type> is 'ITS' or '16S', filenames
+             contains 'usearch_' before the <opts.output_type> in name.
+
+    Output:
+
+        Output files will be placed in <opts.out_dir> directory, with
+        basenames depending on <opts.output_type>.
+        
+        Examples of basenames:
+            for 'ITS':                ('ITS.krona', 'ITS.html')
+            for ['ITS', '16S']:       ('ITS_16S.krona', 'ITS_16S.html') 
+   
+    HARDCODED:
+        paths to databases:
+        '/home/pszczesny/soft/bipype/SSU_candidate_db.fasta'
+        '/home/pszczesny/soft/bipype/UNITE_public_from_27.01.13.fasta'
     """
     SSU = {}
     metag_flag = 0
+    # Extracts from specially formatted FASTA file taxonomical data
+    # and returns them as hierarchically organised dict
     if '16S' in opts.output_type:
         SSU['16S'] = SSU_read('/home/pszczesny/soft/bipype/SSU_candidate_db.fasta', '16S')
         metag_flag = 1
     if 'ITS' in opts.output_type:
         SSU['ITS'] = SSU_read('/home/pszczesny/soft/bipype/UNITE_public_from_27.01.13.fasta')
         metag_flag = 1
+    # Generates list of locations were input files are located. 
     input_dic = input_locations(opts.mode, opts.output_type)
     analysed_dict = {}
     tax_dict = {}
     pure_tax = {}
     for out_type in opts.output_type:
         try:
+            # Runs files analysis on data which were interpreted by SSU_read
+            # and then, creates dicts with summarized taxonomical data
             analysed_dicto, tax_dicto = dict_prepare(out_type, input_dic[out_type], SSU[out_type])
             analysed_dict[out_type] = analysed_dicto
             tax_dict[out_type] = tax_dicto
@@ -2237,7 +2328,8 @@ def aftershave(opts):
             xml_names, xml_dict, tax_tree, name_total_count = graphlan_to_krona(input_dicto)
             krona_unit = 'processes'
     xml_string = xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, krona_unit)
+    # Writes xml_string into the file given by out_namespace
     outprint(xml_string, krona_xml_name)
-    krona_to_html_comm = 'ktImportXML -o %s %s'%(krona_html_name, krona_xml_name)
+    krona_to_html_comm = 'ktImportXML -o %s %s'%(krona_html_name, krona_xml_name) # TODO: it shall be moved to if
     if opts.mode == 'run':
         system(krona_to_html_comm)
