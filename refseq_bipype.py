@@ -68,6 +68,51 @@ def cat_read(mode, fileext, paired_end=True):
 
 
 def exist_check(program, names, todo):
+    """Checks if a part of program is actually done.
+    
+    Function tries to find output files from different parts of program
+    and based on the results, removes corresponding tokens from
+    todo list.
+    
+    In one special case (program=='usearch_0') function checks size of
+    the file specified by 'names' argument in bits. If size==0: todo=[]
+    and PANIC MODE information is printed. 
+    
+    Args:
+        program:  One of the following strings reprenting programs
+                  (de facto functions):
+                        'refseq'            (&)        
+                        'usearch'           (@)
+                        'usearch_0'         (@)
+                        'MV'                (^)
+                        'rapsearch'         (@)
+                        'cutadapt'          (^)
+                        
+                        
+        names:    There are three possibilities:
+                    (&) Dictionary in following format:
+        {file extension : path to file with corresponding extension}          
+                    (@) String (one path)
+                    (^) List of paths
+                  Paths are hypothetical - if one really exists, 
+                  appropriate token is removed from todo list.
+
+        todo:     List of tokens representing different parts of
+                  function specified by 'program' argument.
+    
+    Please, pay attention to mutual compability of arguments.
+    For more information please refer to adequate one of the following
+    functions code:
+        - refseq_ref_namespace()
+        - usearch()
+        - MV()
+        - rapsearch()
+        - cutadapt()
+               
+    Result:
+        todo:     Checked list of tokens.
+    
+    """
     if program == 'refseq':
         if pexists(names['sam']):
             todo.remove('bowtie')
