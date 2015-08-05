@@ -137,7 +137,7 @@ def tax_id_reader():
     17	9771
     where first column is a GI number, second is a TaxID.
     
-    HARCODED:
+    HARDCODED:
     /home/pszczesny/workingdata/refseq/db/tax_id/gi_taxid_nucl.dmp   
     """
     print 'reading tax ids'
@@ -176,7 +176,7 @@ def tax_name_reader():
         Output:
             {6:'Azotirhizobium', 7:'Azorhizobium caulinodans'}
          
-    HARCODED:
+    HARDCODED:
     /home/pszczesny/workingdata/refseq/db/tax_id/names.dmp  
     """
     print 'reading tax names'
@@ -224,7 +224,7 @@ def idx_reader(file_path):
 
 
 def idx_map(mode, file_, tax_name_dict, tax_id_dict, outfile):
-    '''Parses and writes data from samtools idxstats output file.
+    """Parses and writes data from samtools idxstats output file.
         
     Firstly, using idx_reader(file_), create {GI:#_mapped_reads} 
     dictionary.
@@ -252,7 +252,7 @@ def idx_map(mode, file_, tax_name_dict, tax_id_dict, outfile):
                        For more information refer to tax_id_reader()
                        
         outfile:       Path to output file.
-    '''
+    """
     from operator import itemgetter
     tax_count_dict = {}
     if mode == 'run':
@@ -1093,7 +1093,7 @@ def SSU_read(loc, typ=None):
 
     Returns:
         A dict with taxonomical data, where:
-            keys are sequence identificators; values are lists of taxonomic
+            keys are sequence identifiers; values are lists of taxonomic
             terms, in order: from the most generic to the most specific one.
         Example:
         {
@@ -1153,6 +1153,20 @@ def SSU_read(loc, typ=None):
 
 
 def tuple_to_dict(tuple_dict):
+    """ Input dict has tuples as keys and int type values.
+    In the dict returned by function:
+        keys are elements from input dictionary's tuples,
+        values are dicts.
+
+    Args:
+        tuple_dict: a dict.
+        Example: {('first','second','third'): 10, ('first','second'): 30, ...}
+
+    Example will show why this function can be useful:
+
+    input: {("zwierzeta","ssaki","pies"):10,("bakterie","Enterobacteriaceae","Escherichia coli"):20, ("zwierzeta","ssaki","kot"):30}
+    output: {'zwierzeta': {'ssaki': {'pies': {'subsum': 10}, 'kot': {'subsum': 30}}}, 'bakterie': {'Enterobacteriaceae': {'Escherichia coli': {'subsum': 20}}}}
+"""
     fin_dict = {}
     for key in tuple_dict.keys():
         curr_dict = fin_dict
@@ -1176,6 +1190,15 @@ def tuple_to_dict(tuple_dict):
 
 
 def tuple_to_xml_dict(tuple_dict):
+    """Input dictionary has tuples as keys and int type values.In dictionary returned by function all elements from input dictionary's tuples are single keys but their current values are the sum of the values of all tuples, in which they were.
+
+Arg: tuple_dict
+	example: {('pierwszy','drugi','trzeci'):10, ('pierwszy','trzeci','piąty':30)...}
+
+Example:
+	input: {("zwierzeta","ssaki","pies"):10,("bakterie","Enterobacteriaceae","Escherichia coli"):20, ("zwierzeta","ssaki","kot"):30}
+	output: {'zwierzeta': 40, 'kot': 30, 'Enterobacteriaceae': 20, 'ssaki': 40, 'Escherichia coli': 20, 'bakterie': 20, 'pies': 10}
+"""
     fin_dict = {}
     for taxonomy in tuple_dict:
         for level in taxonomy:
@@ -1187,18 +1210,93 @@ def tuple_to_xml_dict(tuple_dict):
 
 
 def dict_purify(bac_dict):
-    treshold = 10 #WARNING HARDCODE
+    """Removes from given dict values below the hardcoded threshold.
+
+    Args:
+        bac_dict: a dict.
+
+    Returns:
+        A new dict without entries, within values were lower than threshold.
+
+    HARDCODED:
+        threshold = 10
+    """
+    threshold = 10
     all_keys = bac_dict.keys()
     to_remove = []
     for key in all_keys:
-        if bac_dict[key] < treshold:
+        if bac_dict[key] < threshold:
             to_remove.append(key)
-    for klucz in to_remove:
-        del bac_dict[klucz]
+    for key in to_remove:
+        del bac_dict[key]
     return bac_dict
 
 
 def file_analysis(typ, name, SSU=None):
+    # TODO: WIP
+    """
+
+    Args:
+        typ: an "output type" - typically: 'ITS', '16S' or 'txt'.
+
+        name: name of file to analise (only name, not full path)?????!!! TODO
+
+        SSU: A dict with taxonomical data, where:
+                keys are sequence identifiers; values are lists of taxonomic
+                terms, in order: from the most generic to the most specific one.
+            Explicit examples included in description of SSU_read() function.
+
+    Returns:
+        It returns one from following tuples:
+
+        1. ('NA', 'NA')
+        2. (mapped, total)
+        3. (n50, total, using)
+        4. (full_bac_dict, tax_bac_dict) - '16S'
+        5. (full_fun_dict, tax_fun_dict) - 'ITS'
+
+        full_bac_dict: a dict of dicts, representing taxonomic tree, where:
+            keys are names of taxa,
+            values are nested dicts of the same type,
+            values in the deepest levels ("leafs") are counts of occurrences.
+
+            Example:
+            {
+                'Bacillaceae':
+                {
+                    'Anoxybacillus': 5
+                },
+                'Listeriaceae':
+                {
+                    'Listeria':
+                    {
+                        'Lgrayi': 16,
+                        'Linnocua': 3
+                    }
+                }
+            }
+
+        tax_bac_dict: a dict, with taxonomic statistics, where:
+            keys are names of taxa
+            values are counts of occurrences
+
+            Example:
+            {
+                'Bacillaceae': 5,
+                'Anoxybacillus': 5,
+                'Listeriaceae': 19,
+                'Listeria': 19,
+                'Lgrayi': 16,
+                'Linnocua': 3
+            }
+
+
+    HARDCODED:
+        In '16S' analysis, if spec is 'Phaseolus_acutifolius_(tepary_bean)',
+        then it is not counted neither as bacteria nor archaea.
+    """
+
+    # TODO: following import is not used
     import operator
     if not pexists(name):
         return 'NA', 'NA'
@@ -1206,7 +1304,7 @@ def file_analysis(typ, name, SSU=None):
         with open(name, 'r') as content:
             linie = content.readlines()
             if typ in ['fmc', 'pmc']:
-                mapped, unmapped =  linie[0].strip().split('-')
+                mapped, unmapped = linie[0].strip().split('-')
                 try:
                     mapped = int(mapped)
                 except:
@@ -1225,13 +1323,13 @@ def file_analysis(typ, name, SSU=None):
                 try:
                     n50 = int(data[8][:-1])
                     total = int(data[12][:-1])
-                    using =split(data[14], '/')[0]
+                    using = split(data[14], '/')[0]
                 except:
                     n50 = total = using = 'NA'
                 return n50, total, using
             if typ == '16S':
-                bac_arch = [0, 0]
-                bac_dict = {}
+                bac_arch = [0, 0]   # counts: 0 - of bacteria 1 - of archaea
+                bac_dict = {}   # counts species/strains of bacteria
                 for linia in linie:
                     tax_id = linia.split('\t')[1]
                     cult_control = 0
@@ -1246,7 +1344,7 @@ def file_analysis(typ, name, SSU=None):
                             spec = tuple(SSU[tax_id][:spec_idx+1])
                             cult_control = 1
                         else:
-                            spec=tuple(SSU[tax_id][:spec_idx+1])
+                            spec = tuple(SSU[tax_id][:spec_idx+1])
                             cult_control = 1
                     if SSU[tax_id][0] == 'Bacteria':
                         bac_arch[0] += 1
@@ -1255,7 +1353,7 @@ def file_analysis(typ, name, SSU=None):
                     else:
                         pass
                     if spec:
-                        if spec == 'Phaseolus_acutifolius_(tepary_bean)':#HARDCODE!!!
+                        if spec == 'Phaseolus_acutifolius_(tepary_bean)':
                             pass
                         else:
                             if spec not in bac_dict:
@@ -1289,7 +1387,8 @@ def input_locations(mode, out_types):
 
     Args:
         mode: a parameter passed to cat_read function.
-            If mode=='run', gunzip will be used
+            If mode is 'run', the gunzip command will be executed,
+            to extract compressed files.
 
         out_types: a list with "output types",
             typically consisting  of: 'ITS', '16S' or 'txt'.
@@ -1323,27 +1422,64 @@ def input_locations(mode, out_types):
 
 
 def dict_prepare(typ, indict, SSU):
-    """
+    """Runs files analysis and then, creates two dicts with summarized
+    taxonomical data. The resulting dicts keep information about files
+    from which given taxa comes.
 
     Args:
-        out_type: an "output type" - typically: 'ITS', '16S' or 'txt'.
+        typ: an "output type" - typically: 'ITS', '16S' or 'txt'.
 
-        indict:
+        indict: A dict where keys are directories and values are lists of files.
+            Example included in description of cat_read() function.
 
         SSU: A dict with taxonomical data, where:
-                keys are sequence identificators; values are lists of taxonomic
+                keys are sequence identifiers; values are lists of taxonomic
                 terms, in order: from the most generic to the most specific one.
-            Explicit examples included in SSU_read() function.
+            Explicit example included in description of SSU_read() function.
 
     Returns:
+        A tuple: (all_dicts, all_tax_dict)
 
+        all_dicts: A dict, where:
+            keys are file identifiers,
+            values are taxonomic trees with numbers of occurrences
+            of particular species placed inside leafs
 
+            Example:
+            {
+                'file_1':
+                {
+                    'Bacillaceae': {'Anoxybacillus': 5}
+                },
+                'file_2':
+                {
+                    Listeriaceae': {'Listeria': {'Lgrayi': 16, 'Linnocua': 3} }
+                }
+            }
+
+        all_tax_dict: A dict, where:
+            keys are file identifiers,
+            values are dicts, where:
+                keys are names of taxa,
+                values are numbers of occurrences of particular taxon.
+
+            Example:
+            {
+                'file_1':
+                {
+                    'Bacillaceae': 5, 'Anoxybacillus': 5
+                },
+                'file_2':
+                {
+                    'Listeriaceae': 19, 'Listeria': 19, 'Lgrayi': 16, 'Linnocua': 3
+                }
+            }
     """
     all_dicts = {}
     all_tax_dict = {}
     for path in indict.keys():
         for plik in indict[path]:
-            plik_id = '_'.join([typ, split(plik,'.')[0]])
+            plik_id = '_'.join([typ, split(plik, '.')[0]])
             analysed_dict, tax_dict = file_analysis(typ, plik, SSU)
             all_dicts[plik_id] = analysed_dict
             all_tax_dict[plik_id] = tax_dict
@@ -1522,10 +1658,10 @@ def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
     #TODO
     """
     Args:
-        xml_names: identificators, obtained by modifying filenames,
+        xml_names: identifiers, obtained by modifying filenames,
             given by input_d dict.
             Example:
-            [identificator_1, identificator_2, ..., identificator_x]
+            [identifier_1, identifier_2, ..., identifier_x]
 
         xml_dict: A dict. Contains lists of numbers of occurrences of nodes by node. Keys are names of nodes.
             Values are lists of constant length, where every item on position *X* means:
@@ -1541,9 +1677,9 @@ def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
             Explicit example in description of tax_tree_graphlan, look for: total_tax_tree.
 
         name_total_count: A dict. Contains summed numbers of occurrences of nodes by file.
-            Keys are identificators (derived from filenames - look for xml_names), values ale sums.
+            Keys are identifiers (derived from filenames - look for xml_names), values ale sums.
             Example:
-            {identificator_1: count_1, identificator_2: count_2}
+            {identifier_1: count_1, identifier_2: count_2}
 
         unit: A string. Defines units to be coded in Krona XML. Default = 'reads'
 
@@ -1855,7 +1991,8 @@ def linia_unique(linia):
 def tax_tree_graphlan(input_d):
     # TODO: Currently Graphlan files have to contain only taxonomic data (formatting data after \t are not allowed)
     # TODO: Possible workaround: "line = line.split('\t')[0]" after line "for line in kos:". But - is it really desired?
-    """Reads and interprets data of taxonomic relations from files in Graphlan-like format.
+    """Reads and interprets informations about taxonomic relations,
+    from files in Graphlan-like format.
 
     Args:
         input_d (dict of str: str): A dict, where:
@@ -1959,7 +2096,7 @@ def xml_counts_graphlan(tax_tree, per_file_tax_tree, xml_names, multi_flat_tax_t
     # TODO: tax_tree is not used here
     """Groups and/or sums numbers of nodes (obtained from multi_flat_tax_tree):
         1. by node_name - grouping
-        2. by identificator (obtained from filename) - summing
+        2. by identifier (obtained from filename) - summing
 
     Args:
         tax_tree: A dict of dicts, etc. Taxonomic tree represented by nested dicts.
@@ -1970,8 +2107,8 @@ def xml_counts_graphlan(tax_tree, per_file_tax_tree, xml_names, multi_flat_tax_t
             Taxonomic tree represented by nested dicts. Similar to tax_tree.
             Example included in description of tax_tree_graphlan().
 
-        xml_names: identificators, obtained by modifying filenames from input_d dict.
-            Example: [identificator_1, identificator_2, ...]
+        xml_names: identifiers, obtained by modifying filenames from input_d dict.
+            Example: [identifier_1, identifier_2, ...]
 
         multi_flat_tax_tree: A dict of dicts.
             First level: keys are filenames, values are dicts.
@@ -1989,8 +2126,8 @@ def xml_counts_graphlan(tax_tree, per_file_tax_tree, xml_names, multi_flat_tax_t
             Example: {node: [count_1, count_2], node_2: [count_1, count_2]}
 
         name_total_count: A dict. Contains summed numbers of occurrences of nodes by file.
-            Keys are identificators (derived from filenames - look for xml_names), values ale sums.
-            Example: {identificator_1: count_1, identificator_2: count_1}
+            Keys are identifiers (derived from filenames - look for xml_names), values ale sums.
+            Example: {identifier_1: count_1, identifier_2: count_1}
     """
     all_nodes = set()
     xml_dict = {}
@@ -2029,28 +2166,31 @@ def graphlan_to_krona(input_d):
     Returns:
         A tuple (xml_names, xml_dict, tax_tree, name_total_count):
 
-        xml_names: identificators, obtained by modifying filenames,
-            given by input_d dict.
+        xml_names: identifiers, obtained by modifying filenames.
+            Filenames comes from input_d dict.
             Example:
-            [identificator_1, identificator_2, ..., identificator_x]
+            [identifier_1, identifier_2, ..., identifier_x]
 
-        xml_dict: A dict. Contains lists of numbers of occurrences of nodes by node. Keys are names of nodes.
-            Values are lists of constant length, where every item on position *X* means:
+        xml_dict: A dict. Contains lists of numbers of occurrences of nodes,
+            grouped by node. Keys are names of nodes. Values are lists of
+            constant length, where every item on position *X* means:
             number of occurrences of nodes with prefix equal to *name of node* in file *X*.
             *file X* is that file, which is on position *X* on list xml_names.
             Note, that for all i: len(xml_dict[i]) is equal to len(xml_names).
             Example:
             {node: [count_1, count_2, ... count_x], node_2: [count_1, count_2, ... count_x]}
 
-        tax_tree: A dict of dicts, etc. In form of nested dicts, it represents phylogenetic tree.
+        tax_tree: A dict of dicts, etc.
+            In form of nested dicts, it represents taxonomic tree.
             Example:
             {a:{aa:{}, ab:{aba:{}, abb:{abba:{}}}}}
             Explicit example in description of tax_tree_graphlan, look for: total_tax_tree.
 
         name_total_count: A dict. Contains summed numbers of occurrences of nodes by file.
-            Keys are identificators (derived from filenames - look for xml_names), values ale sums.
+            Keys are identifiers (derived from filenames - look for xml_names),
+            values are sums.
             Example:
-            {identificator_1: count_1, identificator_2: count_2}
+            {identifier_1: count_1, identifier_2: count_2}
 
     """
     input_d = txt_dict_clean(input_d)
