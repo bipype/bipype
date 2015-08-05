@@ -848,7 +848,28 @@ Args:
             rapsearch(mode, e, rap_in,  rap_out)
 
 
-def usearch(mode, e, search_type, infile, database, outdir, threads):
+def usearch(mode, e, search_type, infile, database, outdir, threads): #Function don't use outdir argument
+    """Launches Usearch with -usearch_local command.
+    
+    HARDCODED: path to Usearch program: '/home/pszczesny/soft/usearch'
+               and few Usearch options:
+                    -evalue 0.01
+                    -id 0.9
+                    -strand both
+    Args:
+        mode:        If mode=='run' Usearch is launched.
+        e:           If True, checks if a part of workflow is
+                        actually done and don't duplicate this 
+                        jobs. For more information, please
+                        refer to exist_check() function.
+        search_type &
+        infile:      outfile = infile+'.usearch_'+search_type
+                        outfile is passed to [-blast6out in Usearch]
+        outdir:      NOT USED IN FUNCTION !!!
+        database:    [-db in Usearch]
+        threads:     [-threads in Usearch] Number of threads used in
+                     calculations.      
+    """
     usearch_loc = '/home/pszczesny/soft/usearch'
     outfile = infile + '.usearch_' + search_type
     usearch_command = '%s -usearch_local %s -db %s -evalue 0.01 -id 0.9 -blast6out %s -strand both -threads %i'%(
