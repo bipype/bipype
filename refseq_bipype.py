@@ -595,7 +595,18 @@ def ins_len_read(pair, cat):
         else:
             ins_len = 200
     return ins_len
+"""
+Returns 200 in case, when read length is less, then 200 and 500 in other case.
 
+Args:
+	pair: tuple of paired_end read
+	cat: name of current folder
+
+Example:
+	input: ('Amp15_BFk_B_p_CGTACG_L001_R1_001.fastq','Amp15_BFk_B_p_CGTACG_L001_R2_001.fastq'), 'catalog_name'
+	output: 500
+
+"""
 
 def gzip_MV(MV_dir):
     gzip_list = [
