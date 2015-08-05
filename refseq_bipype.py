@@ -695,6 +695,20 @@ def rapsearch(mode, e, contig_loc, rap_out, KEGG=None):
 
 
 def MV(mode, e, k_mers, cat, pair, ins_len, rap=False):
+   """
+Runs Velvet. Runs function gzip_MV on folder wiht Velvet results, which name was created with command 
+	pair_uni_name(pair) + '_velvh_out'
+If parameter rap is true, then the function also run function rapsearch.
+
+Args:
+	mode: if mode=="run" program runs velveth or velvetg or metavelvetg
+	e: boolean parameter. If e==True, then program changes todo list with exist_check function
+	k_mers: k-length nucleotids reads list
+	cat: name of current folder
+	pair: tuple of paired_end read
+	ins_len: If ins_len==9999, then ins_len is the output from ins_len_read function
+	rap: If rap==True, then program runs rapsearch function. Default rap=False
+"""
     fileext = '.'.join(split(pair[0], '.')[1:])
     if ins_len == 9999:
         ins_len = ins_len_read(pair, cat)
