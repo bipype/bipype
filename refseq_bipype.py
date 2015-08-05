@@ -848,8 +848,8 @@ Args:
             rapsearch(mode, e, rap_in,  rap_out)
 
 
-def usearch(mode, e, search_type, infile, database, outdir, threads):
-    """Launch Usearch with -usearch_local command.
+def usearch(mode, e, search_type, infile, database, outdir, threads): #Function don't use outdir argument
+    """Launches Usearch with -usearch_local command.
     
     HARDCODED: path to Usearch program: '/home/pszczesny/soft/usearch'
                and few Usearch options:
@@ -865,6 +865,7 @@ def usearch(mode, e, search_type, infile, database, outdir, threads):
         search_type &
         infile:      outfile = infile+'.usearch_'+search_type
                         outfile is passed to [-blast6out in Usearch]
+        outdir:      NOT USED IN FUNCTION !!!
         database:    [-db in Usearch]
         threads:     [-threads in Usearch] Number of threads used in
                      calculations.      
