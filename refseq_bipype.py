@@ -386,6 +386,31 @@ def paired_end_match(seq_dict):
 
 
 def bowtie2_run(mode, proc, ref, out, inp1, inp2=False):
+    """If mode=='run', launches Bowtie 2.  
+    
+    Args:
+        mode
+        
+        proc: [-p in Bowtie 2] 'Number of alignment threads to launch.'
+        
+        ref:  [-x in Bowtie 2] 'The basename of the index
+                                for the reference genome.'
+                                
+        out:  [-S in Bowtie 2] 'File to write SAM alignments to.'
+        
+        inp1: [-1 in Bowtie 2] 'Comma-separated list of files
+                                containing mate 1s (filename usually
+                                includes _1), e.g. 
+                                -1 flyA_1.fq,flyB_1.fq  '
+                                
+        inp2: [-2 in Bowtie 2]  'Comma-separated list of files
+                                containing mate 2s (filename usually
+                                includes _2), e.g. 
+                                -2 flyA_2.fq,flyB_2.fq  '
+              If inp2=False: -2 argument is not given in Bowtie 2.
+                     (False by default)
+              Else: inp2 string is passed to Bowtie 2 as -2 argument.              
+    """
     if inp2:
         print 'bowtie2 -p %i -x %s -1 %s -2 %s -S %s'%(proc, ref, inp1, inp2, out)
         if mode == 'run':
@@ -502,8 +527,8 @@ def idxstat_perling(mode, idxstats, map_count): #multi
     Function launches short "one-liner" in perl.
     
     Output has following format:
-         #mapped - #unmapped
-    For example: 123 - 456  
+                    #mapped - #unmapped
+    For example:        123 - 456  
     
     Args:
         mode:      If mode=='run' "one-liner" is launched.
