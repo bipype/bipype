@@ -1609,11 +1609,11 @@ def dict_prepare(typ, indict, SSU):
 
             Example:
             {
-                'filename_1':
+                'filename_1.ext':
                 {
                     'Bacillaceae': {'Anoxybacillus': {'subsum': 15}}
                 },
-                'filename_2':
+                'filename_2.ext':
                 {
                     'Listeriaceae':
                     {
@@ -1634,11 +1634,11 @@ def dict_prepare(typ, indict, SSU):
 
             Example:
             {
-                'filename_1':
+                'filename_1.ext':
                 {
                     'Bacillaceae': 5, 'Anoxybacillus': 5
                 },
-                'filename_2':
+                'filename_2.ext':
                 {
                     'Listeriaceae': 19, 'Listeria': 19, 'Lgrayi': 16, 'Linnocua': 3
                 }
@@ -1738,11 +1738,11 @@ def tree_of_life(full_dict):
         {
             'output_type_1':
             {
-                'filename_1':
+                'filename_1.ext':
                 {
                     'Bacillaceae': {'Anoxybacillus': {'subsum': 15}}
                 },
-                'filename_2':
+                'filename_2.ext':
                 {
                     'Listeriaceae':
                     {
@@ -1757,7 +1757,7 @@ def tree_of_life(full_dict):
             },
             'output_type_2':
             {
-                'filename_2':
+                'filename_2.ext':
                 {
                     'Bacillaceae': {'Anoxybacillus': {'subsum': 15}}
                 }
@@ -1787,7 +1787,7 @@ def tree_of_life(full_dict):
             and values of every leaf are summed into values representing
             total count of species inside particular file.
             Example:
-            {'filename_1': 15, 'filename_2': 33}
+            {'filename_1.ext': 15, 'filename_2.ext': 33}
     """
     file_total_count = {}
     full_tree = {}
@@ -1800,18 +1800,20 @@ def tree_of_life(full_dict):
 
 
 def xml_name_parse(full_dic):
-    """
+    """TODO: WIP
+    Creates a list of simplified filenames (full filenames are excracted
+    from <full_dic>). The list is guaranteed to not have duplicates.
 
     Args:
         full_dic: a dict of dicts, with structure like:
             {
                 'output_type_1':
                 {
-                    'filename_1':
+                    'filename_1.ext':
                     {
                         'Bacillaceae': {'Anoxybacillus': {'subsum': 15}}
                     },
-                    'filename_2':
+                    'filename_2.ext':
                     {
                         'Listeriaceae':
                         {
@@ -1826,7 +1828,7 @@ def xml_name_parse(full_dic):
                 },
                 'output_type_2':
                 {
-                    'filename_2':
+                    'filename_2.ext':
                     {
                         'Bacillaceae': {'Anoxybacillus': {'subsum': 15}}
                     }
@@ -1834,6 +1836,11 @@ def xml_name_parse(full_dic):
             }
 
     Returns:
+        A list with base parts of filenames, which are present in
+        <full_dic>. The list is guaranteed to not have duplicates.
+        
+        Example:
+        ['filename_1', 'filename_2']
 
     """
     # Make set for names.
@@ -1846,7 +1853,11 @@ def xml_name_parse(full_dic):
             try:
                 nameparts = split(plik, '_')
                 nucleotides = set('ACTG')
+                # let identifier be the first part of filename, that is
+                # comprised only of nucleotides ACTG.
                 identifier = [item for item in nameparts if not set(item).difference(nucleotides)][0]
+                # TypeError: cannot concatenate 'str' and 'int' objects
+                # maybe it should be "index(identifier)+1"?
                 display_name = '_'.join(nameparts[0:nameparts.index(identifier+1)])
             except:
                 pass
@@ -1856,24 +1867,59 @@ def xml_name_parse(full_dic):
 
 
 def xml_vals(xml_names, tax_dict):
-    """
+    """TODO: WIP: ARE THE "FALSE POSITIVES" DESIRED?
 
     Args:
+        xml_names: readable identifiers of files derived from filenames.
+            Example:
+            ['filename_1', 'filename_2']
+            
+        tax_dict: A dict, where:
+            keys are file identifiers,
+            values are dicts, where:
+                keys are names of taxa,
+                values are numbers of occurrences of particular taxon.
 
+            Example:
+            {   
+                'filename_1.ext':
+                {
+                    'Bacillaceae': 5, 'Anoxybacillus': 5
+                },
+                'filename_2.ext':
+                {
+                    'Bacillaceae': 1, 'Anoxybacillus': 1
+                    'Listeriaceae': 19, 'Listeria': 19, 'Lgrayi': 16, 'Linnocua': 3
+                }
+            }
+        
     Returns:
+        A dict. TODO   
+        Example:
+        {
+            'Anoxybacillus': [5, 1],
+            'Bacillaceae': [5, 1],
+            'Lgrayi': [0, 16],
+            'Linnocua': [0, 3],
+            'Listeria': [0, 19],
+            'Listeriaceae': [0, 19]
+        }
+
 
 
     """
+    # create a set of all taxa from tax_dict
     all_tax_set = set()
     for plik in tax_dict:
         for level in tax_dict[plik]:
             all_tax_set.add(level)
+
     xml_dict = {}
     for tax in all_tax_set:
         xml_dict[tax] = []
-        for name in xml_names:
+        for name in xml_names:  # TODO: ok.. but why O(n^2)? Where is the point?
             for plik in tax_dict:
-                if name in plik:
+                if name in plik:    # TODO: this check might generate false positives
                     if tax in tax_dict[plik]:
                         xml_dict[tax].append(tax_dict[plik][tax])
                     else:
@@ -1927,16 +1973,15 @@ def deunique(node):
 
 
 def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
-    # TODO
+    # TODO: WIP
     """Generates xml for Krona
     
     Args:
         
-        #xml_names: identifiers, obtained by modifying filenames,
-        #    given by input_d dict.
-        #    Example:
-        #    [identifier_1, identifier_2, ..., identifier_x]
-
+        xml_names: readable identifiers of files derived from filenames.
+            Example:
+            ['filename_1', 'filename_2']
+        
         #xml_dict: A dict. Contains lists of numbers of occurrences of nodes by node. Keys are names of nodes.
         #    Values are lists of constant length, where every item on position *X* means:
         #    number of occurrences of nodes with prefix equal to *name of node* in file *X*.
@@ -1955,7 +2000,8 @@ def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
         #    Example:
         #    {identifier_1: count_1, identifier_2: count_2}
 
-        #unit: A string. Defines units to be coded in Krona XML. Default = 'reads'
+        unit: A string. Defines units to be passed into the Krona XML.
+            Default = 'reads'
 
 
     Returns:
@@ -2051,37 +2097,47 @@ def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
 
 
 def name_total_reduction(xml_names, file_total_count):
-    """
+    """TODO: WIP:
+    ARE THE FALSE POSITIVES DESIRED? WHY THIS IS WRITEN IN SO ODD STYLE?
+
 
     Args:
+        xml_names: readable identifiers of files derived from filenames.
+            Example: ['filename_1', 'filename_2']
+        
+        file_total_count: A dict within information about files are kept
+            and values of every leaf are summed into values representing
+            total count of species inside particular file.
+            Example: {'filename_1.ext': 15, 'filename_2.ext': 33}
 
     Returns:
-
+        A dict.
+        Example: {'filename_1': 15, 'filename_2': 33}
 
     """
     name_total_count = {}
     for name in xml_names:
         count = 0
         for plik in file_total_count:
-            if name in plik:
+            if name in plik:    # TODO: this check might generate false positives
                 count += file_total_count[plik]
             name_total_count[name] = count
     return name_total_count
 
 
 def xml_format(full_dict, tax_dict):
-    """
+    """TODO: WIP
 
     Args:
         full_dict: a dict of dicts with structure like:
             {
                 'output_type_1':
                 {
-                    'filename_1':
+                    'filename_1.ext':
                     {
                         'Bacillaceae': {'Anoxybacillus': {'subsum': 15}}
                     },
-                    'filename_2':
+                    'filename_2.ext':
                     {
                         'Listeriaceae':
                         {
@@ -2096,7 +2152,7 @@ def xml_format(full_dict, tax_dict):
                 },
                 'output_type_2':
                 {
-                    'filename_2':
+                    'filename_2.ext':
                     {
                         'Bacillaceae': {'Anoxybacillus': {'subsum': 15}}
                     }
@@ -2104,24 +2160,43 @@ def xml_format(full_dict, tax_dict):
             }
             "output type" typically will be 'ITS', '16S'.
 
-    Pipe:
-    
-    tree_of_life
-    
-    Rewrites the data from a dict containing information arranged by
-    type and then by file into two dicts:
-        - first represents full taxonomic tree
-        - second presents how many species are inside particular files
+        tax_dict: A dict, where:
+            keys are file identifiers,
+            values are dicts, where:
+                keys are names of taxa,
+                values are numbers of occurrences of particular taxon.
 
-    xml_name_parse
+            Example:
+            {
+                'filename_1.ext':
+                {
+                    'Bacillaceae': 5, 'Anoxybacillus': 5
+                },
+                'filename_2.ext':
+                {
+                    'Listeriaceae': 19, 'Listeria': 19, 'Lgrayi': 16, 'Linnocua': 3
+                }
+            }
+        
 
     Returns:
 
 
     """
+    # Rewrites the data from a dict containing information arranged by
+    # type and then by file into two dicts:
+    #   - first represents full taxonomic tree
+    #   - second presents how many species are inside particular files
     tax_tree, file_total_count = tree_of_life(full_dict)
+    
+    # Creates a list of simplified filenames (full filenames are excracted
+    # from <full_dic>). The list is guaranteed to not have duplicates.
     xml_names = xml_name_parse(full_dict)
+    
+    # 
     xml_dict = xml_vals(xml_names, tax_dict)
+    
+    # 
     name_total_count = name_total_reduction(xml_names, file_total_count)
     return xml_names, xml_dict, tax_tree, name_total_count
 
@@ -2440,8 +2515,8 @@ def xml_counts_graphlan(tax_tree, per_file_tax_tree, xml_names, multi_flat_tax_t
             Taxonomic tree represented by nested dicts. Similar to tax_tree.
             Example included in description of tax_tree_graphlan().
 
-        xml_names: identifiers, obtained by modifying filenames from input_d dict.
-            Example: [identifier_1, identifier_2, ...]
+        xml_names: readable identifiers of files derived from filenames.
+            Example: ['filename_1', 'filename_2']
 
         multi_flat_tax_tree: A dict of dicts.
             First level: keys are filenames, values are dicts.
@@ -2503,7 +2578,8 @@ def graphlan_to_krona(input_d):
     Returns:
         A tuple (xml_names, xml_dict, tax_tree, name_total_count):
 
-        xml_names: identifiers, obtained by modifying filenames.
+
+        xml_names: readable identifiers of files derived from filenames.
             Filenames comes from input_d dict.
             Example:
             [identifier_1, identifier_2, ..., identifier_x]
