@@ -584,6 +584,19 @@ def refseq_mapping(mode, e, katalog, pair, postfix, refseq, tax_name_dict, tax_i
 
 
 def ins_len_read(pair, cat):
+    """
+Returns 200 in case, when read length is less, then 200 and 500 in other case.
+
+Args:
+	pair: tuple of paired_end read
+	cat: name of folder with the sample files
+
+Example:
+	input: ('Amp15_BFk_B_p_CGTACG_L001_R1_001.fastq','Amp15_BFk_B_p_CGTACG_L001_R2_001.fastq'), 'catalog_name'
+	output: 500
+
+"""
+
     sample_name = pair[0]
     zeros= find(sample_name, '00') #WARNING HARDCODE
     try:
@@ -595,18 +608,6 @@ def ins_len_read(pair, cat):
         else:
             ins_len = 200
     return ins_len
-"""
-Returns 200 in case, when read length is less, then 200 and 500 in other case.
-
-Args:
-	pair: tuple of paired_end read
-	cat: name of current folder
-
-Example:
-	input: ('Amp15_BFk_B_p_CGTACG_L001_R1_001.fastq','Amp15_BFk_B_p_CGTACG_L001_R2_001.fastq'), 'catalog_name'
-	output: 500
-
-"""
 
 def gzip_MV(MV_dir):
     gzip_list = [
