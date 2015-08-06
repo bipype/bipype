@@ -1125,6 +1125,60 @@ Args:
 
 
 def sample(opts):
+    """
+Runs programs such, as Velvet, bwa, Bowtie 2, humann, cuts adapters or run RAPSearch 
+if these options were chosen.
+Args:
+        opts: A namespace, where:
+  
+			opts.to_calculate:
+                Input sequences type (Plant or fungi)
+                
+			opts.mode:
+                A mode in which the program will be runned.
+                
+                One of: ['test', 'run']
+     
+            opts.db_NCBI_taxonomy:
+                Path to pickle file
+                
+            opts.reconstruct:
+                Boolean attribute, which allows to run reconstruct function ig True.
+            
+            opts.MV:
+                k-length nucleotids reads list or None
+            
+            opts.db_reconstruct:
+                input database with fasta files
+                
+            opts.threads:
+                Number of threads (multi-threading mode)
+                
+            opts.e:
+                Boolean attribute, which checks file existing
+                
+            opts.ins_len:
+                200 in case, when read length is less, then 200 and 500 in other case.
+                
+            opts.db_refseq:
+                list of basenames of the indexes for the reference genome.
+                
+            opts.our_dir:
+                Directory where sums of mapped and unmapped
+                reads will be writed
+                
+            opts.postfix:
+            
+            
+            opts.cutadapt:
+                List of adapter types: 16S, ITS or 'both'.
+                
+            opts.db_16S:
+                list of 16S adapters
+                
+            opts.db_ITS:
+                list of ITS adapters    
+"""
     if opts.to_calculate == None:
         opts.to_calculate = []
     refseq_test = len(set(['f', 'b', 'p'])&set(opts.to_calculate))
