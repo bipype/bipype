@@ -179,7 +179,7 @@ def tax_id_reader():
     15	9915
     16	9771
     17	9771
-    where first column is a GI number, second is a TaxID.
+    where first column is a GI, second is a TaxID.
     
     HARDCODED:
     /home/pszczesny/workingdata/refseq/db/tax_id/gi_taxid_nucl.dmp   
@@ -270,21 +270,22 @@ def idx_reader(file_path):
 def idx_map(mode, file_, tax_name_dict, tax_id_dict, outfile):
     """Parses and writes data from samtools idxstats output file.
         
-    Firstly, using idx_reader(file_), create {GI:#_mapped_reads} 
+    Firstly, using idx_reader(file_), creates {GI:#_mapped_reads} 
     dictionary.
-    Secondly, replace every GI number (key) with TaxID if appropriate
+    Secondly, replaces every GI (key) with TaxID if appropriate
     one is available in tax_id_dict.
-    Than, replace every GI number/TaxID (key) with scientific name if
+    Than, replaces every GI /TaxID (key) with scientific name if
     appropriate one is available in tax_name_dict.
-    Finally, write data to outfile in key;value format, where
-        key   is GI number/TaxID/scientific name
+    Finally, writes data (sorted by numbers of mapped reads in
+    decreasing order) to outfile in key;value format, where:
+        key   is GI/TaxID/scientific name
         value is number of mapped reads 
         
     Args:
-        mode:          if (mode == 'run') function do mentioned things.
-                       elif (mode == 'test') function prints
+        mode:          If (mode == 'run'), function do mentioned things
+                       Elif (mode == 'test') function prints
                             file_ and outfile arguments.
-                       else: pass
+                       Else function do nothing.
                        
         file_:         Path to samtools idxstats output file. 
                        For more information refer to idx_reader()
@@ -601,7 +602,7 @@ def refseq_mapping(mode, e, directory, pair, postfix, refseq, tax_name_dict, tax
     Finally, idx_map() function is called: 
         Parse data from samtools idxstats output file and
         writes data to outfile in    key;value    format, where:
-        key     is    GI number/TaxID/scientific name
+        key     is    GI/TaxID/scientific name
         value   is    number of mapped reads.   
                         
     Args:
@@ -611,7 +612,7 @@ def refseq_mapping(mode, e, directory, pair, postfix, refseq, tax_name_dict, tax
                          on data (it is kind of test).
         
         e:               If True, checks if a part of workflow is
-                         actually done and don't duplicate this jobs.
+                         actually done and doesn't duplicate this jobs.
                          For more information, please refer to
                          exist_check() function.
 
@@ -857,7 +858,7 @@ Args:
             rapsearch(mode, e, rap_in,  rap_out)
 
 
-def usearch(mode, e, search_type, infile, database, outdir, threads): #Function don't use outdir argument
+def usearch(mode, e, search_type, infile, database, outdir, threads): #Function doesn't use outdir argument
     """Launches Usearch with -usearch_local command.
     
     HARDCODED: path to Usearch program: '/home/pszczesny/soft/usearch'
@@ -868,7 +869,7 @@ def usearch(mode, e, search_type, infile, database, outdir, threads): #Function 
     Args:
         mode:        If mode=='run' Usearch is launched.
         e:           If True, checks if a part of workflow is
-                        actually done and don't duplicate this 
+                        actually done and doesn't duplicate this 
                         jobs. For more information, please
                         refer to exist_check() function.
         search_type &
