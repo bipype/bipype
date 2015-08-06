@@ -744,6 +744,15 @@ Args:
 
 
 def rapsearch(mode, e, contig_loc, rap_out, KEGG=None):
+    """
+Runs RAPSearch with using KEGG databases for similarity search
+Args:
+    mode: if mode="run", then program runs rapsearch
+    e: if e=True, then function runs exist_check function
+    contig_loc: a query file
+    rap_out: output file name
+    KEGG: default is None, if KEGG= KO, then ko.pep.rapsearch.db is choosen as protein database
+"""
     rap_log = rap_out + '.log'
     rap_err = rap_out + '.err'
     rap_loc = '/home/pszczesny/soft/RAPSearch2.12_64bits/bin/rapsearch'
