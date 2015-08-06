@@ -92,10 +92,16 @@ def m8_to_ko(file_):
     # multi_id should be a function argument
     # Computational complexity is really bad
     """Assigns and counts GI identifiers from BLAST Tabular (flag: -m 8)
-    output format file, for every KO from multi_id variable.  
+    output format file, for every KO from multi_id variable.
+
+    After mapping, writes data to output file.
     
-    file_: Path to BLAST Tabular (flag: -m 8) output format file.
-    multi_id format: {GI identifier : set[KO identifiers]} 
+    Args:
+        file_: Path to BLAST Tabular (flag: -m 8) output format file.
+        
+        VARIABLE !!! 
+        multi_id format: {GI identifier : set[KO identifiers]}
+        VARIABLE !!!   
     
     Output file (outname) has following path:
         outname = file_.replace('txt.m8', 'out')
