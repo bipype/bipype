@@ -351,18 +351,16 @@ Example:
 
 
 def refseq_ref_namespace(directory, seq, postfix, out_dir='in_situ', map_dir='in_situ'):
-    """ Return dictionary which keys are names of file extensions and values are paths to file with corresponding extension
+    """ Return dictionary which keys are types of file extensions and values are paths to file with corresponding extension. 
 
 Arg:
 	(directory, seq, postfix, out_dir='in_situ', map_dir='in_situ')
+	directory: path to file with extension .fastq 
+	out_dir: path to files with extensions different from .fastq and . map_count; if out_dir='in_situ' out_dir=directory
+	map_dir: path to file with extention .map_count; if map_dir='in_situ' then map_dir=out_dir 	
 	seq: sequence file or pair of such files
-	
-Example:
-
-	for seq: abcd.fastq we have output_dictionary['fastq']= pjoin(directory, abcd.fastq)
-
-Other keys: 'sam','sam2', 'bam', 'sorted','sorted.bam', 'idxstats', 'tax_count', 'map_count'
-"""
+	postfix: if !='' then before extention in file name _postfix is added
+"""	
     if out_dir == 'in_situ':
         out_dir = directory
     ref_namespace = {}
@@ -932,6 +930,17 @@ Example:
 
 
 def cutadapt(mode, e, cat, R1_file, R2_file, adapter_file, usearch_16S=False, usearch_ITS=False, threads=False):
+    """Searches for the adapters in reads from input files, removes it when it finds it and writes to output files which have .cutadapt.fastq extension. Then function runs FLASH (software tool to merge paired-end reads) with .cutadapt.fastq files as input and .amplicons.cutadapt.flash.merged.fastq files as output. These results are input for fastq_to_fasta which convert file format form fastq to fasta.
+
+Arg: (mode, e, cat, R1_file, R2_file, adapter_file, usearch_16S=False, usearch_ITS=False, threads=False)
+
+	mode: if mode=='run', function operate on data
+	e:    if True, checks if a part of workflow is actually done and don't duplicate this jobs.
+	cat: name of folder with R_1 and R_2 files
+	R1_file, R2_file: input files
+	usearch_16S: if True runs usearch(mode, e, '16S', outname_uni_fasta, usearch_16S, cat, threads) where outname_uni_fasta is cutadapt output.
+	usearch_ITS: if True runs usearch(mode, e, 'ITS', outname_uni_fasta, usearch_ITS, cat, threads) where outname_uni_fasta is cutadapt output.
+"""
     R1_fastq = pjoin(cat, R1_file)
     R2_fastq = pjoin(cat, R2_file)
     if adapter_file == 'use_filenames': #WARNING HARDCODE
