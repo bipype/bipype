@@ -744,6 +744,15 @@ Args:
 
 
 def rapsearch(mode, e, contig_loc, rap_out, KEGG=None):
+    """
+Runs RAPSearch with using KEGG databases for similarity search
+Args:
+    mode: if mode="run", then program runs rapsearch
+    e: if e=True, then function runs exist_check function
+    contig_loc: a query file
+    rap_out: output file name
+    KEGG: default is None, if KEGG= KO, then ko.pep.rapsearch.db is choosen as protein database
+"""
     rap_log = rap_out + '.log'
     rap_err = rap_out + '.err'
     rap_loc = '/home/pszczesny/soft/RAPSearch2.12_64bits/bin/rapsearch'
@@ -1011,6 +1020,18 @@ def taxa_read(read_mode, db_loc=None):
 
 
 def reconstruct(mode, thr, e, pair, cat, prefix, rec_db_loc):
+  """
+Runs bwa. Find the SA coordinates of the input reads. Generate alignments in the SAM format given single-end reads. 
+Repetitive hits will be randomly chosen.
+Args:
+    mode: if mode="run", then commands "bwa aln" and "bwa samse" were run
+    thr: Number of threads (multi-threading mode)
+    e: (!!!! Wasn`t used !!!!)
+    pair: tuple of paired_end read
+    cat: name of folder with the sample files
+    prefix: prefix for output files names
+    rec_db_loc: input database with fasta files
+"""
     tmp_loc = '/tmp/' + '_'.join(str(datetime.now()).split())
     mkdir = "mkdir %s"%(tmp_loc)
     fq1 = pjoin(cat, pair[0])
@@ -1050,6 +1071,16 @@ def reconstruct(mode, thr, e, pair, cat, prefix, rec_db_loc):
 
 
 def humann(mode, e, m8_dict, typ='m8'):
+   """
+Copies humann to the current directory, moves input (*.m8) files to the input directory, copies hmp_metadata.dat file to the input directory
+ and runs humann
+Args:
+    mode: if mode="run", then humann will be copied to the current directory
+    e: if e=True, then function checks existion of humann-0.99 results folder
+    m8_dict: the similarty search results folders
+    typ: default typ="m8", in that case new catalog humann-0.99 will be created in rapsearch result folder;
+         in ohter case humann analysis results will be added in rapsearch result folder
+"""
     for path in m8_dict:
         flag = True
         if typ == 'm8':
