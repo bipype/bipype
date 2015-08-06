@@ -1432,10 +1432,9 @@ def dict_purify(bac_dict):
 
 
 def file_analysis(typ, name, SSU=None):
-    # TODO: WIP
     """Using given SSU as databases, performs 'statistical' analysis
-    of taxonomy from given file <name>. The function is able to handle
-    many different "output types".
+    of taxonomy from file <name>. It counts occurrences of different
+    species in given file and returns result in form of two dicts. 
     
     The threshold hardcoded in dict_purify is used,
     to remove neglectable entities.
@@ -1443,7 +1442,12 @@ def file_analysis(typ, name, SSU=None):
     Args:
         typ: an "output type" - typically: 'ITS', '16S' or 'txt'.
 
-        name: name of file to analise (only name, not full path)?????!!! TODO
+        name: name of file to analise
+            TODO: There was a sugesstion, that there might be something
+            wrong with this variable, when passed in only file_analysis
+            call present in this file. The issue is linked to "full path
+            or basename?" question. It should be investigated, in fully
+            functional testing environment. 
 
         SSU: A dict with taxonomical data, where:
                 keys are sequence identifiers; values are lists of taxonomic
@@ -1451,18 +1455,20 @@ def file_analysis(typ, name, SSU=None):
             Explicit examples included in description of SSU_read() function.
 
     Returns:
-        It returns one of following tuples:
+        A 2-tuple:
 
-        1. ('NA', 'NA')
-        2. (mapped, total)
-        3. (n50, total, using)
-        4. (full_bac_dict, tax_bac_dict) - '16S'
-        5. (full_fun_dict, tax_fun_dict) - 'ITS'
-
-        full_bac_dict: a dict of dicts, representing taxonomic tree, where:
-            keys are names of taxa,
-            values are nested dicts of the same type,
-            values in the deepest levels ("leafs") are counts of occurrences.
+            If file of name <name> was not found:
+                ('NA', 'NA')
+            If data of type '16S' was successfully analysed:
+                (full_bac_dict, tax_bac_dict)
+            If data of type 'ITS' was successfully analysed:
+                (full_fun_dict, tax_fun_dict)
+                
+        full_bac_dict / full_fun_dict: a dict of dicts.
+            It represents taxonomic tree. Generally in this dict:
+                - keys are names of taxa,
+                - values are nested dicts of the same type.
+            Values in the deepest levels ("leafs") are counts of occurrences.
 
             Example:
             {
@@ -1480,9 +1486,9 @@ def file_analysis(typ, name, SSU=None):
                 }
             }
 
-        tax_bac_dict: a dict, with taxonomic statistics, where:
-            keys are names of taxa
-            values are counts of occurrences
+        tax_bac_dict / tax_fun_dict: a dict, with taxonomic statistics:
+            - keys are names of taxa
+            - values are counts of occurrences
 
             Example:
             {
@@ -1506,30 +1512,32 @@ def file_analysis(typ, name, SSU=None):
     else:
         with open(name, 'r') as content:
             linie = content.readlines()
-            if typ in ['fmc', 'pmc']:
-                mapped, unmapped = linie[0].strip().split('-')
-                try:
-                    mapped = int(mapped)
-                except:
-                    mapped = 'NA'
-                try:
-                    unmapped = int(unmapped)
-                except:
-                    unampped = 'NA'
-                if mapped == 'NA' or unmapped == 'NA':
-                    total = 'NA'
-                else:
-                    total = mapped + unmapped
-                return mapped, total
-            if typ == 'log':
-                data = linie[-1].split(' ')
-                try:
-                    n50 = int(data[8][:-1])
-                    total = int(data[12][:-1])
-                    using = split(data[14], '/')[0]
-                except:
-                    n50 = total = using = 'NA'
-                return n50, total, using
+            # I have commented following block as a result of
+            # discussion on slack with siwek (Michal)
+            # if typ in ['fmc', 'pmc']:
+            #     mapped, unmapped = linie[0].strip().split('-')
+            #     try:
+            #         mapped = int(mapped)
+            #     except:
+            #         mapped = 'NA'
+            #     try:
+            #         unmapped = int(unmapped)
+            #     except:
+            #         unampped = 'NA'
+            #     if mapped == 'NA' or unmapped == 'NA':
+            #         total = 'NA'
+            #     else:
+            #         total = mapped + unmapped
+            #     return mapped, total
+            # if typ == 'log':
+            #     data = linie[-1].split(' ')
+            #     try:
+            #         n50 = int(data[8][:-1])
+            #         total = int(data[12][:-1])
+            #         using = split(data[14], '/')[0]
+            #     except:
+            #         n50 = total = using = 'NA'
+            #     return n50, total, using
             if typ == '16S':
                 bac_arch = [0, 0]   # counts: 0 - of bacteria 1 - of archaea
                 bac_dict = {}   # counts species/strains of bacteria
@@ -1849,7 +1857,7 @@ def xml_name_parse(full_dic):
     indicates grouping files with similiar filenames since this step.
     
     Keep in mind, that this step groups files referring to the same
-    sample under single name, and technically is vulnerable for errors:
+    dataset under single name, and technically is vulnerable for errors:
     If filenames given to this functions do not follow appropriate
     naming schema or when these filenames are not named in prefix-code
     convention, then some false-positives might be generated in
@@ -1917,7 +1925,7 @@ def xml_vals(xml_names, tax_dict):
     to allow use of this data in xml-generation process.
     
     Keep in mind, that this step - along with generation of xml_names
-    in xml_name_parse - groups files referring to the same sample under
+    in xml_name_parse - groups files referring to the same dataset under
     single name, and technically is vulnerable for some errors:
     If filenames given to these functions do not follow appropriate
     naming schema or when these filenames are not named in prefix-code
@@ -1926,9 +1934,8 @@ def xml_vals(xml_names, tax_dict):
 
     Args:
         xml_names: readable identifiers of groups of files referring to
-            common sample, derived from filenames.
-            Example:
-            ['filename_1', 'filename_2']
+            common dataset, derived from filenames.
+            Example ['filename_1', 'filename_2']
             
         tax_dict: A dict, where:
             keys are file identifiers,
@@ -1979,7 +1986,7 @@ def xml_vals(xml_names, tax_dict):
             for plik in tax_dict:
                 # Following if might generate false positives,
                 # but it is partially desired. If there is a lot of
-                # lanes, reads, etc for given sample then everything
+                # lanes, reads, etc for given dataset then everything
                 # will be grouped under a single "name", thanks
                 # to how the names are generated in xml_name_parse()
                 # function, and thanks to this line:
@@ -2009,12 +2016,12 @@ def prettify(elem):
     return reparsed.toprettyxml(indent="    ")
 
 
-def dict_depth(d, depth=0):
-    # TODO: needed only if line "recurse_depth = dict_depth(tax_tree)"
-    # TODO: from xml_prepare will be kept.
-    if not isinstance(d, dict) or not d:
-        return depth
-    return max(dict_depth(v, depth+1) for k, v in d.iteritems())
+# def dict_depth(d, depth=0):
+#     # TODO: needed only if line "recurse_depth = dict_depth(tax_tree)"
+#     # TODO: from xml_prepare will be kept.
+#     if not isinstance(d, dict) or not d:
+#         return depth
+#     return max(dict_depth(v, depth+1) for k, v in d.iteritems())
 
 
 def deunique(node):
@@ -2037,61 +2044,73 @@ def deunique(node):
 
 
 def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
-    # TODO: WIP
-    """Generates xml for Krona
+    """Generates xml string, dedicated to use with Krona.
+    Xml is generated with use of deflaut python xml module.
     
     Args:
         
-        xml_names: xml_names: readable identifiers of groups of files referring to
-            common sample, derived from filenames.
-            ['filename_1', 'filename_2']
+        xml_names: a list of readable identifiers of datasets.
+            Example: ['filename_1', 'filename_2']
         
-        #xml_dict: A dict. Contains lists of numbers of occurrences of nodes by node. Keys are names of nodes.
-        #    Values are lists of constant length, where every item on position *X* means:
-        #    number of occurrences of nodes with prefix equal to *name of node* in file *X*.
-        #    *file X* is that file, which is on position *X* on list xml_names.
-        #     Note, that for all i: len(xml_dict[i]) is equal to len(xml_names).
-        #    Example:
-        #    {node: [count_1, count_2, ... count_x], node_2: [count_1, count_2, ... count_x]}
+        xml_dict: a dict with lists of occurrences of nodes by node.
+            Keys are names of nodes. Values are lists of constant length,
+            where every item on position *X* means: number of occurrences
+            of node in dataset on position *X* on list xml_names.
+            
+            Note, that for all i: len(xml_dict[i]) is equal to len(xml_names).
+            
+            Example:
+            {node_1: [count_1, count_2, ... count_x],
+             node_2: [count_1, count_2, ... count_x]}
 
-        #tax_tree: A dict of dicts, etc. In form of nested dicts, it represents phylogenetic tree.
-        #    Example:
-        #    {a:{aa:{}, ab:{aba:{}, abb:{abba:{}}}}}
-        #    Explicit example in description of tax_tree_graphlan, look for: total_tax_tree.
+        tax_tree: a dict of dicts, etc. In form of nested dicts, 
+            represents phylogenetic tree.
+            Example:
+            {a:{aa:{}, ab:{aba:{}, abb:{abba:{}}}}}
 
-        #name_total_count: A dict. Contains summed numbers of occurrences of nodes by file.
-        #    Keys are identifiers (derived from filenames - look for xml_names), values ale sums.
-        #    Example:
-        #    {identifier_1: count_1, identifier_2: count_2}
+        name_total_count: a dict with numbers of occurrences of nodes
+            by dataset. Keys are names of dataset from xml_names, values are counts.
+            Example:
+            {identifier_1: count_1, identifier_2: count_2}
 
-        unit: A string. Defines units to be passed into the Krona XML.
+        unit: A string. Defines units to be used in the Krona.
             Default = 'reads'
 
 
     Returns:
+        A single string with generated xml.
     
     HARDCODED:
-        #depth .... is currently not generated
-        #accordingly to tax_tree depth, but is hardcoded to 9 levels  
+        Number of levels to iterate in tax_tree is hardcoded to 9.
+        As original comment states:
+        'however it ignores all absent levels! which is actually kind of cool'
     """
+    # Create a xml 
     import xml.etree.ElementTree as ET
     krona = ET.Element('krona')
+    
+    # Set units
     attributes = ET.SubElement(krona, 'attributes', magnitude=unit)
     attribute = ET.SubElement(attributes, 'attribute', display=unit)
     attribute.text = unit
+    
+    # Put dataset names into the xml
     datasets = ET.SubElement(krona, 'datasets')
     for name in xml_names:
         dataset = ET.SubElement(datasets, 'dataset')
         dataset.text = name
+    
+    # Put counts adequate to corresponding names into the xml
     node = ET.SubElement(krona, 'node', name='%s count'%(unit))
     reads = ET.SubElement(node, unit)
     for name in xml_names:
         val = ET.SubElement(reads, 'val')
         val.text = str(name_total_count[name])
+
     # I have commented this line, after consultation on slack (Michal)
-    # recurse_depth = dict_depth(tax_tree)    # TODO: this line is not needed
-    # WARNING HARDCODE - however it ignores all absent levels!
-    # which is actually kind of cool
+    # recurse_depth = dict_depth(tax_tree)
+    
+    # Translate tex_tree int xml 
     for lvl_1 in tax_tree:
         node1 = ET.SubElement(node, 'node', name=deunique(lvl_1))
         reads1 = ET.SubElement(node1, unit)
@@ -2158,21 +2177,22 @@ def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
                                             val = ET.SubElement(reads9, 'val')
                                             val.text = str(element)
 
+    # Push created xml structure to beautician and return resulting string
     return prettify(krona)
 
 
 def name_total_reduction(xml_names, file_total_count):
     """Rewrites given <file_total_count> dict, to group total counts
-    by names (samples), instant of grouping by filenames.
+    by names (datasets), instant of grouping by filenames.
     
     Keep in mind, that this step - along with generation of xml_names
-    in xml_name_parse - groups files referring to the same sample under
+    in xml_name_parse - groups files referring to the same dataset under
     single name, and technically is vulnerable for some errors.
     For more informations, check desription of xml_vals() function.
     
     Args:
         xml_names: readable identifiers of groups of files referring to
-            common sample; derived from filenames.
+            common dataset; derived from filenames.
             Example: ['filename_1', 'filename_2']
         
         file_total_count: A dict within information about files are kept
@@ -2258,7 +2278,7 @@ def xml_format(full_dict, tax_dict):
         A tuple: (xml_names, xml_dict, tax_tree, name_total_count)
         
         xml_names: readable identifiers of groups of files referring to
-            common sample; derived from filenames.
+            common dataset; derived from filenames.
             Example: ['filename_1', 'filename_2']
         
         xml_dict: a dict, where:
@@ -2314,7 +2334,7 @@ def xml_format(full_dict, tax_dict):
     xml_dict = xml_vals(xml_names, tax_dict)
     
     # Rewrites given <file_total_count> dict, to group total counts
-    # by names (samples), instant of grouping by filenames.
+    # by names (datasets), instant of grouping by filenames.
     name_total_count = name_total_reduction(xml_names, file_total_count)
     
     return xml_names, xml_dict, tax_tree, name_total_count
@@ -2421,6 +2441,7 @@ def txt_dict_clean(dicto):
         del dicto[directory]
     return dicto
 
+
 def xml_names_graphlan(input_d):
     """Extracts values from given dict, puts the values on a list
      and then, removes from every value those parts,
@@ -2489,6 +2510,7 @@ def tax_tree_extend(tax_tree, linia):
         tax_tree[linia[0]] = tax_tree_extend(tax_tree[linia[0]], linia[1:])
     return tax_tree
 
+
 def linia_unique(linia):
     """Creates list where every element includes
     information about previous elements, in order, separated by "____".
@@ -2509,6 +2531,7 @@ def linia_unique(linia):
     for idx in xrange(len(linia)):
         line[idx] = '_____'.join(linia[:idx+1])
     return line
+
 
 def tax_tree_graphlan(input_d):
     # TODO: Currently Graphlan files have to contain only taxonomic data
@@ -2620,6 +2643,7 @@ def tax_tree_graphlan(input_d):
             total_tax_tree.update(file_tax_tree)
             per_file_tax_tree[plik] = file_tax_tree
     return total_tax_tree, per_file_tax_tree, multi_flat_tax_tree
+
 
 def xml_counts_graphlan(tax_tree, per_file_tax_tree, xml_names, multi_flat_tax_tree):
     # TODO: tax_tree is not used here
