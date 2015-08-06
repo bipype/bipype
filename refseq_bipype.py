@@ -203,7 +203,7 @@ def tax_id_reader():
 def tax_name_reader():
     """Returns {TaxID:scientific_name} dictionary from file.
     
-    Lines with not scientific names are omitted.
+    Lines without scientific names are omitted.
     
     Keys are integers, values are strings.
     
@@ -564,7 +564,7 @@ def bam_idxstating(mode, sorted_bam, idxstats): #multi
  
                     
 def idxstat_perling(mode, idxstats, map_count): #multi
-    """Counts and writes to map_count both
+    """Counts and writes to map_count both: 
        (sum of all (numbers of mapped reads) in idxstats) and 
        (sum of all (numbers of unmapped reads) in idxstats).
     
