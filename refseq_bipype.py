@@ -1756,34 +1756,16 @@ def tree_of_life(full_dict):
 
     Args:
         full_dict: a dict of dicts, with structure like:
-        {
-            'output_type_1':
             {
-                'filename_1.ext':
+                'output_type_1':
                 {
-                    'Bacillaceae': {'Anoxybacillus': {'subsum': 15}}
-                },
-                'filename_2.ext':
-                {
-                    'Listeriaceae':
+                    'filename_1.ext':
                     {
-                        'Listeria':
-                        {
-                            'Lgrayi': {'subsum': 22},
-                            'Linnocua': {'subsum': 11}
-                        }
+                        'Bacillaceae': {'Anoxybacillus': {'subsum': 15}}
                     }
                 }
-                
-            },
-            'output_type_2':
-            {
-                'filename_2.ext':
-                {
-                    'Bacillaceae': {'Anoxybacillus': {'subsum': 15}}
-                }
             }
-        }
+            Longer example avaliable in description of xml_format().
 
     Returns:
         A tuple (full_tree, file_total_count)
@@ -1821,9 +1803,37 @@ def tree_of_life(full_dict):
 
 
 def xml_name_parse(full_dic):
-    """TODO: WIP
-    Creates a list of simplified filenames (full filenames are excracted
-    from <full_dic>). The list is guaranteed to not have duplicates.
+    """Creates a list of simplified filenames (full filenames comes
+    from <full_dic>). The list is guaranteed to not have any duplicates.
+
+    If filename contains sequence of nucleotides from set {A, C, T, G},
+    separated from other parts of the name by underscore (_), then
+    simplified filename will be substring of filename from begining
+    to this sequence (inclusive). This set of nucleotides in most cases
+    will represent "index" from naming schema for fastq files, so
+    since this step, many files will belong to one alias.
+    
+    Otherwise, the first chunk of filename will be used. In this case,
+    filename will be splited with dot '.' as delimeter. It also
+    indicates grouping files with similiar filenames since this step.
+    
+    Keep in mind, that this step groups files referring to the same
+    sample under single name, and technically is vulnerable for errors:
+    If filenames given to this functions do not follow appropriate
+    naming schema or when these filenames are not named in prefix-code
+    convention, then some false-positives might be generated in
+    some of fucntions which use results of xml_name_parse().
+    
+    Example:
+        Following filenames:
+            '16S_ArchV3V4_M_BF_02_TAGCTT_L001_001.amplicons.cutadapt.flash.merged.fastq.extendedFrags.fasta.usearch_16S'
+            '16S_ArchV3V4_M_BF_02_TAGCTT_L001_001.cutadapt.amplicons.cutadapt.flash.merged.fastq.extendedFrags.fasta.usearch_16S'
+            'Amp45_BFp_B_CAAAAG_L001_R12.fasta.usearch_ITS'
+            'meta-velvetg.contigs.fa.usearch_ITS'
+        will become:
+            '16S_ArchV3V4_M_BF_02_TAGCTT' # note: this groups first two files
+            'Amp45_BFp_B_CAAAAG'
+            'meta-velvetg'
 
     Args:
         full_dic: a dict of dicts, with structure like:
@@ -1833,32 +1843,14 @@ def xml_name_parse(full_dic):
                     'filename_1.ext':
                     {
                         'Bacillaceae': {'Anoxybacillus': {'subsum': 15}}
-                    },
-                    'filename_2.ext':
-                    {
-                        'Listeriaceae':
-                        {
-                            'Listeria':
-                            {
-                                'Lgrayi': {'subsum': 22},
-                                'Linnocua': {'subsum': 11}
-                            }
-                        }
-                    }
-                    
-                },
-                'output_type_2':
-                {
-                    'filename_2.ext':
-                    {
-                        'Bacillaceae': {'Anoxybacillus': {'subsum': 15}}
                     }
                 }
             }
+            Longer example avaliable in description of xml_format().
 
     Returns:
-        A list with base parts of filenames, which are present in
-        <full_dic>. The list is guaranteed to not have duplicates.
+        A list with simplified filenames.
+        The list is guaranteed to not have any duplicates.
         
         Example:
         ['filename_1', 'filename_2']
@@ -1877,9 +1869,11 @@ def xml_name_parse(full_dic):
                 # let identifier be the first part of filename, that is
                 # comprised only of nucleotides ACTG.
                 identifier = [item for item in nameparts if not set(item).difference(nucleotides)][0]
-                # TypeError: cannot concatenate 'str' and 'int' objects
-                # maybe it should be "index(identifier)+1"?
-                display_name = '_'.join(nameparts[0:nameparts.index(identifier+1)])
+                # Due to occuring error:
+                #   TypeError: cannot concatenate 'str' and 'int' objects in original line:
+                # display_name = '_'.join(nameparts[0:nameparts.index(identifier+1)])
+                # and with acceptance from siwiak, I made a small correction:
+                display_name = '_'.join(nameparts[0:nameparts.index(identifier)+1])
             except:
                 pass
             name_set.add(display_name)
@@ -1888,10 +1882,20 @@ def xml_name_parse(full_dic):
 
 
 def xml_vals(xml_names, tax_dict):
-    """TODO: WIP: ARE THE "FALSE POSITIVES" DESIRED?
+    """Reformats informations extracted from tax_dict into another dict,
+    to allow use of this data in xml-generation process.
+    
+    Keep in mind, that this step - along with generation of xml_names
+    in xml_name_parse - groups files referring to the same sample under
+    single name, and technically is vulnerable for some errors:
+    If filenames given to these functions do not follow appropriate
+    naming schema or when these filenames are not named in prefix-code
+    convention, then some false-positives might be generated when
+    grouping results and this will influence results. 
 
     Args:
-        xml_names: readable identifiers of files derived from filenames.
+        xml_names: readable identifiers of groups of files referring to
+            common sample, derived from filenames.
             Example:
             ['filename_1', 'filename_2']
             
@@ -1915,7 +1919,12 @@ def xml_vals(xml_names, tax_dict):
             }
         
     Returns:
-        A dict. TODO   
+        A dict, where:
+            - keys are names of taxa,
+            - values are lists with counters of occurences of particular
+              taxon in subsequent groups of files. Order on this list
+              is defined by order of names in xml_names list.
+              
         Example:
         {
             'Anoxybacillus': [5, 1],
@@ -1925,9 +1934,6 @@ def xml_vals(xml_names, tax_dict):
             'Listeria': [0, 19],
             'Listeriaceae': [0, 19]
         }
-
-
-
     """
     # create a set of all taxa from tax_dict
     all_tax_set = set()
@@ -1938,9 +1944,15 @@ def xml_vals(xml_names, tax_dict):
     xml_dict = {}
     for tax in all_tax_set:
         xml_dict[tax] = []
-        for name in xml_names:  # TODO: ok.. but why O(n^2)? Where is the point?
+        for name in xml_names:
             for plik in tax_dict:
-                if name in plik:    # TODO: this check might generate false positives
+                # Following if might generate false positives,
+                # but it is partially desired. If there is a lot of
+                # lanes, reads, etc for given sample then everything
+                # will be grouped under a single "name", thanks
+                # to how the names are generated in xml_name_parse()
+                # function, and thanks to this line:
+                if name in plik:
                     if tax in tax_dict[plik]:
                         xml_dict[tax].append(tax_dict[plik][tax])
                     else:
@@ -1999,8 +2011,8 @@ def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
     
     Args:
         
-        xml_names: readable identifiers of files derived from filenames.
-            Example:
+        xml_names: xml_names: readable identifiers of groups of files referring to
+            common sample, derived from filenames.
             ['filename_1', 'filename_2']
         
         #xml_dict: A dict. Contains lists of numbers of occurrences of nodes by node. Keys are names of nodes.
@@ -2045,7 +2057,8 @@ def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
     for name in xml_names:
         val = ET.SubElement(reads, 'val')
         val.text = str(name_total_count[name])
-    recurse_depth = dict_depth(tax_tree)    # TODO: this line is not needed
+    # I have commented this line, after consultation on slack (Michal)
+    # recurse_depth = dict_depth(tax_tree)    # TODO: this line is not needed
     # WARNING HARDCODE - however it ignores all absent levels!
     # which is actually kind of cool
     for lvl_1 in tax_tree:
@@ -2118,36 +2131,46 @@ def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
 
 
 def name_total_reduction(xml_names, file_total_count):
-    """TODO: WIP:
-    ARE THE FALSE POSITIVES DESIRED? WHY THIS IS WRITEN IN SO ODD STYLE?
-
-
+    """Rewrites given <file_total_count> dict, to group total counts
+    by names (samples), instant of grouping by filenames.
+    
+    Keep in mind, that this step - along with generation of xml_names
+    in xml_name_parse - groups files referring to the same sample under
+    single name, and technically is vulnerable for some errors.
+    For more informations, check desription of xml_vals() function.
+    
     Args:
-        xml_names: readable identifiers of files derived from filenames.
+        xml_names: readable identifiers of groups of files referring to
+            common sample; derived from filenames.
             Example: ['filename_1', 'filename_2']
         
         file_total_count: A dict within information about files are kept
-            and values of every leaf are summed into values representing
-            total count of species inside particular file.
-            Example: {'filename_1.ext': 15, 'filename_2.ext': 33}
+            and values of every leaf are summed into values (usually
+            representing total count of species inside particular file)
+            Example:
+                {
+                    'filename_1.ext': 15,
+                    'filename_2.ext': 33,
+                    'filename_2_part_2.ext': 33
+                }
 
     Returns:
-        A dict.
-        Example: {'filename_1': 15, 'filename_2': 33}
-
+        A dict, where keys are names as present in xml_names and values
+        are summed total counts (usually of occurrences of different species).
+        Example: {'filename_1': 15, 'filename_2': 66}
     """
     name_total_count = {}
     for name in xml_names:
         count = 0
         for plik in file_total_count:
-            if name in plik:    # TODO: this check might generate false positives
+            if name in plik:
                 count += file_total_count[plik]
             name_total_count[name] = count
     return name_total_count
 
 
 def xml_format(full_dict, tax_dict):
-    """TODO: WIP
+    """Creates a set of dicts, which are useful to generate xml files from.
 
     Args:
         full_dict: a dict of dicts with structure like:
@@ -2169,7 +2192,6 @@ def xml_format(full_dict, tax_dict):
                             }
                         }
                     }
-                    
                 },
                 'output_type_2':
                 {
@@ -2195,14 +2217,56 @@ def xml_format(full_dict, tax_dict):
                 },
                 'filename_2.ext':
                 {
+                    'Bacillaceae': 1, 'Anoxybacillus': 1
                     'Listeriaceae': 19, 'Listeria': 19, 'Lgrayi': 16, 'Linnocua': 3
                 }
             }
         
 
     Returns:
-
-
+        A tuple: (xml_names, xml_dict, tax_tree, name_total_count)
+        
+        xml_names: readable identifiers of groups of files referring to
+            common sample; derived from filenames.
+            Example: ['filename_1', 'filename_2']
+        
+        xml_dict: a dict, where:
+            - keys are names of taxa,
+            - values are lists with counters of occurences of particular
+              taxon in subsequent groups of files. Order on this list
+              is defined by order of names in xml_names list.
+                  
+            Example:
+            {
+                'Anoxybacillus': [5, 1],
+                'Bacillaceae': [5, 1],
+                'Lgrayi': [0, 16],
+                'Linnocua': [0, 3],
+                'Listeria': [0, 19],
+                'Listeriaceae': [0, 19]
+            }
+        
+        tax_tree: a dict without information about type and file.
+            Example:
+            {
+                'Bacillaceae':
+                {
+                    'Anoxybacillus': {}
+                },
+                'Listeriaceae':
+                {
+                    'Listeria':
+                    {
+                        'Lgrayi': {}, 'Linnocua': {}
+                    }
+                }
+            }
+        
+        
+        name_total_count: a dict, where keys are names as present in
+            xml_names and values are summed total counts (usually of
+            occurrences of different species).
+            Example: {'filename_1': 5, 'filename_2': 20}
     """
     # Rewrites the data from a dict containing information arranged by
     # type and then by file into two dicts:
@@ -2210,15 +2274,18 @@ def xml_format(full_dict, tax_dict):
     #   - second presents how many species are inside particular files
     tax_tree, file_total_count = tree_of_life(full_dict)
     
-    # Creates a list of simplified filenames (full filenames are excracted
+    # Creates a list of simplified filenames (full filenames comes
     # from <full_dic>). The list is guaranteed to not have duplicates.
     xml_names = xml_name_parse(full_dict)
     
-    # 
+    # Reformats informations extracted from tax_dict into another dict,
+    # to allow use of this data in xml-generation process.
     xml_dict = xml_vals(xml_names, tax_dict)
     
-    # 
+    # Rewrites given <file_total_count> dict, to group total counts
+    # by names (samples), instant of grouping by filenames.
     name_total_count = name_total_reduction(xml_names, file_total_count)
+    
     return xml_names, xml_dict, tax_tree, name_total_count
 
 
@@ -2339,7 +2406,7 @@ def xml_names_graphlan(input_d):
             Explicit example in description of output of cat_read().
             
     Returns:
-        A list with all filenames with were given on input,
+        A list with all filenames whith were given on input,
         trimmed by common prefixes and suffixes.
 
     """
@@ -2360,8 +2427,8 @@ def xml_names_graphlan(input_d):
 
     comm_suff = CP(allrev)[::-1]
 
-    # TODO: a co jeśli comm_pref lub comm_suff występują też wewnątrz stringu? W sumie to rare-case, ale
-    # TODO: np pliki: ./axxbxx i ./abxxx
+    # TODO: But what if comm_pref or comm_suff are also inside a string?
+    # TODO: Rather rare-case, but e.g. files: ./axxbxx i ./abxxx
     # remove common prefix and suffix from every filename
     for idx in xrange(len(allnames)):
         file_name = allnames[idx]
@@ -2413,8 +2480,10 @@ def linia_unique(linia):
     return line
 
 def tax_tree_graphlan(input_d):
-    # TODO: Currently Graphlan files have to contain only taxonomic data (formatting data after \t are not allowed)
-    # TODO: Possible workaround: "line = line.split('\t')[0]" after line "for line in kos:". But - is it really desired?
+    # TODO: Currently Graphlan files have to contain only taxonomic data
+    # (formatting data after \t are not allowed). Possible workaround:
+    # "line = line.split('\t')[0]" after line "for line in kos:".
+    # But - is it really desired?
     """Reads and interprets informations about taxonomic relations,
     from files in Graphlan-like format.
 
