@@ -413,12 +413,18 @@ def fastq_dict(seq_dict, root, file_):  # Why not defaultdict from collections?
 def paired_end_match(seq_dict):
     """Returns a dict with paths to paired-end reads only.
     
-    The dict has following format:
+    Arg:
+        seq_dict: {directory_path:file_path}
+    
+    Returns:    
+        Dict in following format:
     {directory_path1:[(paired-end_read1R1_path, paired-end_read1R2_path),
                       (paired-end_read2R1_path, paired-end_read2R2_path),
                       (paired-end_read3R1_path, paired-end_read3R2_path)],
      directory_path2:[(paired-end_read4R1_path, paired-end_read4R2_path)]
     }
+    
+    Paths to files (both in input and output dict) are relative.
     """ 
     pe_dict = {}
     for directory in seq_dict:
@@ -477,7 +483,8 @@ def sam_merge(sam1, sam2):
         sam2: SAM file
 
     Returns:
-       sam1 file in SAM format which contains now lines from both 		files.Function also removes sam2 file.
+       sam1 file in SAM format which contains now lines from both files.
+       Function also removes sam2 file.
     """
     f1 = open(sam1, 'r')
     f2 = open(sam2, 'r')
@@ -569,7 +576,7 @@ def bam_idxstating(mode, sorted_bam, idxstats): # multi
  
                     
 def idxstat_perling(mode, idxstats, map_count): # multi
-    """Counts and writes to <map_count> both:
+    """Counts and writes to map_count both:
        - (sum of all (numbers of mapped reads) in <idxstats>),
        - (sum of all (numbers of unmapped reads) in <idxstats>).
     
@@ -583,7 +590,7 @@ def idxstat_perling(mode, idxstats, map_count): # multi
         mode:      If mode=='run' "one-liner" is launched.
         idxstats:  Path to samtools idxstats output file.
                    Please refer to idx_reader() for more information.
-        map_count: Path to file, where difference will be written.
+        map_count: Path to file, where differences will be written.
     """
     perl_command = """perl -e 'while(<>){chomp;@a=split "\t", $_; $b+=$a[2]; $c+=$a[3];} print "$b - $c\n";' %s > %s"""%(
         idxstats, map_count
@@ -795,9 +802,9 @@ def MV(mode, e, k_mers, cat, pair, ins_len, rap=False):
     Args:
         mode: if mode=="run" program runs velveth or velvetg or metavelvetg
         e: boolean parameter. If e==True, then program changes todo list with exist_check function
-        k_mers: k-length nucleotids reads list
+        k_mers: k-length nucleotides reads list
         cat: name of current folder
-        pair: tuple of paired_end read
+        pair: tuple of paired_end reads
         ins_len: If ins_len==9999, then ins_len is the output from ins_len_read function
         rap: If rap==True, then program runs rapsearch function. Default rap=False
 """
@@ -1564,7 +1571,7 @@ def dict_purify(bac_dict):
 
 
 def file_analysis(typ, name, SSU=None):
-    """Using given SSU as databases, performs 'statistical' analysis
+    """Using given SSU as database, performs 'statistical' analysis
     of taxonomy from file <name>. It counts occurrences of different
     species in given file and returns result in form of two dicts. 
     
@@ -1725,7 +1732,7 @@ def file_analysis(typ, name, SSU=None):
 
 
 def input_locations(mode, out_types):
-    """Generates list of locations were input files are located.
+    """Generates lists of locations where input files are located.
     Lists are grouped by directories and later, by "output types".
     
     As input files considered are only files,
