@@ -40,7 +40,7 @@ def auto_tax_read(db_loc):
 # This bunch of code cheks if appropriate pickle is available 
 # (HARDODED: 'kogenes.pckl') and loads it to multi_id dictionary. If there
 # is no such file, 'kogenes.pckl' is made from SQL database (Variable 'c').
-# Pickled: {GI identifier : set[KO identifiers]} dictionary.
+# Pickled: {KEGG GENES identifier : set[KO identifiers]} dictionary.
 multi_id = {}
 if pexists('kogenes.pckl'):
     multi_id = auto_tax_read('kogenes.pckl')
@@ -91,8 +91,9 @@ def dicto_reduce(present, oversized):
 def m8_to_ko(file_): 
     # multi_id should be a function argument
     # Computational complexity is really bad
-    """Assigns and counts GI identifiers from BLAST Tabular (flag: -m 8)
-    output format file, for every KO from multi_id variable.
+    """Assigns and counts KEGG GENES identifiers from BLAST Tabular 
+    (flag: -m 8) output format file, for every KO from
+    multi_id variable.
 
     After mapping, writes data to output file.
     
@@ -100,7 +101,7 @@ def m8_to_ko(file_):
         file_: Path to BLAST Tabular (flag: -m 8) output format file.
         
         VARIABLE !!! 
-        multi_id format: {GI identifier : set[KO identifiers]}
+        multi_id format: {KEGG GENES identifier : set[KO identifiers]}
         VARIABLE !!!   
     
     Output file (outname) has following path:
@@ -116,7 +117,7 @@ def m8_to_ko(file_):
     outname = file_.replace('txt.m8', 'out')
     outname = outname.replace('Sample_GB_RNA_stress_', '')
     content = open(file_, 'r')
-    hit_gid = [] # List of GI identifiers from file_
+    hit_gid = [] # List of KEGG GENES identifiers from file_
     for linia in content:
         gid = linia.split('\t')[1]
         hit_gid.append(gid)
