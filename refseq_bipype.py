@@ -1109,18 +1109,22 @@ def reconstruct(mode, thr, e, pair, cat, prefix, rec_db_loc):
 
 
 def humann(mode, e, m8_dict, typ='m8'):
-    """Copies humann to the current directory,
-    moves input (*.m8) files to the input directory,
-    copies hmp_metadata.dat file to the input directory and runs humann.
-
-    Args:
-        mode: if mode="run", then humann will be copied to the current directory
-        e: if e=True, then function checks existence of humann-0.99 results folder
-        m8_dict: the similarity search results folders
-        typ: default typ="m8", in that case new catalog humann-0.99
-            will be created in rapsearch result folder; in other case humann
-            analysis results will be added in rapsearch result folder
     """
+Copies humann to the current directory, moves input (*.m8) files to the input directory,
+copies hmp_metadata.dat file to the input directory
+ and runs humann
+ 
+HARDCODED:
+        - path to humann program: '/home/pszczesny/soft/humann-0.99'
+        - path to data for humann: '/home/pszczesny/soft/humann-0.99/input/hmp_metadata.dat'
+        
+Args:
+    mode: if mode="run", then humann will be copied to the current directory
+    e: if e=True, then function checks existion of humann-0.99 results folder
+    m8_dict: the similarty search results folders
+    typ: default typ="m8", in that case new catalog humann-0.99 will be created in rapsearch result folder;
+         in ohter case humann analysis results will be added in rapsearch result folder
+"""
     for path in m8_dict:
         flag = True
         if typ == 'm8':
