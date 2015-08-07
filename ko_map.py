@@ -125,7 +125,7 @@ def m8_to_ko(file_):
     print(file_, 'file_reading seconds', kogenes_time-file_reading_time, 'total time', start_time-file_reading_time)
     gid_count = Counter(hit_gid)
     multi_clean, gid_clean = dicto_reduce(gid_count, multi_id)
-    #multi_id format: {GI identifier : set[KO identifiers]}
+    #multi_id format: {KEGG GENES identifier : set[KO identifiers]}
     cleaning_time = time()
     print(file_, 'cleaning time seconds', file_reading_time-cleaning_time, 'total time', start_time-cleaning_time)
     todo = len(gid_clean.keys()) # not used
