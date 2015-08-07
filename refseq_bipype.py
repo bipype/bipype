@@ -760,6 +760,14 @@ def gzip_MV(MV_dir):
 def rapsearch(mode, e, contig_loc, rap_out, KEGG=None):
     """Runs RAPSearch with using KEGG databases for similarity search.
 
+HARDCODED:
+        - path to RAPSearch program: '/home/pszczesny/soft/RAPSearch2.12_64bits/bin/rapsearch'
+        - path to data for RAPSearch: 
+                '/home/pszczesny/storage/workingdata/rapsearch/masl28', 
+                	if KEGG='masl28282828282828282828282828282828282828282828282828282828'
+                '/home/pszczesny/soft/KEGG/ko.pep.rapsearch.db', if KEGG = 'KO'
+                '/home/pszczesny/workingdata/refseq/protein/refseq_protein' in other cases
+
     Args:
         mode: if mode="run", then program runs rapsearch
         e: if e=True, then function runs exist_check function
@@ -1060,6 +1068,8 @@ def reconstruct(mode, thr, e, pair, cat, prefix, rec_db_loc):
     """Runs bwa. Find the SA coordinates of the input reads.
     Generate alignments in the SAM format given single-end reads.
     Repetitive hits will be randomly chosen.
+
+
 
     Args:
         mode: if mode="run", then commands "bwa aln" and "bwa samse" were run
