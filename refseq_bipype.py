@@ -358,7 +358,7 @@ def refseq_ref_namespace(directory, seq, postfix, out_dir='in_situ', map_dir='in
         - values are paths to file with corresponding extension.
 
     Args:
-        A tuple: (directory, seq, postfix, out_dir='in_situ', map_dir='in_situ')
+        (directory, seq, postfix, out_dir='in_situ', map_dir='in_situ')
 
         directory: a path to file with extension .fastq
         out_dir: a path to files with extensions different from .fastq and
