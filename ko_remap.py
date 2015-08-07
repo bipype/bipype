@@ -22,7 +22,7 @@ def get_tables(database):
         print(row[0])
 
 def get_pathways(database):
-    """Make dictionary from Pathaways table from SQLite database.
+    """Make dictionary from pathways table from SQLite database.
     
     Arg:
         database: Cursor object to SQLite database. 
@@ -42,7 +42,7 @@ def get_pathways(database):
     return pathways
 
 def get_kopathways(database):
-    """Makes dictionaries from kopathaways table from SQLite database.
+    """Makes dictionaries from kopathways table from SQLite database.
     
     Arg:
         database: Cursor object to SQLite database. 
