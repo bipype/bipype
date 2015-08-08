@@ -961,21 +961,34 @@ def adapter_read(filename):
 
 def cutadapt(mode, e, cat, R1_file, R2_file, adapter_file, usearch_16S=False, usearch_ITS=False, threads=False):
     """Searches for the adapters in reads from input files, removes them,
-    when it finds them and writes to output files which have .cutadapt.fastq extension.
-    Then function runs FLASH (software tool to merge paired-end reads) with .cutadapt.fastq
+    when it finds them and writes to output files which have .cutadapt.fastq
+    extension.  
+    Then function runs FLASH (software tool to merge paired-end reads)
+    with .cutadapt.fastq  
     files as input and .amplicons.cutadapt.flash.merged.fastq files as output.
-    These results are input for fastq_to_fasta which converts file format from fastq to fasta.
+    These results are input for fastq_to_fasta which converts file format from
+    fastq to fasta. 
 
     Args:
-        mode: if mode=='run', function operate on data
-        e:    if True, checks if a part of the workflow is actually done
-            and omits these parts, to avoid duplicating this job.
-        cat: name of folder with R_1 and R_2 files
+        mode:             if mode=='run', function operate on data
+        e:                if True, checks if a part of the workflow is actually
+			  done 
+                          and omits these parts, to avoid duplicating this job.
+        cat:              name of folder with R_1 and R_2 files
         R1_file, R2_file: input files
-        usearch_16S: if True runs usearch(mode, e, '16S', outname_uni_fasta, usearch_16S, cat, threads)
-            where outname_uni_fasta is cutadapt output.
-        usearch_ITS: if True runs usearch(mode, e, 'ITS', outname_uni_fasta, usearch_ITS, cat, threads)
-            where outname_uni_fasta is cutadapt output.
+	adapter_file:     If(adapter_file='use_filenames'), function will use
+                          adapters returned by adapter_read(R1_file)
+                          Else,function will use adapters returned by
+                          adapter_read_bck(adapter_file, R1_file)
+        usearch_16S:      if True runs usearch(mode, e, '16S',
+			  outname_uni_fasta,   usearch_16S, cat, threads)  
+                          where outname_uni_fasta is cutadapt output.
+        usearch_ITS:      if True runs usearch(mode, e, 'ITS',
+			  outname_uni_fasta, usearch_ITS, cat, threads)  
+                          where outname_uni_fasta is cutadapt output.
+     For more information please refer to:
+        - adapter_read_bck()
+        - adapter_read()
 """
     R1_fastq = pjoin(cat, R1_file)
     R2_fastq = pjoin(cat, R2_file)
