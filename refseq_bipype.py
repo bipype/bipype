@@ -1462,16 +1462,43 @@ def SSU_read(loc, typ=None):
 
 
 def tuple_to_dict(tuple_dict):
-    """ Input dictionary has tuples as keys and int type values. In dictionary returned by function keys are elements from input dictionary's tuples, values are dictioneries.
+   """ Input dict has tuples as keys and int type values.
+    In the dict returned by function:
+       - keys are elements from input dict's tuples,
+       - values are dicts.
 
-Arg: tuple_dict
-	example: {('first','second','third'):10, ('first','third','fifth':30)...}
+ 
+    Args:
+        tuple_dict: a dict.
+        Example: {('first','second','third'): 10, ('first','second'): 30, ...}
 
-Example will show why this function can be useful: 
-	
-	input: {("Animalia","Mammalia","Canis lupus familiaris"):10,("Bacteria","Enterobacteriaceae","Escherichia coli"):20, ("Animalia","Mammalia","Felis catus"):30}
-	output: {'Animalia': {'Mammalia': {'Canis lupus familiaris': {'subsum': 10}, 'Felis catus': {'subsum': 30}}}, 'Bacteria': {'Enterobacteriaceae': {'Escherichia coli': {'subsum': 20}}}}
-"""
+    Example will show why this function can be useful:
+
+    input:
+        {
+            ('Animalia','Mammalia','Canis lupus familiaris'): 10,
+            ('Bacteria','Enterobacteriaceae','Escherichia coli'): 20,
+            ('Animalia','Mammalia','Felis catus'):30
+        }
+    output:
+        {
+            'Animalia':
+            {
+                'Mammalia':
+                {
+                    'Canis lupus familiaris': {'subsum': 10},
+                    'Felis catus': {'subsum': 30}
+                }
+            }
+            'Bacteria':
+            {
+                'Enterobacteriaceae':
+                {
+                    'Escherichia coli': {'subsum': 20}
+                }
+            }
+        }
+    """
     fin_dict = {}
     for key in tuple_dict.keys():
         curr_dict = fin_dict
@@ -1495,15 +1522,37 @@ Example will show why this function can be useful:
 
 
 def tuple_to_xml_dict(tuple_dict):
-    """Input dictionary has tuples as keys and int type values.In dictionary returned by function all elements from input dictionary's tuples are single keys but their current values are the sum of the values of all tuples, in which they were.
+    """Input dict has tuples as keys and int type values.
+    In dict returned by function all elements from input dict's
+    tuples are single keys but their current values
+    are the sum of the values of all tuples, in which they were.
 
-Arg: tuple_dict
-	example: {('first','second','third'):10, ('first','third','fifth':30)...}
-
-Example: 
-	input: {("Animalia","Mammalia","Canis lupus familiaris"):10,("Bacteria","Enterobacteriaceae","Escherichia coli"):20, ("Animalia","Mammalia","Felis catus"):30}
-	output: {'Animalia': 40, 'Felis catus': 30, 'Enterobacteriaceae': 20, 'Mammalia': 40, 'Escherichia coli': 20, 'Bacteria': 20, 'Canis lupus familiaris': 10}
-"""
+    Arg: tuple_dict
+    example: {
+                ('first','second','third'):10,
+                ('first','third','fifth':30)
+                ...
+            }
+   
+ 
+    Example:
+        input:
+            {
+                ('Animalia','Mammalia','Canis lupus familiaris'):10,
+                ('Bacteria','Enterobacteriaceae','Escherichia coli'):20,
+                ('Animalia','Mammalia','Felis catus'):30
+            }
+        output:
+            {
+                'Animalia': 40,
+                'Felis catus': 30,
+                'Enterobacteriaceae': 20,
+                'Mammalia': 40,
+                'Escherichia coli': 20,
+                'Bacteria': 20,
+                'Canis lupus familiaris': 10
+            }
+    """   
     fin_dict = {}
     for taxonomy in tuple_dict:
         for level in taxonomy:
