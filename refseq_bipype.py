@@ -354,20 +354,32 @@ def pair_uni_name(file_pair):
 
 def refseq_ref_namespace(directory, seq, postfix, out_dir='in_situ', map_dir='in_situ'):
     """Returns a dict within:
-        - keys are types of file extensions 
-        - values are paths to file with corresponding extension.
+        - keys are following file extensions: fastq, sam, sam2, bam,
+	  sorted, sorted.bam, idx_stats, tax_count, map_count
+        - values are paths to file with corresponding extension. 
+        Filenames have following format:
+        sample_name + '_' + postfix + extension where sample_name is
+        basename of seq (if seq is a file) or 
+        output of pair_uni_name(seq) (if seq is a tuple)
 
     Args:
-        (directory, seq, postfix, out_dir='in_situ', map_dir='in_situ')
 
-        directory: a path to file with extension .fastq
-        out_dir: a path to files with extensions different from .fastq and
-            .map_count; if out_dir='in_situ', then out_dir=directory
-        map_dir: a path to file with extension .map_count;
-            if map_dir='in_situ', then map_dir=out_dir
-        seq: sequence file or pair of such files
-        postfix: if !='' then before extension in file name _postfix is added
-    """
+        directory: Path to directory, where file with .fastq extension
+		   will be written
+        
+        seq:       Tuple of paired_end read or sequence file.
+        
+        postfix:   String added to the end of file basenames.
+        
+        out_dir:   Path to directory, where files with .sam, .sam2, 
+                   .bam,.sorted, .sorted.bam, .idx_stats and .tax_count 
+                   extensions will be written.
+		   If out_dir is 'in_situ' (default), out_dir=directory
+        
+        map_dir:   Path to directory, where file with 
+                   .map_count extension will be written. If map_dir is
+		   'in_situ'(default),map_dir=out_dir.   
+"""
     if out_dir == 'in_situ':
         out_dir = directory
     ref_namespace = {}
