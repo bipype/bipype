@@ -32,7 +32,7 @@ def auto_tax_read(db_loc):
     """Reads pickled {KEGG GENES number : set[KO identifiers]} dictionary."""    
     with open(db_loc, 'rb') as fp:
         imported = pickle.load(fp)
-        fp.close()
+        fp.close() 
     return imported
     
 #-----------------------------------------------------------------------------

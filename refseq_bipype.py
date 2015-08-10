@@ -1018,7 +1018,7 @@ def auto_tax_read(db_loc):
     with open(db_loc, 'rb') as fp:
         tax_names = pickle.load(fp)
         tax_id = pickle.load(fp)
-    fp.close()
+    fp.close()                      # There is no 'fp' in this namespace!!!
     return tax_id, tax_names
 
 
