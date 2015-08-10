@@ -354,20 +354,32 @@ def pair_uni_name(file_pair):
 
 def refseq_ref_namespace(directory, seq, postfix, out_dir='in_situ', map_dir='in_situ'):
     """Returns a dict within:
-        - keys are types of file extensions 
-        - values are paths to file with corresponding extension.
+        - keys are following file extensions: fastq, sam, sam2, bam,
+	  sorted, sorted.bam, idx_stats, tax_count, map_count
+        - values are paths to file with corresponding extension. 
+        Filenames have following format:
+        sample_name + '_' + postfix + extension where sample_name is
+        basename of seq (if seq is a file) or 
+        output of pair_uni_name(seq) (if seq is a tuple)
 
     Args:
-        (directory, seq, postfix, out_dir='in_situ', map_dir='in_situ')
 
-        directory: a path to file with extension .fastq
-        out_dir: a path to files with extensions different from .fastq and
-            .map_count; if out_dir='in_situ', then out_dir=directory
-        map_dir: a path to file with extension .map_count;
-            if map_dir='in_situ', then map_dir=out_dir
-        seq: sequence file or pair of such files
-        postfix: if !='' then before extension in file name _postfix is added
-    """
+        directory: Path to directory, where file with .fastq extension
+		   will be written
+        
+        seq:       Tuple of paired_end read or sequence file.
+        
+        postfix:   String added to the end of file basenames.
+        
+        out_dir:   Path to directory, where files with .sam, .sam2, 
+                   .bam,.sorted, .sorted.bam, .idx_stats and .tax_count 
+                   extensions will be written.
+		   If out_dir is 'in_situ' (default), out_dir=directory
+        
+        map_dir:   Path to directory, where file with 
+                   .map_count extension will be written. If map_dir is
+		   'in_situ'(default),map_dir=out_dir.   
+"""
     if out_dir == 'in_situ':
         out_dir = directory
     ref_namespace = {}
@@ -760,6 +772,14 @@ def gzip_MV(MV_dir):
 def rapsearch(mode, e, contig_loc, rap_out, KEGG=None):
     """Runs RAPSearch with using KEGG databases for similarity search.
 
+HARDCODED:
+        - path to RAPSearch program: '/home/pszczesny/soft/RAPSearch2.12_64bits/bin/rapsearch'
+        - path to data for RAPSearch: 
+                '/home/pszczesny/storage/workingdata/rapsearch/masl28', 
+                	if KEGG='masl28282828282828282828282828282828282828282828282828282828'
+                '/home/pszczesny/soft/KEGG/ko.pep.rapsearch.db', if KEGG = 'KO'
+                '/home/pszczesny/workingdata/refseq/protein/refseq_protein' in other cases
+
     Args:
         mode: if mode="run", then program runs rapsearch
         e: if e=True, then function runs exist_check function
@@ -953,21 +973,34 @@ def adapter_read(filename):
 
 def cutadapt(mode, e, cat, R1_file, R2_file, adapter_file, usearch_16S=False, usearch_ITS=False, threads=False):
     """Searches for the adapters in reads from input files, removes them,
-    when it finds them and writes to output files which have .cutadapt.fastq extension.
-    Then function runs FLASH (software tool to merge paired-end reads) with .cutadapt.fastq
+    when it finds them and writes to output files which have .cutadapt.fastq
+    extension.  
+    Then function runs FLASH (software tool to merge paired-end reads)
+    with .cutadapt.fastq  
     files as input and .amplicons.cutadapt.flash.merged.fastq files as output.
-    These results are input for fastq_to_fasta which converts file format from fastq to fasta.
+    These results are input for fastq_to_fasta which converts file format from
+    fastq to fasta. 
 
     Args:
-        mode: if mode=='run', function operate on data
-        e:    if True, checks if a part of the workflow is actually done
-            and omits these parts, to avoid duplicating this job.
-        cat: name of folder with R_1 and R_2 files
+        mode:             if mode=='run', function operate on data
+        e:                if True, checks if a part of the workflow is actually
+			  done 
+                          and omits these parts, to avoid duplicating this job.
+        cat:              name of folder with R_1 and R_2 files
         R1_file, R2_file: input files
-        usearch_16S: if True runs usearch(mode, e, '16S', outname_uni_fasta, usearch_16S, cat, threads)
-            where outname_uni_fasta is cutadapt output.
-        usearch_ITS: if True runs usearch(mode, e, 'ITS', outname_uni_fasta, usearch_ITS, cat, threads)
-            where outname_uni_fasta is cutadapt output.
+	adapter_file:     If(adapter_file='use_filenames'), function will use
+                          adapters returned by adapter_read(R1_file)
+                          Else,function will use adapters returned by
+                          adapter_read_bck(adapter_file, R1_file)
+        usearch_16S:      if True runs usearch(mode, e, '16S',
+			  outname_uni_fasta,   usearch_16S, cat, threads)  
+                          where outname_uni_fasta is cutadapt output.
+        usearch_ITS:      if True runs usearch(mode, e, 'ITS',
+			  outname_uni_fasta, usearch_ITS, cat, threads)  
+                          where outname_uni_fasta is cutadapt output.
+     For more information please refer to:
+        - adapter_read_bck()
+        - adapter_read()
 """
     R1_fastq = pjoin(cat, R1_file)
     R2_fastq = pjoin(cat, R2_file)
@@ -1060,6 +1093,8 @@ def reconstruct(mode, thr, e, pair, cat, prefix, rec_db_loc):
     """Runs bwa. Find the SA coordinates of the input reads.
     Generate alignments in the SAM format given single-end reads.
     Repetitive hits will be randomly chosen.
+
+
 
     Args:
         mode: if mode="run", then commands "bwa aln" and "bwa samse" were run
@@ -1452,16 +1487,43 @@ def SSU_read(loc, typ=None):
 
 
 def tuple_to_dict(tuple_dict):
-    """ Input dictionary has tuples as keys and int type values. In dictionary returned by function keys are elements from input dictionary's tuples, values are dictioneries.
+   """ Input dict has tuples as keys and int type values.
+    In the dict returned by function:
+       - keys are elements from input dict's tuples,
+       - values are dicts.
 
-Arg: tuple_dict
-	example: {('first','second','third'):10, ('first','third','fifth':30)...}
+ 
+    Args:
+        tuple_dict: a dict.
+        Example: {('first','second','third'): 10, ('first','second'): 30, ...}
 
-Example will show why this function can be useful: 
-	
-	input: {("Animalia","Mammalia","Canis lupus familiaris"):10,("Bacteria","Enterobacteriaceae","Escherichia coli"):20, ("Animalia","Mammalia","Felis catus"):30}
-	output: {'Animalia': {'Mammalia': {'Canis lupus familiaris': {'subsum': 10}, 'Felis catus': {'subsum': 30}}}, 'Bacteria': {'Enterobacteriaceae': {'Escherichia coli': {'subsum': 20}}}}
-"""
+    Example will show why this function can be useful:
+
+    input:
+        {
+            ('Animalia','Mammalia','Canis lupus familiaris'): 10,
+            ('Bacteria','Enterobacteriaceae','Escherichia coli'): 20,
+            ('Animalia','Mammalia','Felis catus'):30
+        }
+    output:
+        {
+            'Animalia':
+            {
+                'Mammalia':
+                {
+                    'Canis lupus familiaris': {'subsum': 10},
+                    'Felis catus': {'subsum': 30}
+                }
+            }
+            'Bacteria':
+            {
+                'Enterobacteriaceae':
+                {
+                    'Escherichia coli': {'subsum': 20}
+                }
+            }
+        }
+    """
     fin_dict = {}
     for key in tuple_dict.keys():
         curr_dict = fin_dict
@@ -1485,15 +1547,37 @@ Example will show why this function can be useful:
 
 
 def tuple_to_xml_dict(tuple_dict):
-    """Input dictionary has tuples as keys and int type values.In dictionary returned by function all elements from input dictionary's tuples are single keys but their current values are the sum of the values of all tuples, in which they were.
+    """Input dict has tuples as keys and int type values.
+    In dict returned by function all elements from input dict's
+    tuples are single keys but their current values
+    are the sum of the values of all tuples, in which they were.
 
-Arg: tuple_dict
-	example: {('first','second','third'):10, ('first','third','fifth':30)...}
-
-Example: 
-	input: {("Animalia","Mammalia","Canis lupus familiaris"):10,("Bacteria","Enterobacteriaceae","Escherichia coli"):20, ("Animalia","Mammalia","Felis catus"):30}
-	output: {'Animalia': 40, 'Felis catus': 30, 'Enterobacteriaceae': 20, 'Mammalia': 40, 'Escherichia coli': 20, 'Bacteria': 20, 'Canis lupus familiaris': 10}
-"""
+    Arg: tuple_dict
+    example: {
+                ('first','second','third'):10,
+                ('first','third','fifth':30)
+                ...
+            }
+   
+ 
+    Example:
+        input:
+            {
+                ('Animalia','Mammalia','Canis lupus familiaris'):10,
+                ('Bacteria','Enterobacteriaceae','Escherichia coli'):20,
+                ('Animalia','Mammalia','Felis catus'):30
+            }
+        output:
+            {
+                'Animalia': 40,
+                'Felis catus': 30,
+                'Enterobacteriaceae': 20,
+                'Mammalia': 40,
+                'Escherichia coli': 20,
+                'Bacteria': 20,
+                'Canis lupus familiaris': 10
+            }
+    """   
     fin_dict = {}
     for taxonomy in tuple_dict:
         for level in taxonomy:
