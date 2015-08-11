@@ -1051,7 +1051,7 @@ def auto_tax_read(db_loc):
     with open(db_loc, 'rb') as fp:
         tax_names = pickle.load(fp)
         tax_id = pickle.load(fp)
-    fp.close()                      # There is no 'fp' in this namespace!!!
+    fp.close()                      # TODO: 'fp' is already closed!
     return tax_id, tax_names
 
 
@@ -1406,7 +1406,6 @@ def sample(opts):
 
 
 def SSU_read(loc, typ=None):
-    # TODO: Compare with implementation in obiaddtaxids
     """Extracts from specially formatted FASTA file taxonomic data
     and returns them as hierarchically organised dict.
 

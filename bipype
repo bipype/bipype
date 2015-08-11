@@ -23,10 +23,11 @@ def main(argv=None):
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         epilog = 'All commands may be presented in a configuration file fed to bipype with @ prefix as "$bipype @my_conf_file", my_conf_file should contain all desired commands and their options (if applicable) one per line (space delimited)')
     general = parser.add_argument_group('general', 'performance and I/O related options')
-    general.add_argument('--ignore',
-        help='ignore this argument',
-        type = str,
-        default = '')
+    # Commented after converstaion on slack (Michal)
+    #general.add_argument('--ignore',
+    #    help='ignore this argument',
+    #    type = str,
+    #    default = '')
     general.add_argument("-t", "--threads",
         help='number of threads to be used',
         type = int,
@@ -68,7 +69,7 @@ def main(argv=None):
         nargs = '*',
         default= ['ITS, 16S'],
         help = 'Choice of files searched for an analysis, coded: 16S and ITS on usearches - file .usearch_ITS, .usearch_16S')
-    dataclean = parser.add_argument_group('cleaning input', 'methods of cleaning input from noise')
+    dataclean = parser.add_argument_group('input cleaning', 'methods of cleaning input from noise')
     dataclean.add_argument("-ic", "--initial_cleaning", 
         choices = ['usearch', 'fastx'],
         type = str,
@@ -78,7 +79,7 @@ def main(argv=None):
         type = str,
         default = '',
         nargs=2,
-        help = '-cutadapt ADAPTER_FILE search_options, location of file with adapters to be used by cutadapt (possible use of "use_filenames" to determine adapters from hardcode), and list of usearches to be run on created files - possible options are 16S, ITS, both. Please note, that mapping options -16S, -ITS are completly irrelevant if you use cutadapt. Other note - this is !!!IMPORTANT!!! to present location of file with adapters as first option of this argument')
+        help = '-cutadapt ADAPTER_FILE search_options, location of file with adapters to be used by cutadapt (possible use of "use_filenames" to determine adapters from hardcode), and list of usearches to be run on created files - possible options are 16S, ITS, both. Please note, that mapping options -16S, -ITS are completely irrelevant if you use cutadapt. Other note - this is !!!IMPORTANT!!! to present location of file with adapters as first option of this argument')
     mappings = parser.add_argument_group('mapping', 'mappings to be done during the run')
     mappings.add_argument("-ITS",
         help='usearch ITS database',
@@ -148,7 +149,7 @@ def main(argv=None):
     db_loc.add_argument("--db_SSUs_taxonomy",
         type=str,
         default=SSUs_taxa_db,
-        help='location of cPickled SSUs_tax_id, SSU and ITS {id:[taxonomy,levels] dictionaries')
+        help='location of cPickled SSUs_tax_id, SSU and ITS {id:[taxonomy,levels]} dictionaries')
     db_loc.add_argument("--db_reconstruct",
         type=str,
         default=reconstruct_db,
@@ -163,5 +164,3 @@ if __name__ == '__main__':
         sample(opts)
     else:
         aftershave(opts)
-
-
