@@ -4,15 +4,7 @@ import argparse
 from refseq_bipype import sample, aftershave
 from sys import argv as sargv
 from os import getcwd
-
-ref_fungi = '/home/pszczesny/workingdata/refseq/db/fungi/fungi_refseq'
-ref_plant1 = '/home/pszczesny/workingdata/refseq/db/plant/plant_refseq_1'
-ref_plant2 = '/home/pszczesny/workingdata/refseq/db/plant/plant_refseq_2'
-X16S_db = '/public/EMIRGE/SSU/SSU_candidate_db.udb'
-ITS_db = '/home/pszczesny/workingdata/ITS/unite.udb'
-NCBI_taxa_db = '/home/pszczesny/soft/bipype/NCBI_tax_id_name.pickle'
-SSUs_taxa_db = '/home/pszczesny/soft/bipype/SSUs_tax_id_name.pickle'
-reconstruct_db = '/home/pszczesny/storage/workingdata/mcra/mcra10k.fasta'
+from settings_bipype import *
 
 
 def main(argv=None):
@@ -132,28 +124,28 @@ def main(argv=None):
     db_loc = parser.add_argument_group('databases', 'locations of databases to be used for searches')
     db_loc.add_argument("--db_16S", 
         type=str, 
-        default=X16S_db, 
+        default=X16S_DB, 
         help='location of 16S database used in usearch (bowtie indexed')
     db_loc.add_argument("--db_ITS", 
         type=str, 
-        default=ITS_db, 
+        default=ITS_DB, 
         help='location of ITS database used in usearch (bowtie indexed)')
     db_loc.add_argument("--db_refseq", 
         type = str, 
-        default=[ref_fungi, ref_plant1, ref_plant2],
+        default=[REF_FUNGI, REF_PLANT_1, REF_PLANT_2],
         nargs = '*', 
         help='location of refseq database')
     db_loc.add_argument("--db_NCBI_taxonomy",
         type=str,
-        default=NCBI_taxa_db,
+        default=NCBI_TAXA_DB,
         help='location of cPickled NCBI_tax_id, NCBI tax names and NCBI tax ids')
     db_loc.add_argument("--db_SSUs_taxonomy",
         type=str,
-        default=SSUs_taxa_db,
+        default=SSUS_TAXA_DB,
         help='location of cPickled SSUs_tax_id, SSU and ITS {id:[taxonomy,levels]} dictionaries')
     db_loc.add_argument("--db_reconstruct",
         type=str,
-        default=reconstruct_db,
+        default=RECONSTRUCT_DB,
         help='location of database for reconstruction')
     args = parser.parse_args()
     return args

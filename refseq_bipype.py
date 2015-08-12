@@ -1,4 +1,5 @@
 #!/usr/bin/python
+
 from os import getcwd, walk, system, chdir, stat
 from os.path import join as pjoin
 from os.path import exists as pexists
@@ -7,24 +8,13 @@ from itertools import combinations
 from datetime import datetime
 from copy import deepcopy
 import cPickle as pickle
+from settings_bipype import *
 # CHANGED
 # TODO: These are probably not used anymore:
 #from re import match
 #from pprint import pprint
 #from collections import defaultdict
 
-PATH_16S_DATABASE = '/home/pszczesny/soft/bipype/SSU_candidate_db.fasta'
-PATH_ITS_DATABASE = '/home/pszczesny/soft/bipype/UNITE_public_from_27.01.13.fasta'
-GI_TAX_PATH = '/home/pszczesny/workingdata/refseq/db/tax_id/gi_taxid_nucl.dmp'
-TAX_NAME_PATH = '/home/pszczesny/workingdata/refseq/db/tax_id/names.dmp'
-RAP_LOC = '/home/pszczesny/soft/RAPSearch2.12_64bits/bin/rapsearch'
-REF_PROT_LOC_MASL28 = '/home/pszczesny/storage/workingdata/rapsearch/masl28'
-REF_PROT_LOC_KO = '/home/pszczesny/soft/KEGG/ko.pep.rapsearch.db'
-REF_PROT_LOC_ELSE = '/home/pszczesny/workingdata/refseq/protein/refseq_protein'
-USEARCH_LOC = '/home/pszczesny/soft/usearch'
-FQ2FA_PATH = '/usr/local/bioinformatics/fastx_toolkit/bin/fastq_to_fasta'
-HUMANN_PATH = '/home/pszczesny/soft/humann-0.99'
-HUMANN_DATA_PATH = '/home/pszczesny/soft/humann-0.99/input/hmp_metadata.dat'
 
 def cat_read(mode, fileext, paired_end=True):
     """Returns a dict with paths to sequence files
@@ -2320,7 +2310,7 @@ def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
     # I have commented this line, after consultation on slack (Michal)
     # recurse_depth = dict_depth(tax_tree)
     
-    # Translate tex_tree int xml 
+    # Translate tex_tree into xml 
     for lvl_1 in tax_tree:
         node1 = ET.SubElement(node, 'node', name=deunique(lvl_1))
         reads1 = ET.SubElement(node1, unit)
