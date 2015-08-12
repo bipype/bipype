@@ -2350,7 +2350,6 @@ def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
                             node6 = ET.SubElement(node5, 'node', name=deunique(lvl_6))
                             reads6 = ET.SubElement(node6, unit)
                             for element in xml_dict[lvl_6]:
-                                print 'lvl6', lvl_6, xml_dict[lvl_6]  # TODO: is there any aim of this print statement? What it is for?
                                 val = ET.SubElement(reads6, 'val')
                                 val.text = str(element)
                             tmp_7_d = tmp_6_d[lvl_6]
@@ -2358,7 +2357,6 @@ def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
                                 node7 = ET.SubElement(node6, 'node', name=deunique(lvl_7))
                                 reads7 = ET.SubElement(node7, unit)
                                 for element in xml_dict[lvl_7]:
-                                    print 'lvl7', lvl_7, xml_dict[lvl_7]  # TODO: is there any aim of this print statement? What it is for?
                                     val = ET.SubElement(reads7, 'val')
                                     val.text = str(element)
                                 tmp_8_d = tmp_7_d[lvl_7]
@@ -2366,7 +2364,6 @@ def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
                                     node8 = ET.SubElement(node7, 'node', name=deunique(lvl_8))
                                     reads8 = ET.SubElement(node8, unit)
                                     for element in xml_dict[lvl_8]:
-                                        print 'lvl8', lvl_8, xml_dict[lvl_8]# TODO: is there any aim of this print statement? What it is for? 
                                         val = ET.SubElement(reads8, 'val')
                                         val.text = str(element)
                                     tmp_9_d = tmp_8_d[lvl_8]
