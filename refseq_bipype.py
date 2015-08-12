@@ -2997,7 +2997,7 @@ def aftershave(opts):
         Output files will be placed in <opts.out_dir> directory, with
         basenames depending on <opts.output_type>.
         
-        Examples of basenames:
+        Examples of filenames:
             for 'ITS':                ('ITS.krona', 'ITS.html')
             for ['ITS', '16S']:       ('ITS_16S.krona', 'ITS_16S.html') 
    
