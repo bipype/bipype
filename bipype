@@ -56,10 +56,11 @@ def main(argv=None):
     general.add_argument("-e", 
         help = "use existing files",
         action='store_true')
-    general.add_argument("-c", "--chain",
-        help='run all searches: usearch on 16S and ITS as well as refesq_map\n may be used wih or without searches on contigs reconstructed with: MetaVelvet [MV_contig], Soap de nowo [SdN_contig], or both [all]''',
-        choices=['no_contig', 'MV_contig', 'SdN_contig', 'all'],
-        default=None)
+    # CHANGED - it is not used currently
+    #general.add_argument("-c", "--chain",
+    #    help='run all searches: usearch on 16S and ITS as well as refesq_map\n may be used wih or without searches on contigs reconstructed with: MetaVelvet [MV_contig], Soap de nowo [SdN_contig], or both [all]''',
+    #    choices=['no_contig', 'MV_contig', 'SdN_contig', 'all'],
+    #    default=None)
     aftershave = parser.add_argument_group('aftershave options', 'options related to aftershaving results')
     #aftershave.add_argument("-v", "--verbose",
     #    help='detail lvl of aftershave option: 0 - no output, 1 - trees (pdf and csv) and newicks, 2 - newicks and tree csv (no pdf-for mosh and normal ssh sessions), 3 - trees (pdf and csv), newicks and total_csv (remember to set proper -ot (including map_count))',

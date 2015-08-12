@@ -7,11 +7,24 @@ from itertools import combinations
 from datetime import datetime
 from copy import deepcopy
 import cPickle as pickle
-# These are probably not used anymore:
-from re import match
-from pprint import pprint
-from collections import defaultdict
+# CHANGED
+# TODO: These are probably not used anymore:
+#from re import match
+#from pprint import pprint
+#from collections import defaultdict
 
+PATH_16S_DATABASE = '/home/pszczesny/soft/bipype/SSU_candidate_db.fasta'
+PATH_ITS_DATABASE = '/home/pszczesny/soft/bipype/UNITE_public_from_27.01.13.fasta'
+GI_TAX_PATH = '/home/pszczesny/workingdata/refseq/db/tax_id/gi_taxid_nucl.dmp'
+TAX_NAME_PATH = '/home/pszczesny/workingdata/refseq/db/tax_id/names.dmp'
+RAP_LOC = '/home/pszczesny/soft/RAPSearch2.12_64bits/bin/rapsearch'
+REF_PROT_LOC_MASL28 = '/home/pszczesny/storage/workingdata/rapsearch/masl28'
+REF_PROT_LOC_KO = '/home/pszczesny/soft/KEGG/ko.pep.rapsearch.db'
+REF_PROT_LOC_ELSE = '/home/pszczesny/workingdata/refseq/protein/refseq_protein'
+USEARCH_LOC = '/home/pszczesny/soft/usearch'
+FQ2FA_PATH = '/usr/local/bioinformatics/fastx_toolkit/bin/fastq_to_fasta'
+HUMANN_PATH = '/home/pszczesny/soft/humann-0.99'
+HUMANN_DATA_PATH = '/home/pszczesny/soft/humann-0.99/input/hmp_metadata.dat'
 
 def cat_read(mode, fileext, paired_end=True):
     """Returns a dict with paths to sequence files
@@ -181,14 +194,13 @@ def tax_id_reader():
     17	9771
     where first column is a GI, second is a TaxID.
     
-    HARDCODED:
-    /home/pszczesny/workingdata/refseq/db/tax_id/gi_taxid_nucl.dmp   
+    GLOBLAS:
+        GI_TAX_PATH
     """
     print 'reading tax ids'
-    gi_tax_path = '/home/pszczesny/workingdata/refseq/db/tax_id/gi_taxid_nucl.dmp'
     gi_tax_dict = {}
     curr_t = datetime.now()
-    with open(gi_tax_path) as file_:
+    with open(GI_TAX_PATH) as file_:
         counter = 0
         for line in file_:
             gi, tax = split(line)
@@ -220,14 +232,13 @@ def tax_name_reader():
         Output:
             {6:'Azotirhizobium', 7:'Azorhizobium caulinodans'}
          
-    HARDCODED:
-    /home/pszczesny/workingdata/refseq/db/tax_id/names.dmp  
+    GLOBALS:
+        TAX_NAME_PATH
     """
     print 'reading tax names'
-    tax_name_path = '/home/pszczesny/workingdata/refseq/db/tax_id/names.dmp'
     tax_name_dict = {}
     curr_t1 = datetime.now()
-    with open(tax_name_path) as file_:
+    with open(TAX_NAME_PATH) as file_:
         counter = 0
         for line in file_:
             line_l = split(line, '\t|\t')
@@ -624,7 +635,7 @@ def refseq_mapping(mode, e, directory, pair, postfix, refseq, tax_name_dict, tax
         sums of mapped reads and unmapped reads.
     Finally, idx_map() function is called: 
         Parse data from samtools idxstats output file and
-        writes data to outfile in    key;value    format, where:
+        writes data to outfile in key; value format, where:
         key     is    GI/TaxID/scientific name
         value   is    number of mapped reads.   
                         
@@ -739,7 +750,8 @@ def ins_len_read(pair, cat):
     zeros = find(sample_name, '00') #WARNING HARDCODE
     try:
         ins_len = int(sample_name[zeros-1:zeros+2])
-    except:
+    # CHANGED
+    except ValueError:
         aqq = len(open(pjoin(cat, sample_name), 'r').readlines()[1].rstrip())
         if aqq > 200:
             ins_len = 500
@@ -772,14 +784,6 @@ def gzip_MV(MV_dir):
 def rapsearch(mode, e, contig_loc, rap_out, KEGG=None):
     """Runs RAPSearch with using KEGG databases for similarity search.
 
-HARDCODED:
-        - path to RAPSearch program: '/home/pszczesny/soft/RAPSearch2.12_64bits/bin/rapsearch'
-        - path to data for RAPSearch: 
-                '/home/pszczesny/storage/workingdata/rapsearch/masl28', 
-                	if KEGG='masl28282828282828282828282828282828282828282828282828282828'
-                '/home/pszczesny/soft/KEGG/ko.pep.rapsearch.db', if KEGG = 'KO'
-                '/home/pszczesny/workingdata/refseq/protein/refseq_protein' in other cases
-
     Args:
         mode: if mode="run", then program runs rapsearch
         e: if e=True, then function runs exist_check function
@@ -787,24 +791,33 @@ HARDCODED:
         rap_out: output file name
         KEGG: default is None, if KEGG= KO,
             then ko.pep.rapsearch.db is chosen as protein database
+
+    HARDCODED:
+        if KEGG='masl28282828282828282828282828282828282828282828282828282828'
+            
+    GLOBALS:
+        - path to RAPSearch program: RAP_LOC
+        - paths to data for RAPSearch: 
+            REF_PROT_LOC_MASL28,
+            REF_PROT_LOC_KO,
+            REF_PROT_LOC_ELSE
     """
     rap_log = rap_out + '.log'
     rap_err = rap_out + '.err'
-    rap_loc = '/home/pszczesny/soft/RAPSearch2.12_64bits/bin/rapsearch'
     if KEGG == 'masl28282828282828282828282828282828282828282828282828282828':
-        ref_prot_loc = '/home/pszczesny/storage/workingdata/rapsearch/masl28'
+        ref_prot_loc = REF_PROT_LOC_MASL28
         rap_com = '%s -q %s -d %s -o %s -z 12 -v 20 -b 1 -t n -a t 1> %s 2> %s'%(
-            rap_loc, contig_loc, ref_prot_loc, rap_out, rap_log, rap_err
+            RAP_LOC, contig_loc, ref_prot_loc, rap_out, rap_log, rap_err
             )
     elif KEGG == 'KO':
-        ref_prot_loc = '/home/pszczesny/soft/KEGG/ko.pep.rapsearch.db'
+        ref_prot_loc = REF_PROT_LOC_KO
         rap_com = '%s -q %s -d %s -o %s -z 12 -v 20 -b 1 -t n -a t 1> %s 2> %s'%(
-            rap_loc, contig_loc, ref_prot_loc, rap_out, rap_log, rap_err
+            RAP_LOC, contig_loc, ref_prot_loc, rap_out, rap_log, rap_err
             )
     else:
-        ref_prot_loc = '/home/pszczesny/workingdata/refseq/protein/refseq_protein'
+        ref_prot_loc = REF_PROT_LOC_ELSE
         rap_com = '%s -q %s -d %s  -o %s -z 10 -e 0.001 -b 100 -v 100 -g T -a T 1> %s 2> %s'%(
-            rap_loc, contig_loc, ref_prot_loc, rap_out, rap_log, rap_err
+            RAP_LOC, contig_loc, ref_prot_loc, rap_out, rap_log, rap_err
             )
     print rap_com
     todo = [rap_com]
@@ -891,12 +904,12 @@ def MV(mode, e, k_mers, cat, pair, ins_len, rap=False):
             rapsearch(mode, e, rap_in,  rap_out)
 
 
-def usearch(mode, e, search_type, infile, database, outdir, threads): #Function doesn't use outdir argument
+# TODO: outdir argument not used
+def usearch(mode, e, search_type, infile, database, outdir, threads):
     """Launches Usearch with -usearch_local command.
     
     HARDCODED:
-        - path to Usearch program: '/home/pszczesny/soft/usearch'
-        - and few Usearch options:
+        - Usearch options:
             - evalue = 0.01
             - id = 0.9
             - strand = both
@@ -912,12 +925,15 @@ def usearch(mode, e, search_type, infile, database, outdir, threads): #Function 
         outdir:      NOT USED IN FUNCTION !!!
         database:    [-db in Usearch]
         threads:     [-threads in Usearch] Number of threads used in
-                     calculations.      
+                     calculations.
+
+    GLOBALS:
+        USEARCH_LOC
     """
-    usearch_loc = '/home/pszczesny/soft/usearch'
+    
     outfile = infile + '.usearch_' + search_type
     usearch_command = '%s -usearch_local %s -db %s -evalue 0.01 -id 0.9 -blast6out %s -strand both -threads %i'%(
-        usearch_loc, infile, database, outfile, threads
+        USEARCH_LOC, infile, database, outfile, threads
         )
     todo = ['usearch']
     print usearch_command
@@ -1001,6 +1017,9 @@ def cutadapt(mode, e, cat, R1_file, R2_file, adapter_file, usearch_16S=False, us
      For more information please refer to:
         - adapter_read_bck()
         - adapter_read()
+        
+    GLOBALS:
+        FQ2FA_PATH
 """
     R1_fastq = pjoin(cat, R1_file)
     R2_fastq = pjoin(cat, R2_file)
@@ -1027,7 +1046,7 @@ def cutadapt(mode, e, cat, R1_file, R2_file, adapter_file, usearch_16S=False, us
     print flash_com
     if 'flash' in todo and mode == 'run':
         system(flash_com)
-    fq2fa_com = '/usr/local/bioinformatics/fastx_toolkit/bin/fastq_to_fasta < %s > %s -Q33'%(outname_uni_fastq_postflash, outname_uni_fasta)
+    fq2fa_com = '%s < %s > %s -Q33'%(FQ2FA_PATH, outname_uni_fastq_postflash, outname_uni_fasta)
     print fq2fa_com
     if 'fq2fa' in todo and mode == 'run':
         system(fq2fa_com)
@@ -1051,7 +1070,8 @@ def auto_tax_read(db_loc):
     with open(db_loc, 'rb') as fp:
         tax_names = pickle.load(fp)
         tax_id = pickle.load(fp)
-    fp.close()                      # TODO: 'fp' is already closed!
+    # CHANGED
+    #fp.close()                      # TODO: 'fp' is already closed!
     return tax_id, tax_names
 
 
@@ -1149,16 +1169,16 @@ Copies humann to the current directory, moves input (*.m8) files to the input di
 copies hmp_metadata.dat file to the input directory
  and runs humann
  
-HARDCODED:
-        - path to humann program: '/home/pszczesny/soft/humann-0.99'
-        - path to data for humann: '/home/pszczesny/soft/humann-0.99/input/hmp_metadata.dat'
+GLOBALS:
+        - path to humann program: HUMANN_PATH
+        - path to data for humann: HUMANN_DATA_PATH
         
 Args:
     mode: if mode="run", then humann will be copied to the current directory
     e: if e=True, then function checks existion of humann-0.99 results folder
     m8_dict: the similarty search results folders
     typ: default typ="m8", in that case new catalog humann-0.99 will be created in rapsearch result folder;
-         in ohter case humann analysis results will be added in rapsearch result folder
+         in other case humann analysis results will be added in rapsearch result folder
 """
     for path in m8_dict:
         flag = True
@@ -1172,7 +1192,7 @@ Args:
                 print 'Found %s'%(hum_loc)
                 flag = None
         if flag:
-            get_humann = 'cp -r /home/pszczesny/soft/humann-0.99 %s'%(path)
+            get_humann = 'cp -r %s %s'%(HUMANN_PATH, path)
             print get_humann
             if mode == 'run':
                 system(get_humann)
@@ -1189,9 +1209,9 @@ Args:
             clean_comm = 'rm -rf %s/*'%(input_loc)
             print 'Executing: %s'%(clean_comm)
         if typ == 'm8':
-            hmp_get_comm = 'cp /home/pszczesny/soft/humann-0.99/input/hmp_metadata.dat %s/'%(input_loc)
+            hmp_get_comm = 'cp %s %s/'%(HUMANN_DATA_PATH, input_loc)
         else:
-            hmp_get_comm = 'cp /home/pszczesny/soft/humann-0.99/input/hmp_metadata.dat %s/'%(hum_loc)
+            hmp_get_comm = 'cp %s %s/'%(HUMANN_DATA_PATH, hum_loc)
         print 'Getting hmp: %s'%(hmp_get_comm)
         humann_comm = 'scons 1>log 2>errlog'
         print 'Executing: %s'%(humann_comm)
@@ -1257,7 +1277,10 @@ def sample(opts):
                 list of 16S adapters
                 
             opts.db_ITS:
-                list of ITS adapters    
+                list of ITS adapters
+                
+    GLOBALS:
+        FQ2FA_PATH
     """
     if opts.to_calculate == None:
         opts.to_calculate = []
@@ -1346,7 +1369,7 @@ def sample(opts):
                             print 'Found %s'%(pjoin(fasta))
                             flag = None
                     if flag:
-                        fq2fa_com = '/usr/local/bioinformatics/fastx_toolkit/bin/fastq_to_fasta < %s > %s -Q33'%(pjoin(path, fastq), pjoin(path, fasta))
+                        fq2fa_com = '%s < %s > %s -Q33'%(FQ2FA_PATH, pjoin(path, fastq), pjoin(path, fasta))
                         print fq2fa_com
                         if opts.mode == 'run':
                             system(fq2fa_com)
@@ -1457,31 +1480,36 @@ def SSU_read(loc, typ=None):
         }
 
     """
+    tax_dict = {}
+    # CHANGED
     # TODO: possible memory leak: file loc might be not closed.
     # TODO: It might be better with "with"
-    tax_dict = {}
-    for linia in open(loc, 'r').readlines():
-        if linia[0] == '>':
-            linia = linia.rstrip()
-            if typ:
-                linia = linia.split()
-                tax_idx = linia[0][1:]
-                tax_dict[tax_idx] = linia[1].split(';')
-            else:
-                line = linia.split('|')
-                tax_idx = line[0][1:]
-                if linia.count('Fungi') == 2:
-                    tax_line = line[-1].replace(" ", "")
-                elif linia.count('Fungi') == 1:
-                    tax_line = line[2].replace(" ", "")
-                    if len(tax_line.split(';')) == 1:
+    with open(loc, 'r') as fasta_file:
+        for linia in fasta_file.readlines():
+            if linia[0] == '>':
+                linia = linia.rstrip()
+                if typ:
+                    linia = linia.split()
+                    tax_idx = linia[0][1:]
+                    tax_dict[tax_idx] = linia[1].split(';')
+                else:
+                    line = linia.split('|')
+                    tax_idx = line[0][1:]
+                    if linia.count('Fungi') == 2:
                         tax_line = line[-1].replace(" ", "")
-                # TODO: if the count of 'Fungi' in <line> is other than 1 or 2,
-                # TODO: then the following line breaks pipe, with error:
-                # TODO: UnboundLocalError: local variable 'tax_line' referenced before assignment
-                if tax_line == '-':
-                    tax_line = 'Fungi'+';'+linia.split('|')[1].replace(" ", "_")
-                tax_dict[tax_idx] = tax_line.split(';')
+                    elif linia.count('Fungi') == 1:
+                        tax_line = line[2].replace(" ", "")
+                        if len(tax_line.split(';')) == 1:
+                            tax_line = line[-1].replace(" ", "")
+                    # CHANGED
+                    # TODO: if the count of 'Fungi' in <line> is other than 1 or 2,
+                    # TODO: then the following line breaks pipe, with error:
+                    # TODO: UnboundLocalError: local variable 'tax_line' referenced before assignment
+                    else:
+                        tax_line = None
+                    if tax_line == '-':
+                        tax_line = 'Fungi'+';'+linia.split('|')[1].replace(" ", "_")
+                    tax_dict[tax_idx] = tax_line.split(';')
     return tax_dict
 
 
@@ -1684,8 +1712,9 @@ def file_analysis(typ, name, SSU=None):
         In '16S' analysis, if spec is 'Phaseolus_acutifolius_(tepary_bean)',
         then it is not counted neither as bacteria nor archaea.
     """
+    # CHANGED
     # TODO: following import is not used
-    import operator
+    # import operator
     if not pexists(name):
         return 'NA', 'NA'
     else:
@@ -2087,6 +2116,7 @@ def xml_name_parse(full_dic):
                 # let identifier be the first part of filename, that is
                 # comprised only of nucleotides ACTG.
                 identifier = [item for item in nameparts if not set(item).difference(nucleotides)][0]
+                # CHANGED
                 # Due to occuring error:
                 #   TypeError: cannot concatenate 'str' and 'int' objects in original line:
                 # display_name = '_'.join(nameparts[0:nameparts.index(identifier+1)])
@@ -2105,7 +2135,7 @@ def xml_vals(xml_names, tax_dict):
     
     Keep in mind, that this step - along with generation of xml_names
     in xml_name_parse - groups files referring to the same dataset under
-    single name, and technically is vulnerable for some errors:
+    a single name, and technically is vulnerable for some errors:
     If filenames given to these functions do not follow appropriate
     naming schema or when these filenames are not named in prefix-code
     convention, then some false-positives might be generated when
@@ -2194,7 +2224,7 @@ def prettify(elem):
     reparsed = minidom.parseString(rough_string)
     return reparsed.toprettyxml(indent="    ")
 
-
+# CHANGED
 # def dict_depth(d, depth=0):
 #     # TODO: needed only if line "recurse_depth = dict_depth(tax_tree)"
 #     # TODO: from xml_prepare will be kept.
@@ -2286,6 +2316,7 @@ def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
         val = ET.SubElement(reads, 'val')
         val.text = str(name_total_count[name])
 
+    # CHANGED
     # I have commented this line, after consultation on slack (Michal)
     # recurse_depth = dict_depth(tax_tree)
     
@@ -2658,13 +2689,14 @@ def xml_names_graphlan(input_d):
 
     comm_suff = CP(allrev)[::-1]
 
-    # TODO: But what if comm_pref or comm_suff are also inside a string?
-    # TODO: Rather rare-case, but e.g. files: ./axxbxx i ./abxxx
     # remove common prefix and suffix from every filename
     for idx in xrange(len(allnames)):
         file_name = allnames[idx]
-        file_name = file_name.replace(comm_pref, '')
-        file_name = file_name.replace(comm_suff, '')
+        # CHANGED
+        # TODO: But what if comm_pref or comm_suff are also inside a string?
+        # TODO: Rather rare-case, but e.g. files: ./axxbxx i ./abxxx
+        file_name = file_name[len(com_pref):]
+        file_name = file_name[:-len(comm_suff)]
         allnames[idx] = file_name
 
     return allnames
@@ -2714,10 +2746,6 @@ def linia_unique(linia):
 
 
 def tax_tree_graphlan(input_d):
-    # TODO: Currently Graphlan files have to contain only taxonomic data
-    # (formatting data after \t are not allowed). Possible workaround:
-    # "line = line.split('\t')[0]" after line "for line in kos:".
-    # But - is it really desired?
     """Reads and interprets information about taxonomic relations,
     from files in Graphlan-like format.
 
@@ -2812,6 +2840,10 @@ def tax_tree_graphlan(input_d):
             kos = open(pjoin(path, plik), 'r').readlines()
             file_tax_tree = {}
             for line in kos:
+                # CHANGED
+                # TODO: Currently Graphlan files have to contain only
+                # TODO: taxonomic data (formatting data after \t are not allowed).
+                line = line.split('\t')[0]
                 line = line.rstrip()
                 linia = line.split('.')
                 linia = linia_unique(linia)
@@ -2825,18 +2857,14 @@ def tax_tree_graphlan(input_d):
             per_file_tax_tree[plik] = file_tax_tree
     return total_tax_tree, per_file_tax_tree, multi_flat_tax_tree
 
-
-def xml_counts_graphlan(tax_tree, per_file_tax_tree, xml_names, multi_flat_tax_tree):
-    # TODO: tax_tree is not used here
+# CHANGED
+# TODO: tax_tree is not used here
+def xml_counts_graphlan(per_file_tax_tree, xml_names, multi_flat_tax_tree):
     """Groups and/or sums numbers of nodes (obtained from multi_flat_tax_tree):
         1. by node_name - grouping
         2. by identifier (obtained from filename) - summing
 
     Args:
-        tax_tree: A dict of dicts, etc. Taxonomic tree represented by nested dicts.
-            Example: {a:{aa:{}, ab:{aba:{}, abb:{abba:{}}}}}
-            Explicit example in description of tax_tree_graphlan(), look for: total_tax_tree.
-
         per_file_tax_tree: A dict of dicts, etc. Top-level keys are filenames.
             Taxonomic tree represented by nested dicts. Similar to tax_tree.
             Example included in description of tax_tree_graphlan().
@@ -2937,7 +2965,7 @@ def graphlan_to_krona(input_d):
     input_d = txt_dict_clean(input_d)
     xml_names = xml_names_graphlan(input_d)
     tax_tree, per_file_tax_tree, multi_flat_tax_tree = tax_tree_graphlan(input_d)
-    xml_dict, name_total_count = xml_counts_graphlan(tax_tree, per_file_tax_tree, xml_names, multi_flat_tax_tree)
+    xml_dict, name_total_count = xml_counts_graphlan(per_file_tax_tree, xml_names, multi_flat_tax_tree)
     return xml_names, xml_dict, tax_tree, name_total_count
 
 
@@ -2986,20 +3014,19 @@ def aftershave(opts):
             for 'ITS':                ('ITS.krona', 'ITS.html')
             for ['ITS', '16S']:       ('ITS_16S.krona', 'ITS_16S.html') 
    
-    HARDCODED:
-        paths to databases:
-        '/home/pszczesny/soft/bipype/SSU_candidate_db.fasta'
-        '/home/pszczesny/soft/bipype/UNITE_public_from_27.01.13.fasta'
+    GLOBALS:
+        PATH_16S_DATABASE
+        PATH_ITS_DATABASE
     """
     SSU = {}
     metag_flag = 0
     # Extracts from specially formatted FASTA file taxonomical data
     # and returns them as hierarchically organised dict
     if '16S' in opts.output_type:
-        SSU['16S'] = SSU_read('/home/pszczesny/soft/bipype/SSU_candidate_db.fasta', '16S')
+        SSU['16S'] = SSU_read(PATH_16S_DATABASE, '16S')
         metag_flag = 1
     if 'ITS' in opts.output_type:
-        SSU['ITS'] = SSU_read('/home/pszczesny/soft/bipype/UNITE_public_from_27.01.13.fasta')
+        SSU['ITS'] = SSU_read(PATH_ITS_DATABASE)
         metag_flag = 1
     # Generates list of locations were input files are located. 
     input_dic = input_locations(opts.mode, opts.output_type)
@@ -3029,6 +3056,7 @@ def aftershave(opts):
     xml_string = xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, krona_unit)
     # Writes xml_string into the file given by out_namespace
     outprint(xml_string, krona_xml_name)
-    krona_to_html_comm = 'ktImportXML -o %s %s'%(krona_html_name, krona_xml_name)  # TODO: it shall be moved to if
+    # CHANGED
     if opts.mode == 'run':
+        krona_to_html_comm = 'ktImportXML -o %s %s'%(krona_html_name, krona_xml_name)  # TODO: it shall be moved to if
         system(krona_to_html_comm)
