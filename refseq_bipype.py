@@ -894,8 +894,7 @@ def MV(mode, e, k_mers, cat, pair, ins_len, rap=False):
             rapsearch(mode, e, rap_in,  rap_out)
 
 
-# TODO: outdir argument not used
-def usearch(mode, e, search_type, infile, database, outdir, threads):
+def usearch(mode, e, search_type, infile, database, threads):
     """Launches Usearch with -usearch_local command.
     
     HARDCODED:
@@ -912,7 +911,6 @@ def usearch(mode, e, search_type, infile, database, outdir, threads):
         search_type &
         infile:      outfile = infile+'.usearch_'+search_type
                         outfile is passed to [-blast6out in Usearch]
-        outdir:      NOT USED IN FUNCTION !!!
         database:    [-db in Usearch]
         threads:     [-threads in Usearch] Number of threads used in
                      calculations.
@@ -920,7 +918,6 @@ def usearch(mode, e, search_type, infile, database, outdir, threads):
     GLOBALS:
         USEARCH_LOC
     """
-    
     outfile = infile + '.usearch_' + search_type
     usearch_command = '%s -usearch_local %s -db %s -evalue 0.01 -id 0.9 -blast6out %s -strand both -threads %i'%(
         USEARCH_LOC, infile, database, outfile, threads
@@ -999,10 +996,10 @@ def cutadapt(mode, e, cat, R1_file, R2_file, adapter_file, usearch_16S=False, us
                           Else,function will use adapters returned by
                           adapter_read_bck(adapter_file, R1_file)
         usearch_16S:      if True runs usearch(mode, e, '16S',
-			  outname_uni_fasta,   usearch_16S, cat, threads)  
+			  outname_uni_fasta,   usearch_16S, threads)
                           where outname_uni_fasta is cutadapt output.
         usearch_ITS:      if True runs usearch(mode, e, 'ITS',
-			  outname_uni_fasta, usearch_ITS, cat, threads)  
+			  outname_uni_fasta, usearch_ITS, threads)
                           where outname_uni_fasta is cutadapt output.
      For more information please refer to:
         - adapter_read_bck()
@@ -1041,9 +1038,9 @@ def cutadapt(mode, e, cat, R1_file, R2_file, adapter_file, usearch_16S=False, us
     if 'fq2fa' in todo and mode == 'run':
         system(fq2fa_com)
     if usearch_16S:
-        usearch(mode, e, '16S', outname_uni_fasta, usearch_16S, cat, threads)
+        usearch(mode, e, '16S', outname_uni_fasta, usearch_16S, threads)
     if usearch_ITS:
-        usearch(mode, e, 'ITS', outname_uni_fasta, usearch_ITS, cat, threads)
+        usearch(mode, e, 'ITS', outname_uni_fasta, usearch_ITS, threads)
 
 
 def auto_tax_read(db_loc):
@@ -1413,9 +1410,9 @@ def sample(opts):
         for cat in fasta_dict:
             for fasta in fasta_dict[cat]:
                 if '16S' in opts.to_calculate:
-                    usearch(opts.mode, opts.e, '16S', pjoin(cat, fasta), opts.db_16S, cat, opts.threads)
+                    usearch(opts.mode, opts.e, '16S', pjoin(cat, fasta), opts.db_16S, opts.threads)
                 if 'ITS' in opts.to_calculate:
-                    usearch(opts.mode, opts.e, 'ITS', pjoin(cat, fasta), opts.db_ITS, cat, opts.threads)
+                    usearch(opts.mode, opts.e, 'ITS', pjoin(cat, fasta), opts.db_ITS, opts.threads)
 
 
 def SSU_read(loc, typ=None):
