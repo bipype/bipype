@@ -117,10 +117,10 @@ def main(argv=None):
         action='append',
         const='rap_prot',
         default = 'rap_prot')
-    order = parser.add_argument_group('order of running', 'order in which processes will be performed')
-    order.add_argument("--order", default='sample',
-        choices = ['sample', 'aftershave'],
-        help='sample - run all the methods sample by sample, aftershave - analyses of outputs from calculations')
+    #order = parser.add_argument_group('order of running', 'order in which processes will be performed')
+    #order.add_argument("--order", default='sample',
+    #    choices = ['sample', 'aftershave'],
+    #    help='sample - run all the methods sample by sample, aftershave - analyses of outputs from calculations')
     db_loc = parser.add_argument_group('databases', 'locations of databases to be used for searches')
     db_loc.add_argument("--db_16S", 
         type=str, 
@@ -153,7 +153,5 @@ def main(argv=None):
 
 if __name__ == '__main__':
     opts = main()
-    if opts.order == 'sample':
-        sample(opts)
-    else:
-        aftershave(opts)
+	sample(opts)
+	aftershave(opts)
