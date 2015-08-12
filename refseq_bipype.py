@@ -1501,7 +1501,7 @@ def SSU_read(loc, typ=None):
 
 
 def tuple_to_dict(tuple_dict):
-   """ Input dict has tuples as keys and int type values.
+    """ Input dict has tuples as keys and int type values.
     In the dict returned by function:
        - keys are elements from input dict's tuples,
        - values are dicts.
