@@ -1493,7 +1493,7 @@ def SSU_read(loc, typ=None):
                     # TODO: then the following line breaks pipe, with error:
                     # TODO: UnboundLocalError: local variable 'tax_line' referenced before assignment
                     else:
-                        tax_line = None
+                        tax_line = ""
                     if tax_line == '-':
                         tax_line = 'Fungi'+';'+linia.split('|')[1].replace(" ", "_")
                     tax_dict[tax_idx] = tax_line.split(';')

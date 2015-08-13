@@ -60,7 +60,7 @@ def main(argv=None):
     #    default=0)
     aftershave.add_argument("-ot", "--output_type", 
         nargs = '*',
-        default= ['ITS, 16S'],
+        default= ['ITS', '16S'],
         help = 'Choice of files searched for an analysis, coded: 16S and ITS on usearches - file .usearch_ITS, .usearch_16S')
     dataclean = parser.add_argument_group('input cleaning', 'methods of cleaning input from noise')
     dataclean.add_argument("-ic", "--initial_cleaning", 
