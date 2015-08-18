@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import argparse
-from refseq_bipype import sample, aftershave
+from refseq_bipype import sample, prepare_taxonomy_stats
 from sys import argv as sargv
 from os import getcwd
 from settings_bipype import *
@@ -15,11 +15,6 @@ def main(argv=None):
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         epilog = 'All commands may be presented in a configuration file fed to bipype with @ prefix as "$bipype @my_conf_file", my_conf_file should contain all desired commands and their options (if applicable) one per line (space delimited)')
     general = parser.add_argument_group('general', 'performance and I/O related options')
-    # Commented after converstaion on slack (Michal)
-    #general.add_argument('--ignore',
-    #    help='ignore this argument',
-    #    type = str,
-    #    default = '')
     general.add_argument("-t", "--threads",
         help='number of threads to be used',
         type = int,
@@ -53,12 +48,12 @@ def main(argv=None):
     #    help='run all searches: usearch on 16S and ITS as well as refesq_map\n may be used wih or without searches on contigs reconstructed with: MetaVelvet [MV_contig], Soap de nowo [SdN_contig], or both [all]''',
     #    choices=['no_contig', 'MV_contig', 'SdN_contig', 'all'],
     #    default=None)
-    aftershave = parser.add_argument_group('aftershave options', 'options related to aftershaving results')
+    taxonomy_stats = parser.add_argument_group('taxonomy_stats options', 'options related to process of preparing taxonomy results')
     #aftershave.add_argument("-v", "--verbose",
     #    help='detail lvl of aftershave option: 0 - no output, 1 - trees (pdf and csv) and newicks, 2 - newicks and tree csv (no pdf-for mosh and normal ssh sessions), 3 - trees (pdf and csv), newicks and total_csv (remember to set proper -ot (including map_count))',
     #    type = int,
     #    default=0)
-    aftershave.add_argument("-ot", "--output_type", 
+    taxonomy_stats.add_argument("-ot", "--output_type", 
         nargs = '*',
         default= ['ITS', '16S'],
         help = 'Choice of files searched for an analysis, coded: 16S and ITS on usearches - file .usearch_ITS, .usearch_16S')
@@ -154,4 +149,4 @@ def main(argv=None):
 if __name__ == '__main__':
     opts = main()
     sample(opts)
-    aftershave(opts)
+    prepare_taxonomy_stats(opts)

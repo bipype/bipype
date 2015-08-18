@@ -9,11 +9,6 @@ from datetime import datetime
 from copy import deepcopy
 import cPickle as pickle
 from settings_bipype import *
-# CHANGED
-# TODO: These are probably not used anymore:
-#from re import match
-#from pprint import pprint
-#from collections import defaultdict
 
 
 def cat_read(mode, fileext, paired_end=True):
@@ -1468,9 +1463,6 @@ def SSU_read(loc, typ=None):
 
     """
     tax_dict = {}
-    # CHANGED
-    # TODO: possible memory leak: file loc might be not closed.
-    # TODO: It might be better with "with"
     with open(loc, 'r') as fasta_file:
         for linia in fasta_file.readlines():
             if linia[0] == '>':
@@ -1699,9 +1691,6 @@ def file_analysis(typ, name, SSU=None):
         In '16S' analysis, if spec is 'Phaseolus_acutifolius_(tepary_bean)',
         then it is not counted neither as bacteria nor archaea.
     """
-    # CHANGED
-    # TODO: following import is not used
-    # import operator
     if not pexists(name):
         return 'NA', 'NA'
     else:
@@ -2211,14 +2200,6 @@ def prettify(elem):
     reparsed = minidom.parseString(rough_string)
     return reparsed.toprettyxml(indent="    ")
 
-# CHANGED
-# def dict_depth(d, depth=0):
-#     # TODO: needed only if line "recurse_depth = dict_depth(tax_tree)"
-#     # TODO: from xml_prepare will be kept.
-#     if not isinstance(d, dict) or not d:
-#         return depth
-#     return max(dict_depth(v, depth+1) for k, v in d.iteritems())
-
 
 def deunique(node):
     """Extracts name of node from string representing taxonomic position
@@ -2602,7 +2583,7 @@ def outprint(xml_string, out_xml):
     krona_write.close()
 
 
-def aftershave(opts):
+def prepare_taxonomy_stats(opts):
     """Performs statistical analysis of taxonomy from appropriate files
     from current working directory: counts occurrences of different taxa
     and prepares the results to be presented in HTML format.
