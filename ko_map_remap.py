@@ -276,10 +276,10 @@ def out_content(filelist, kopath_count, path_names, method='DESeq2'):
                 Kids.add(Kid)
         with open(outname, 'w') as outfile:
             outfile.write('ko_path_id;ko_path_name;percent common;common KOs\n')
-            for path, Kset in kopath_count.items(): # {PID:set[KO identifiers]}
+            for path, Kset in kopath_count.items():
                 common = Kids&Kset
                 if len(common) > 0:
-                    percent_ko = str(int(len(common)*100/len(Kset)))
+                    percent_ko = str(int(len(common)*100.0/len(Kset))) #100.0 or 100?
                     print_ko = ' '.join(common)
                     path_name_comma = path_names[path]
                     path_name = path_name_comma.replace(',', ' _')
@@ -287,9 +287,12 @@ def out_content(filelist, kopath_count, path_names, method='DESeq2'):
                     outfile.write(outline)
 
 
-def run_map(db):
+def run_ko_remap(db):
     """Runs out_content() for files from 'edger_paths' & 'deseq_paths'.
     Uses db for making 'path_names' & 'kopath_count' out_content() args
+
+    Arg:
+        db: Cursor object to SQLite database.
 
     HARDCODED: Paths to files:
                     edger: 'tables_edgeR/*txt'
