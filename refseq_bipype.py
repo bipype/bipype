@@ -180,12 +180,12 @@ def tax_id_reader():
     where first column is a GI, second is a TaxID.
     
     GLOBLAS:
-        GI_TAX_PATH
+        PATH_GI_TAX
     """
     print 'reading tax ids'
     gi_tax_dict = {}
     curr_t = datetime.now()
-    with open(GI_TAX_PATH) as file_:
+    with open(PATH_GI_TAX) as file_:
         counter = 0
         for line in file_:
             gi, tax = split(line)
@@ -218,12 +218,12 @@ def tax_name_reader():
             {6:'Azotirhizobium', 7:'Azorhizobium caulinodans'}
          
     GLOBALS:
-        TAX_NAME_PATH
+        PATH_TAX_NAME
     """
     print 'reading tax names'
     tax_name_dict = {}
     curr_t1 = datetime.now()
-    with open(TAX_NAME_PATH) as file_:
+    with open(PATH_TAX_NAME) as file_:
         counter = 0
         for line in file_:
             line_l = split(line, '\t|\t')
@@ -781,28 +781,28 @@ def rapsearch(mode, e, contig_loc, rap_out, KEGG=None):
         if KEGG='masl28282828282828282828282828282828282828282828282828282828'
             
     GLOBALS:
-        - path to RAPSearch program: RAP_LOC
+        - path to RAPSearch program: PATH_RAPSEARCH
         - paths to data for RAPSearch: 
-            REF_PROT_LOC_MASL28,
-            REF_PROT_LOC_KO,
-            REF_PROT_LOC_ELSE
+            PATH_REF_PROT_MASL28,
+            PATH_REF_PROT_KO,
+            PATH_REF_PROT_ELSE
     """
     rap_log = rap_out + '.log'
     rap_err = rap_out + '.err'
     if KEGG == 'masl28282828282828282828282828282828282828282828282828282828':
-        ref_prot_loc = REF_PROT_LOC_MASL28
+        ref_prot_loc = PATH_REF_PROT_MASL28
         rap_com = '%s -q %s -d %s -o %s -z 12 -v 20 -b 1 -t n -a t 1> %s 2> %s'%(
-            RAP_LOC, contig_loc, ref_prot_loc, rap_out, rap_log, rap_err
+            PATH_RAPSEARCH, contig_loc, ref_prot_loc, rap_out, rap_log, rap_err
             )
     elif KEGG == 'KO':
-        ref_prot_loc = REF_PROT_LOC_KO
+        ref_prot_loc = PATH_REF_PROT_KO
         rap_com = '%s -q %s -d %s -o %s -z 12 -v 20 -b 1 -t n -a t 1> %s 2> %s'%(
-            RAP_LOC, contig_loc, ref_prot_loc, rap_out, rap_log, rap_err
+            PATH_RAPSEARCH, contig_loc, ref_prot_loc, rap_out, rap_log, rap_err
             )
     else:
-        ref_prot_loc = REF_PROT_LOC_ELSE
+        ref_prot_loc = PATH_REF_PROT_ELSE
         rap_com = '%s -q %s -d %s  -o %s -z 10 -e 0.001 -b 100 -v 100 -g T -a T 1> %s 2> %s'%(
-            RAP_LOC, contig_loc, ref_prot_loc, rap_out, rap_log, rap_err
+            PATH_RAPSEARCH, contig_loc, ref_prot_loc, rap_out, rap_log, rap_err
             )
     print rap_com
     todo = [rap_com]
@@ -911,11 +911,11 @@ def usearch(mode, e, search_type, infile, database, threads):
                      calculations.
 
     GLOBALS:
-        USEARCH_LOC
+        PATH_USEARCH
     """
     outfile = infile + '.usearch_' + search_type
     usearch_command = '%s -usearch_local %s -db %s -evalue 0.01 -id 0.9 -blast6out %s -strand both -threads %i'%(
-        USEARCH_LOC, infile, database, outfile, threads
+        PATH_USEARCH, infile, database, outfile, threads
         )
     todo = ['usearch']
     print usearch_command
@@ -1001,7 +1001,7 @@ def cutadapt(mode, e, cat, R1_file, R2_file, adapter_file, usearch_16S=False, us
         - adapter_read()
         
     GLOBALS:
-        FQ2FA_PATH
+        PATH_FQ2FA
 """
     R1_fastq = pjoin(cat, R1_file)
     R2_fastq = pjoin(cat, R2_file)
@@ -1028,7 +1028,7 @@ def cutadapt(mode, e, cat, R1_file, R2_file, adapter_file, usearch_16S=False, us
     print flash_com
     if 'flash' in todo and mode == 'run':
         system(flash_com)
-    fq2fa_com = '%s < %s > %s -Q33'%(FQ2FA_PATH, outname_uni_fastq_postflash, outname_uni_fasta)
+    fq2fa_com = '%s < %s > %s -Q33'%(PATH_FQ2FA, outname_uni_fastq_postflash, outname_uni_fasta)
     print fq2fa_com
     if 'fq2fa' in todo and mode == 'run':
         system(fq2fa_com)
@@ -1152,8 +1152,8 @@ copies hmp_metadata.dat file to the input directory
  and runs humann
  
 GLOBALS:
-        - path to humann program: HUMANN_PATH
-        - path to data for humann: HUMANN_DATA_PATH
+        - path to humann program: PATH_HUMANN
+        - path to data for humann: PATH_HUMANN_DATA
         
 Args:
     mode: if mode="run", then humann will be copied to the current directory
@@ -1174,7 +1174,7 @@ Args:
                 print 'Found %s'%(hum_loc)
                 flag = None
         if flag:
-            get_humann = 'cp -r %s %s'%(HUMANN_PATH, path)
+            get_humann = 'cp -r %s %s'%(PATH_HUMANN, path)
             print get_humann
             if mode == 'run':
                 system(get_humann)
@@ -1191,9 +1191,9 @@ Args:
             clean_comm = 'rm -rf %s/*'%(input_loc)
             print 'Executing: %s'%(clean_comm)
         if typ == 'm8':
-            hmp_get_comm = 'cp %s %s/'%(HUMANN_DATA_PATH, input_loc)
+            hmp_get_comm = 'cp %s %s/'%(PATH_HUMANN_DATA, input_loc)
         else:
-            hmp_get_comm = 'cp %s %s/'%(HUMANN_DATA_PATH, hum_loc)
+            hmp_get_comm = 'cp %s %s/'%(PATH_HUMANN_DATA, hum_loc)
         print 'Getting hmp: %s'%(hmp_get_comm)
         humann_comm = 'scons 1>log 2>errlog'
         print 'Executing: %s'%(humann_comm)
@@ -1262,7 +1262,7 @@ def sample(opts):
                 list of ITS adapters
                 
     GLOBALS:
-        FQ2FA_PATH
+        PATH_FQ2FA
     """
     if opts.to_calculate == None:
         opts.to_calculate = []
@@ -1351,7 +1351,7 @@ def sample(opts):
                             print 'Found %s'%(pjoin(fasta))
                             flag = None
                     if flag:
-                        fq2fa_com = '%s < %s > %s -Q33'%(FQ2FA_PATH, pjoin(path, fastq), pjoin(path, fasta))
+                        fq2fa_com = '%s < %s > %s -Q33'%(PATH_FQ2FA, pjoin(path, fastq), pjoin(path, fasta))
                         print fq2fa_com
                         if opts.mode == 'run':
                             system(fq2fa_com)

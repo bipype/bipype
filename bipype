@@ -118,28 +118,28 @@ def parse_arguments(args=None):
     db_loc = parser.add_argument_group('databases', 'locations of databases to be used for searches')
     db_loc.add_argument("--db_16S", 
         type=str, 
-        default=X16S_DB, 
+        default=PATH_X16S_DB, 
         help='location of 16S database used in usearch (bowtie indexed')
     db_loc.add_argument("--db_ITS", 
         type=str, 
-        default=ITS_DB, 
+        default=PATH_X16S_DB, 
         help='location of ITS database used in usearch (bowtie indexed)')
     db_loc.add_argument("--db_refseq", 
         type = str, 
-        default=[REF_FUNGI, REF_PLANT_1, REF_PLANT_2],
+        default=[PATH_REF_FUNGI, PATH_REF_PLANT_1, PATH_REF_PLANT_2],
         nargs = '*', 
         help='location of refseq database')
     db_loc.add_argument("--db_NCBI_taxonomy",
         type=str,
-        default=NCBI_TAXA_DB,
+        default=PATH_NCBI_TAXA_DB,
         help='location of cPickled NCBI_tax_id, NCBI tax names and NCBI tax ids')
     db_loc.add_argument("--db_SSUs_taxonomy",
         type=str,
-        default=SSUS_TAXA_DB,
+        default=PATH_SSUS_TAXA_DB,
         help='location of cPickled SSUs_tax_id, SSU and ITS {id:[taxonomy,levels]} dictionaries')
     db_loc.add_argument("--db_reconstruct",
         type=str,
-        default=RECONSTRUCT_DB,
+        default=PATH_RECONSTRUCT_DB,
         help='location of database for reconstruction')
 
     parsed_args = parser.parse_args(args)

@@ -19,8 +19,8 @@ def test_self_integrity():
 
 def test_paths_from_settings():
     """
-    Tests existence of all files defined in non-private
-    variables of settings_bipype module
+    Tests existence of all files defined by non-private,
+    prefixed with 'PATH' variables from settings_bipype module.
     """
     import settings_bipype
 
