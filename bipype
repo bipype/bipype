@@ -147,6 +147,6 @@ def main(argv=None):
 
 
 if __name__ == '__main__':
-    opts = main()
-    sample(opts)
+    #opts = main()
+    #sample(opts)
     prepare_taxonomy_stats(opts)

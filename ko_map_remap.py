@@ -5,6 +5,7 @@ from glob import glob
 from multiprocessing import Process
 import cPickle
 from os.path import exists as pexists
+from os import system
 from collections import Counter
 #from time import time
 
@@ -16,7 +17,7 @@ def dicto_reduce(present, oversized):
         present:                Dictionary
         oversized:              Dictionary
     
-    Results:
+    Results:p
         oversized, present      Dictionaries      
         
     ATTENTION: Order of parametres is opposite to results. 
@@ -53,10 +54,10 @@ def connect_db(db):
 
 
 def get_tables(database):
-    """Prints all tables included in SQLite database.
+    """Prints all tables included in SQLite3 database.
                     
     Arg:
-        database: Cursor object to SQLite database.    
+        database: Cursor object to SQLite3 database.    
     """
     database.execute("SELECT name FROM sqlite_master WHERE type='table';")
     tables = database.fetchall()
@@ -101,23 +102,29 @@ def pickle_or_db(pickle, db): # Please, check if identifiers are correct.
         multi_id = auto_tax_read(pickle)
         #kogenes_time = time()
         #print('kogenes reading time', start_time-kogenes_time)
-    else:
-        KoPath_gid = db.execute("select * from KoGenes")
-        KoPath_gid_all = db.fetchall()
-        for koid, gid in KoPath_gid_all:
+    else: # change this to fetchall in server version
+        db.execute("select * from KoGenes")
+        while True:
+            tmp = db.fetchone()
+            if tmp==None: 
+                break
+            else:
+                koid, gid = tmp   
             if gid not in multi_id:
                 multi_id[gid] = set([koid])
             else:
                 multi_id[gid].add(koid)
+            if len(multi_id)>550000: break # RAM saver - delete this
         with open(pickle, 'w') as output:
             cPickle.dump(multi_id, output)
-    return multi_id = {}
+        
+    return multi_id
 
 def get_pathways(database):
-    """Make dictionary from pathways table from SQLite database.
+    """Make dictionary from pathways table from SQLite3 database.
     
     Arg:
-        database: Cursor object to SQLite database. 
+        database: Cursor object to SQLite3 database. 
 
     Returns:
         Dictionary in following format:
@@ -127,7 +134,7 @@ def get_pathways(database):
                     'ko00910':'Nitrogen metabolism'    }
     """
     database.execute("select * from Pathways")
-    paths = c.fetchall()
+    paths = database.fetchall()
     pathways = {}
     for path in paths:
         pathways[path[0]] = path[1]        
@@ -135,10 +142,10 @@ def get_pathways(database):
 
 
 def get_kopathways(database):
-    """Makes dictionaries from kopathways table from SQLite database.
+    """Makes dictionaries from kopathways table from SQLite3 database.
     
     Arg:
-        database: Cursor object to SQLite database. 
+        database: Cursor object to SQLite3 database. 
 
     Returns:
         Two dictionaries:
@@ -214,17 +221,22 @@ def m8_to_ko(file_, multi_id): #
         for ko in tmp_ko_dict:
             to_print = '%s\t%i\n'%(ko, tmp_ko_dict[ko])
             out_file.write(to_print)    
-    #writing_time = time()
+    #writing_time = time()c
     #print(file_, 'comparing time seconds', comparison_time-writing_time, 'total time', start_time-writing_time)
 
 
-def run_ko_map(): #Please, check this out, it should(n't) work...
-    """Runs m8_to_ko() for every .m8 file in cwd (multiprocessing)."""
-    m8_list = glob('*m8')
+def run_ko_map():
+    """Runs m8_to_ko() for every .m8 file in raw directory.
+
+    HARDCODED:
+        'meta/kogenes.pckl'
+        'meta/ko.db'
+    """
+    m8_list = glob('meta/m8/*m8')
+    data = pickle_or_db('meta/kogenes.pckl', connect_db('meta/ko.db')) 
     for file_ in m8_list:
-    p=Process(target=m8_to_ko,args=(file_,pickle_or_db( \
-        'kogenes.pckl', connect_db('ko.db'))))
-    p.start()
+        p=Process(target=m8_to_ko,args=(file_,data))
+        p.start()
 
 
 def out_content(filelist, kopath_count, path_names, method='DESeq2'):
@@ -287,23 +299,36 @@ def out_content(filelist, kopath_count, path_names, method='DESeq2'):
                     outfile.write(outline)
 
 
-def run_ko_remap(db):
+def run_ko_remap():
     """Runs out_content() for files from 'edger_paths' & 'deseq_paths'.
     Uses db for making 'path_names' & 'kopath_count' out_content() args
 
     Arg:
-        db: Cursor object to SQLite database.
+        db: Path to SQLite3 database.
 
     HARDCODED: Paths to files:
-                    edger: 'tables_edgeR/*txt'
-                    deseq: 'tables_DESeq2/*txt'
+                    edger: 'meta/tables_edgeR/*txt'
+                    deseq: 'meta/tables_DESeq2/*txt'
+    'meta/ko.db'
     """
-    cursor = connect_db(db)
-    path_names = get_pathways(db)
-    kopath_keys, kopath_count = get_kopathways(db)
-    edger_files = glob('tables_edgeR/*txt')
-    deseq_files = glob('tables_DESeq2/*txt')
+    cursor = connect_db('meta/ko.db')
+    path_names = get_pathways(cursor)
+    kopath_keys, kopath_count = get_kopathways(cursor)
+    edger_files = glob('meta/tables_edgeR/*txt')
+    deseq_files = glob('meta/tables_DESeq2/*txt')
     out_content(deseq_files, kopath_count, path_names)
     out_content(edger_files, kopath_count, path_names, 'edgeR')
 
+
+def SARTools():
+    system('Rscript meta/template_script_DESeq2.r')
+    system('mv meta/tables/* meta/tables_DESeq2/')
+    system('Rscript meta/template_script_edgeR.r')
+    system('mv meta/tables/* meta/tables_edgeR/')
+
+def ko_map_remap():
+    """Performs analyse of metagenomic data."""
+    run_ko_map()
+    SARTools()
+    run_ko_remap()
 
