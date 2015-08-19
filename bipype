@@ -8,9 +8,7 @@ from os import getcwd
 from settings_bipype import *
 
 
-def main(argv=None):
-    if argv is None:
-        argv = sargv
+def parse_arguments(args=None):
     parser = argparse.ArgumentParser(fromfile_prefix_chars='@',
         description='bipype stands for BioInformatics-PYthon-PipE',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -143,12 +141,14 @@ def main(argv=None):
         type=str,
         default=RECONSTRUCT_DB,
         help='location of database for reconstruction')
-    args = parser.parse_args()
-    return args
+
+    parsed_args = parser.parse_args(args)
+
+    return parsed_args
 
 
 if __name__ == '__main__':
-    #opts = main()
+    #opts = parse_arguments()
     #sample(opts)
     #prepare_taxonomy_stats(opts)
     ko_map_remap()
