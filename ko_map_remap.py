@@ -322,9 +322,9 @@ def run_ko_remap():
 
 def SARTools():
     system('Rscript meta/template_script_DESeq2.r')
-    system('mv meta/tables/* meta/tables_DESeq2/')
+    system('mv meta/tables/* meta/tables_DESeq2')
     system('Rscript meta/template_script_edgeR.r')
-    system('mv meta/tables/* meta/tables_edgeR/')
+    system('mv meta/tables/* meta/tables_edgeR')
 
 def ko_map_remap():
     """Performs analyse of metagenomic data."""

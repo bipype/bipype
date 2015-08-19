@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import argparse
+from ko_map_remap import ko_map_remap
 from refseq_bipype import sample, prepare_taxonomy_stats
 from sys import argv as sargv
 from os import getcwd
@@ -149,4 +150,5 @@ def main(argv=None):
 if __name__ == '__main__':
     #opts = main()
     #sample(opts)
-    prepare_taxonomy_stats(opts)
+    #prepare_taxonomy_stats(opts)
+    ko_map_remap()
