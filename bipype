@@ -122,7 +122,7 @@ def parse_arguments(args=None):
         help='location of 16S database used in usearch (bowtie indexed')
     db_loc.add_argument("--db_ITS", 
         type=str, 
-        default=PATH_X16S_DB, 
+        default=PATH_ITS_DB, 
         help='location of ITS database used in usearch (bowtie indexed)')
     db_loc.add_argument("--db_refseq", 
         type = str, 
