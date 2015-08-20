@@ -21,5 +21,4 @@ PREF_PATH_REF_PLANT_2 = '/home/pszczesny/workingdata/refseq/db/plant/plant_refse
 PATH_X16S_DB = '/home/public/EMIRGE/SSU/SSU_candidate_db.udb'
 PATH_ITS_DB = '/home/pszczesny/workingdata/ITS/unite.udb'
 PATH_NCBI_TAXA_DB = '/home/pszczesny/soft/bipype/NCBI_tax_id_name.pickle'
-PATH_SSUS_TAXA_DB = '/home/pszczesny/soft/bipype/SSUs_tax_id_name.pickle'
 PATH_RECONSTRUCT_DB = '/home/pszczesny/storage/workingdata/mcra/mcra10k.fasta'
