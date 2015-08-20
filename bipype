@@ -115,10 +115,6 @@ def parse_arguments(args=None):
         type=str,
         default=PATH_NCBI_TAXA_DB,
         help='location of cPickled NCBI_tax_id, NCBI tax names and NCBI tax ids')
-    db_loc.add_argument("--db_SSUs_taxonomy",
-        type=str,
-        default=PATH_SSUS_TAXA_DB,
-        help='location of cPickled SSUs_tax_id, SSU and ITS {id:[taxonomy,levels]} dictionaries')
     db_loc.add_argument("--db_reconstruct",
         type=str,
         default=PATH_RECONSTRUCT_DB,
