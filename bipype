@@ -42,16 +42,7 @@ def parse_arguments(args=None):
     general.add_argument("-e", 
         help = "use existing files",
         action='store_true')
-    # CHANGED - it is not used currently
-    #general.add_argument("-c", "--chain",
-    #    help='run all searches: usearch on 16S and ITS as well as refesq_map\n may be used wih or without searches on contigs reconstructed with: MetaVelvet [MV_contig], Soap de nowo [SdN_contig], or both [all]''',
-    #    choices=['no_contig', 'MV_contig', 'SdN_contig', 'all'],
-    #    default=None)
     taxonomy_stats = parser.add_argument_group('taxonomy_stats options', 'options related to process of preparing taxonomy results')
-    #aftershave.add_argument("-v", "--verbose",
-    #    help='detail lvl of aftershave option: 0 - no output, 1 - trees (pdf and csv) and newicks, 2 - newicks and tree csv (no pdf-for mosh and normal ssh sessions), 3 - trees (pdf and csv), newicks and total_csv (remember to set proper -ot (including map_count))',
-    #    type = int,
-    #    default=0)
     taxonomy_stats.add_argument("-ot", "--output_type", 
         nargs = '*',
         default= ['ITS', '16S'],
@@ -93,11 +84,6 @@ def parse_arguments(args=None):
     contigs.add_argument("-reconstruct", default=None, const="rec_",
         help = 'reconstruct relating to database, options: database_loc, prefix',
         nargs='?')
-    #contigs.add_argument("-SdN",
-    #    help = 'contig reconstruction using Soap de novo',
-    #    dest='to_calculate',
-    #    action='append_const',
-    #    const='SdN')
     contigs.add_argument("-humann",
         help = 'mapping rapsearch using humann', 
         dest='to_calculate',
@@ -111,10 +97,6 @@ def parse_arguments(args=None):
         action='append',
         const='rap_prot',
         default = 'rap_prot')
-    #order = parser.add_argument_group('order of running', 'order in which processes will be performed')
-    #order.add_argument("--order", default='sample',
-    #    choices = ['sample', 'aftershave'],
-    #    help='sample - run all the methods sample by sample, aftershave - analyses of outputs from calculations')
     db_loc = parser.add_argument_group('databases', 'locations of databases to be used for searches')
     db_loc.add_argument("--db_16S", 
         type=str, 
@@ -126,9 +108,9 @@ def parse_arguments(args=None):
         help='location of ITS database used in usearch (bowtie indexed)')
     db_loc.add_argument("--db_refseq", 
         type = str, 
-        default=[PATH_REF_FUNGI, PATH_REF_PLANT_1, PATH_REF_PLANT_2],
+        default=[PREF_PATH_REF_FUNGI, PREF_PATH_REF_PLANT_1, PREF_PATH_REF_PLANT_2],
         nargs = '*', 
-        help='location of refseq database')
+        help='location of refseq database. At least three locations required: first for fungi, next two for plants. If there are multiple databases with filenames like <path_which_you_specified><second_part_of_name> all will be loaded.')
     db_loc.add_argument("--db_NCBI_taxonomy",
         type=str,
         default=PATH_NCBI_TAXA_DB,

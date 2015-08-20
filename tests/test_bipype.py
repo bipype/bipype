@@ -30,7 +30,7 @@ def test_paths_from_settings():
                   for key in namespace
                   if key.startswith('PATH') }
     
-    for var in variables:
+    for var in variables.values():
         assert path_exists(var)
 
 

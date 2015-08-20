@@ -15,9 +15,9 @@ PATH_HUMANN_DATA = '/home/pszczesny/soft/humann-0.99/input/hmp_metadata.dat'
 
 # bipype
 
-PATH_REF_FUNGI = '/home/pszczesny/workingdata/refseq/db/fungi/fungi_refseq'
-PATH_REF_PLANT_1 = '/home/pszczesny/workingdata/refseq/db/plant/plant_refseq_1'
-PATH_REF_PLANT_2 = '/home/pszczesny/workingdata/refseq/db/plant/plant_refseq_2'
+PREF_PATH_REF_FUNGI = '/home/pszczesny/workingdata/refseq/db/fungi/fungi_refseq'
+PREF_PATH_REF_PLANT_1 = '/home/pszczesny/workingdata/refseq/db/plant/plant_refseq_1'
+PREF_PATH_REF_PLANT_2 = '/home/pszczesny/workingdata/refseq/db/plant/plant_refseq_2'
 PATH_X16S_DB = '/home/public/EMIRGE/SSU/SSU_candidate_db.udb'
 PATH_ITS_DB = '/home/pszczesny/workingdata/ITS/unite.udb'
 PATH_NCBI_TAXA_DB = '/home/pszczesny/soft/bipype/NCBI_tax_id_name.pickle'
