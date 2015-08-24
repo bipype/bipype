@@ -1,5 +1,6 @@
 import os
 import subprocess
+import shutil 
 
 
 def files_identical(filename_1, filename_2):
@@ -30,5 +31,17 @@ def module_exists(module_name):
     except ImportError:
         return False
 
+
 def remove_file(filename):
-    os.remove(filename)
+    return os.remove(filename)
+
+
+def remove_entire_directory(path):
+    """
+    Delete an >>entire<< directory tree
+    """
+    return shutil.rmtree(path)
+
+
+def create_directory(path):
+    return os.mkdir(path)

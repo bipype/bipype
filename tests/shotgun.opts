@@ -1,0 +1,6 @@
+--mode run
+-refseq b
+-MV
+-SdN
+-rapsearch
+-ot map_count
