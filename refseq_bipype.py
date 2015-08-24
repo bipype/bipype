@@ -662,7 +662,7 @@ def refseq_mapping(mode, e, directory, pair, postfix, refseq, tax_name_dict, tax
 
         refseq_2:        'The basename of the index for the reference
                          genome.' Argument for bowtie2_run().
-                         If selected, launches Bowtie 2 on it, than
+                         If selected, launches Bowtie 2 on it, then
                          merge output with output from Bowtie 2
                          launched on 'refseq'.
                          If refseq_2==False, Bowtie 2 is working only
@@ -1242,8 +1242,17 @@ def sample(opts):
                 200 in case, when read length is less,
                 then 200 and 500 in other case.
                 
-            opts.db_refseq:
-                list of basenames of the indexes for the reference genome.
+            opts.db_refseq_fungi:
+                A list of paths to refseq databases to use in fungi analysis.
+                Up to two paths are alowed.
+                Warning:
+                If there are multiple databases with filenames like
+                <your_path><second_part_of_name>, all will be loaded.
+                
+            opts.db_refseq_plant:
+                A list of paths to refseq databases to use in plants analysis.
+                Up to two paths are alowed.
+                Also check warning in opts.db_refseq_fungi description.
                 
             opts.our_dir:
                 Directory where sums of mapped and unmapped
@@ -1264,6 +1273,12 @@ def sample(opts):
     GLOBALS:
         PATH_FQ2FA
     """
+
+    if len(opts.db_refseq_plant) == 1:
+        opts.db_refseq_plant += [False]
+    if len(opts.db_refseq_fungi) == 1:
+        opts.db_refseq_fungi += [False]
+    
     if opts.to_calculate == None:
         opts.to_calculate = []
     refseq_test = len(set(['f', 'b', 'p']) & set(opts.to_calculate))
@@ -1287,14 +1302,14 @@ def sample(opts):
             if ('f' in opts.to_calculate) or ('b' in opts.to_calculate):
                 postfix = opts.postfix + 'fungi'
                 refseq_mapping(
-                    opts.mode, opts.e, cat, pair, postfix, opts.db_refseq[0], tax_name_dict, tax_id_dict,
-                    opts.threads, opts.out_dir
+                    opts.mode, opts.e, cat, pair, postfix, opts.db_refseq_plant[0], tax_name_dict,
+                    tax_id_dict, opts.threads, opts.out_dir, opts.db_refseq_plant[1]
                     )
             if ('p' in opts.to_calculate) or ('b' in opts.to_calculate):
                 postfix = opts.postfix + 'plant'
                 refseq_mapping(
-                    opts.mode, opts.e, cat, pair, postfix, opts.db_refseq[1], tax_name_dict,
-                    tax_id_dict, opts.threads, opts.out_dir, opts.db_refseq[2]
+                    opts.mode, opts.e, cat, pair, postfix, opts.db_refseq_fungi[0], tax_name_dict,
+                    tax_id_dict, opts.threads, opts.out_dir, opts.db_refseq_fungi[1]
                     )
             if opts.cutadapt != '':
                 if ('both' in opts.cutadapt) or (('16S' in opts.cutadapt) and ('ITS' in opts.cutadapt)):
@@ -1319,14 +1334,14 @@ def sample(opts):
                 if ('f' in opts.to_calculate) or ('b' in opts.to_calculate):
                     postfix = opts.postfix + 'fungi'
                     refseq_mapping(
-                        opts.mode, opts.e, cat, contig, postfix, opts.db_refseq[0], tax_name_dict,
-                        tax_id_dict, opts.threads, opts.out_dir
+                        opts.mode, opts.e, cat, contig, postfix, opts.db_refseq_plant[0], tax_name_dict,
+                        tax_id_dict, opts.threads, opts.out_dir, opts.db_refseq_plant[1]
                         )
                 if ('p' in opts.to_calculate) or ('b' in opts.to_calculate):
                     postfix = opts.postfix + 'plant'
                     refseq_mapping(
-                        opts.mode, opts.e, cat, contig, postfix, opts.db_refseq[1], tax_name_dict,
-                        tax_id_dict, opts.threads, opts.out_dir, opts.db_refseq[2]
+                        opts.mode, opts.e, cat, contig, postfix, opts.db_refseq_fungi[0], tax_name_dict,
+                        tax_id_dict, opts.threads, opts.out_dir, opts.db_refseq_fungi[1]
                         )
     else:
         if 'rap_prot' in opts.to_calculate:

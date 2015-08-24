@@ -106,11 +106,16 @@ def parse_arguments(args=None):
         type=str, 
         default=PATH_ITS_DB, 
         help='location of ITS database used in usearch (bowtie indexed)')
-    db_loc.add_argument("--db_refseq", 
-        type = str, 
-        default=[PREF_PATH_REF_FUNGI, PREF_PATH_REF_PLANT_1, PREF_PATH_REF_PLANT_2],
-        nargs = '*', 
-        help='location of refseq database. At least three locations required: first for fungi, next two for plants. If there are multiple databases with filenames like <path_which_you_specified><second_part_of_name> all will be loaded.')
+    db_loc.add_argument("--db_refseq_fungi", 
+        type=str, 
+        default=[PREF_PATH_REF_FUNGI],
+        nargs='*', 
+        help='location of refseq database to use for fungi analysis. Up to two paths alowed. If there are multiple databases with filenames like <path_which_you_specified><second_part_of_name> all will be loaded.')
+    db_loc.add_argument("--db_refseq_plant", 
+        type=str,
+        default=[PREF_PATH_REF_PLANT_1, PREF_PATH_REF_PLANT_2],
+        nargs='*', 
+        help='location of refseq database to use for plants analysis. Up to two paths alowed. If there are multiple databases with filenames like <path_which_you_specified><second_part_of_name> all will be loaded.')
     db_loc.add_argument("--db_NCBI_taxonomy",
         type=str,
         default=PATH_NCBI_TAXA_DB,
