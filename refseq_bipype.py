@@ -173,10 +173,10 @@ def tax_id_reader():
     Keys and values are integers.
     
     File has following format:
-    13	9913
-    15	9915
-    16	9771
-    17	9771
+    13  9913
+    15  9915
+    16  9771
+    17  9771
     where first column is a GI, second is a TaxID.
     
     GLOBLAS:
@@ -207,12 +207,12 @@ def tax_name_reader():
     Example (appropriate file format included):
     
         File:
-    2	|	prokaryotes	|	prokaryotes <Bacteria>	|	in-part	|
-    6	|	Azorhizobium	|		|	scientific name	|
-    6	|	Azorhizobium Dreyfus et al. 1988	|		|	synonym	|
-    6	|	Azotirhizobium	|		|	equivalent name	|
-    7	|	ATCC 43989	|		|	type material	|
-    7	|	Azorhizobium caulinodans	|		|	scientific name	|
+    2   |       prokaryotes     |       prokaryotes <Bacteria>  |       in-part |
+    6   |       Azorhizobium    |               |       scientific name |
+    6   |       Azorhizobium Dreyfus et al. 1988        |               |       synonym |
+    6   |       Azotirhizobium  |               |       equivalent name |
+    7   |       ATCC 43989      |               |       type material   |
+    7   |       Azorhizobium caulinodans        |               |       scientific name |
      
         Output:
             {6:'Azotirhizobium', 7:'Azorhizobium caulinodans'}
@@ -351,7 +351,7 @@ def pair_uni_name(file_pair):
 def refseq_ref_namespace(directory, seq, postfix, out_dir='in_situ', map_dir='in_situ'):
     """Returns a dict within:
         - keys are following file extensions: fastq, sam, sam2, bam,
-	  sorted, sorted.bam, idx_stats, tax_count, map_count
+          sorted, sorted.bam, idx_stats, tax_count, map_count
         - values are paths to file with corresponding extension. 
         Filenames have following format:
         sample_name + '_' + postfix + extension where sample_name is
@@ -361,7 +361,7 @@ def refseq_ref_namespace(directory, seq, postfix, out_dir='in_situ', map_dir='in
     Args:
 
         directory: Path to directory, where file with .fastq extension
-		   will be written
+                   will be written
         
         seq:       Tuple of paired_end read or sequence file.
         
@@ -370,11 +370,11 @@ def refseq_ref_namespace(directory, seq, postfix, out_dir='in_situ', map_dir='in
         out_dir:   Path to directory, where files with .sam, .sam2, 
                    .bam,.sorted, .sorted.bam, .idx_stats and .tax_count 
                    extensions will be written.
-		   If out_dir is 'in_situ' (default), out_dir=directory
+                   If out_dir is 'in_situ' (default), out_dir=directory
         
         map_dir:   Path to directory, where file with 
                    .map_count extension will be written. If map_dir is
-		   'in_situ'(default),map_dir=out_dir.   
+                   'in_situ'(default),map_dir=out_dir.   
 """
     if out_dir == 'in_situ':
         out_dir = directory
@@ -982,19 +982,19 @@ def cutadapt(mode, e, cat, R1_file, R2_file, adapter_file, usearch_16S=False, us
     Args:
         mode:             if mode=='run', function operate on data
         e:                if True, checks if a part of the workflow is actually
-			  done 
+                          done 
                           and omits these parts, to avoid duplicating this job.
         cat:              name of folder with R_1 and R_2 files
         R1_file, R2_file: input files
-	adapter_file:     If(adapter_file='use_filenames'), function will use
+        adapter_file:     If(adapter_file='use_filenames'), function will use
                           adapters returned by adapter_read(R1_file)
                           Else,function will use adapters returned by
                           adapter_read_bck(adapter_file, R1_file)
         usearch_16S:      if True runs usearch(mode, e, '16S',
-			  outname_uni_fasta,   usearch_16S, threads)
+                          outname_uni_fasta,   usearch_16S, threads)
                           where outname_uni_fasta is cutadapt output.
         usearch_ITS:      if True runs usearch(mode, e, 'ITS',
-			  outname_uni_fasta, usearch_ITS, threads)
+                          outname_uni_fasta, usearch_ITS, threads)
                           where outname_uni_fasta is cutadapt output.
      For more information please refer to:
         - adapter_read_bck()
