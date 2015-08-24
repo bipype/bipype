@@ -32,6 +32,13 @@ def module_exists(module_name):
         return False
 
 
+def get_args_from_file(path):
+    args = ''
+    with open(path, 'r') as args_file:
+        args = args_file.read()
+    return args.split()
+
+
 def remove_file(filename):
     return os.remove(filename)
 
@@ -43,5 +50,19 @@ def remove_entire_directory(path):
     return shutil.rmtree(path)
 
 
+def pre_parse_args(args_string):
+    args = args_string.split()
+    pre_parsed_args = []
+    for arg in args:
+        if arg.startswith('@'):
+            pre_parsed_args += get_args_from_file(arg[1:])
+        else:
+            pre_parsed_args += [arg]
+    return pre_parsed_args
+
+
 def create_directory(path):
-    return os.mkdir(path)
+    if not path_exists(path):
+        return os.mkdir(path)
+    else:
+        print "Warning: path %s already exists" % path

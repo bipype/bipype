@@ -60,13 +60,15 @@ def test_prepare_taxonomy_stats():
     
     """
     # Scenario 1 - put there some description of scenario
-    opts = bipype.parse_arguments('@tests/test_1.opts --out_dir tests/temp')
+    args = pre_parse_args('@tests/test_1.opts --out_dir tests/temp')
+    opts = bipype.parse_arguments(args)
     bipype.prepare_taxonomy_stats(opts)
     assert files_identical('tests/temp/temp.out', 'tests/test_1.out')
     assert files_identical('tests/temp/temp_2.out', 'tests/test_1_b.out')
     
     # Scenario 2 - put there some description of scenario
-    opts = bipype.parse_arguments('@tests/test_2.opts --out_dir tests/temp')
+    args = pre_parse_args('@tests/test_2.opts --out_dir tests/temp')
+    opts = bipype.parse_arguments(args)
     bipype.prepare_taxonomy_stats(opts)
     assert files_identical('tests/temp/temp.out', 'tests/test_2.out')
     """
@@ -84,7 +86,8 @@ def test_sample():
     create_directory('tests/temp')
 
     # Scenario 1 - Shotgun
-    opts = bipype.parse_arguments('@tests/shotgun.opts --out_dir tests/temp')
+    args = pre_parse_args('@tests/shotgun.opts --out_dir tests/temp')
+    opts = bipype.parse_arguments(args)
     bipype.sample(opts)
     # TODO: check which files Shotgun, etc (steps 3-6)  
     # assert files_identical('tests/temp/temp.out', 'tests/shotgun.out')
