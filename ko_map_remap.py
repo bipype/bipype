@@ -299,7 +299,7 @@ def out_content(filelist, kopath_count, path_names, method='DESeq2'):
                     outfile.write(outline)
 
 
-def run_ko_remap():
+def run_ko_remap(opts):
     """Runs out_content() for files from 'edger_paths' & 'deseq_paths'.
     Uses db for making 'path_names' & 'kopath_count' out_content() args
 

@@ -131,7 +131,7 @@ def parse_arguments(args=None):
 
 
 if __name__ == '__main__':
-    #opts = parse_arguments()
-    #sample(opts)
-    #prepare_taxonomy_stats(opts)
-    ko_map_remap()
+    opts = parse_arguments()
+    sample(opts)
+    prepare_taxonomy_stats(opts)
+    ko_map_remap(opts)
