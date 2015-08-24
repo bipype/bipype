@@ -124,6 +124,15 @@ def parse_arguments(args=None):
         type=str,
         default=PATH_RECONSTRUCT_DB,
         help='location of database for reconstruction')
+    db_loc.add_argument("--db_taxonomy_16S",
+        type=str,
+        default=PATH_16S_DATABASE,
+        help='location of 16S database used in taxonomy recognition (fasta with specially formatted headers)')
+    db_loc.add_argument("--db_taxonomy_ITS",
+        type=str,
+        default=PATH_ITS_DATABASE,
+        help='location of ITS database used in taxonomy recognition (fasta with specially formatted headers)')
+
 
     parsed_args = parser.parse_args(args)
 

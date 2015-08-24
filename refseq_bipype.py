@@ -2624,7 +2624,15 @@ def prepare_taxonomy_stats(opts):
                 To specify current working directory, use 'in_situ'. 
                 
                 One of: ['in_situ', a_string_with_path_to_dir]
-     
+
+            opts.db_taxonomy_16S:
+                Path to 16S database used in taxonomy recognition
+                (fasta with specially formatted headers)
+
+            opts.db_taxonomy_ITS:
+                Path to ITS database used in taxonomy recognition
+                (fasta with specially formatted headers)
+
     Input:
     
         Analysis will be performed on files, meeting all the following conditions:
@@ -2643,17 +2651,14 @@ def prepare_taxonomy_stats(opts):
             for 'ITS':                ('ITS.krona', 'ITS.html')
             for ['ITS', '16S']:       ('ITS_16S.krona', 'ITS_16S.html') 
    
-    GLOBALS:
-        PATH_16S_DATABASE
-        PATH_ITS_DATABASE
     """
     SSU = {}
     # Extracts from specially formatted FASTA file taxonomical data
     # and returns them as hierarchically organised dict
     if '16S' in opts.output_type:
-        SSU['16S'] = SSU_read(PATH_16S_DATABASE, '16S')
+        SSU['16S'] = SSU_read(opts.db_taxonomy_16S, '16S')
     if 'ITS' in opts.output_type:
-        SSU['ITS'] = SSU_read(PATH_ITS_DATABASE)
+        SSU['ITS'] = SSU_read(opts.db_taxonomy_ITS)
     # Generates list of locations were input files are located. 
     input_dic = input_locations(opts.mode, opts.output_type)
     analysed_dict = {}

@@ -1,7 +1,6 @@
 # refseq_bipype.py
 
-PATH_16S_DATABASE = '/home/pszczesny/soft/bipype/SSU_candidate_db.fasta'
-PATH_ITS_DATABASE = '/home/pszczesny/soft/bipype/UNITE_public_from_27.01.13.fasta'
+
 PATH_GI_TAX = '/home/pszczesny/workingdata/refseq/db/tax_id/gi_taxid_nucl.dmp'
 PATH_TAX_NAME = '/home/pszczesny/workingdata/refseq/db/tax_id/names.dmp'
 PATH_RAPSEARCH = '/home/pszczesny/soft/RAPSearch2.12_64bits/bin/rapsearch'
@@ -22,3 +21,5 @@ PATH_X16S_DB = '/home/public/EMIRGE/SSU/SSU_candidate_db.udb'
 PATH_ITS_DB = '/home/pszczesny/workingdata/ITS/unite.udb'
 PATH_NCBI_TAXA_DB = '/home/pszczesny/soft/bipype/NCBI_tax_id_name.pickle'
 PATH_RECONSTRUCT_DB = '/home/pszczesny/storage/workingdata/mcra/mcra10k.fasta'
+PATH_16S_DATABASE = '/home/pszczesny/soft/bipype/SSU_candidate_db.fasta'
+PATH_ITS_DATABASE = '/home/pszczesny/soft/bipype/UNITE_public_from_27.01.13.fasta'
