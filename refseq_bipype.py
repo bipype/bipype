@@ -1244,14 +1244,14 @@ def sample(opts):
                 
             opts.db_refseq_fungi:
                 A list of paths to refseq databases to use in fungi analysis.
-                Up to two paths are alowed.
+                Up to two paths are allowed.
                 Warning:
                 If there are multiple databases with filenames like
                 <your_path><second_part_of_name>, all will be loaded.
                 
             opts.db_refseq_plant:
                 A list of paths to refseq databases to use in plants analysis.
-                Up to two paths are alowed.
+                Up to two paths are allowed.
                 Also check warning in opts.db_refseq_fungi description.
                 
             opts.our_dir:
