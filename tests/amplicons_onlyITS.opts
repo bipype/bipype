@@ -1,0 +1,6 @@
+--mode run
+-ic usearch
+-refseq b
+-ITS
+-reconstruct
+-ot ITS

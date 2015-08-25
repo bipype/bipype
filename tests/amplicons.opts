@@ -1,0 +1,6 @@
+--mode run
+-refseq b
+-ITS
+-16S
+-reconstruct
+-ot ITS 16S

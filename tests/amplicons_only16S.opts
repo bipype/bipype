@@ -1,0 +1,5 @@
+--mode run
+-refseq b
+-16S
+-reconstruct
+-ot 16S
