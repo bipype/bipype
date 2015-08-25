@@ -82,7 +82,7 @@ def move_files(move_from, files_to_move, move_to):
     Moves files from given list or set.
     """
     
-    for item in files_to_remove:
+    for item in files_to_move:
         source = os.path.join(move_from, item)
         destination = os.path.join(move_to, item)
         shutil.move(source, destination)
