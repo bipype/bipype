@@ -23,10 +23,6 @@ def parse_arguments(args=None):
         choices=['test', 'run'],
         type = str,
         default='test')
-    # root_dir is not implemented!
-    general.add_argument("-r", "--root_dir",
-        help='root of the directory tree to be searched',
-        default=getcwd()) 
     general.add_argument("--out_dir", "-o", 
         type=str,
         metavar = 'OUTPUT_DIRECTORY', 
