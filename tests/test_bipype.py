@@ -62,7 +62,7 @@ def test_prepare_taxonomy_stats():
     # Scenario 1 - put there some description of scenario
     args = pre_parse_args('@tests/test_1.opts --out_dir tests/temp')
     opts = bipype.parse_arguments(args)
-    with copy_of_folder_in_cwd('tests/input_or_some_subdirectory'):
+    with keeping_directory_clean('tests/input_or_some_subdirectory'):
         bipype.prepare_taxonomy_stats(opts)
     assert files_identical('tests/temp/temp.out', 'tests/test_1.out')
     assert files_identical('tests/temp/temp_2.out', 'tests/test_1_b.out')
@@ -70,7 +70,7 @@ def test_prepare_taxonomy_stats():
     # Scenario 2 - put there some description of scenario
     args = pre_parse_args('@tests/test_2.opts --out_dir tests/temp')
     opts = bipype.parse_arguments(args)
-    with copy_of_folder_in_cwd('tests/input'):
+    with keeping_directory_clean('tests/input'):
         bipype.prepare_taxonomy_stats(opts)
     assert files_identical('tests/temp/temp.out', 'tests/test_2.out')
     """
@@ -91,7 +91,7 @@ def test_sample():
     args = pre_parse_args('@tests/shotgun.opts --out_dir tests/temp')
     opts = bipype.parse_arguments(args)
 
-    with copy_of_folder_in_cwd('tests/input'):
+    with keeping_directory_clean('tests/input'):
         bipype.sample(opts)
 
     # TODO: check which files Shotgun, etc (steps 3-6)  
