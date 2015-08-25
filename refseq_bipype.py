@@ -2618,11 +2618,11 @@ def prepare_taxonomy_stats(opts):
                 One of: ['in_situ', a_string_with_path_to_dir]
 
             opts.db_taxonomy_16S:
-                Path to 16S database used in taxonomy recognition
+                Path to 16S database used in taxonomy classification
                 (fasta with specially formatted headers)
 
             opts.db_taxonomy_ITS:
-                Path to ITS database used in taxonomy recognition
+                Path to ITS database used in taxonomy classification
                 (fasta with specially formatted headers)
 
     Input:
