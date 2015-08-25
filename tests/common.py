@@ -62,7 +62,7 @@ def remove_entire_directory(path):
     return shutil.rmtree(path)
 
 
-def pre_parse_args(args_string):
+def preparse_args(args_string):
     """
     Simulates argparse-like arguments handling,
     but does _not_ require running from command line. 
@@ -102,7 +102,7 @@ def get_files_list(path):
 
 
 @contextmanager
-def keeping_directory_clean(path, move_to = 'tests/temp'):
+def keeping_directory_clean(path, move_to='tests/temp/other_results'):
     """
     A wrapper designed to use with 'with' statement,
     to keep our input directory clean despite messy,
