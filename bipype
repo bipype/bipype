@@ -23,10 +23,6 @@ def parse_arguments(args=None):
         choices=['test', 'run'],
         type = str,
         default='test')
-    # root_dir is not implemented!
-    general.add_argument("-r", "--root_dir",
-        help='root of the directory tree to be searched',
-        default=getcwd()) 
     general.add_argument("--out_dir", "-o", 
         type=str,
         metavar = 'OUTPUT_DIRECTORY', 
@@ -128,11 +124,11 @@ def parse_arguments(args=None):
     db_loc.add_argument("--db_taxonomy_16S",
         type=str,
         default=PATH_16S_DATABASE,
-        help='location of 16S database used in taxonomy recognition (fasta with specially formatted headers)')
+        help='location of 16S database used in taxonomy classification (fasta with specially formatted headers)')
     db_loc.add_argument("--db_taxonomy_ITS",
         type=str,
         default=PATH_ITS_DATABASE,
-        help='location of ITS database used in taxonomy recognition (fasta with specially formatted headers)')
+        help='location of ITS database used in taxonomy classification (fasta with specially formatted headers)')
 
 
     parsed_args = parser.parse_args(args)

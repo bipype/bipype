@@ -42,7 +42,7 @@ def test_prepare_taxonomy_stats():
     
     import bipype
 
-    create_directory('tests/temp')
+    # create_directory('tests/temp')
 
     # How to create test?
     # 1. create input files for testing exculsively prepare_taxonomy_stats()
@@ -60,22 +60,22 @@ def test_prepare_taxonomy_stats():
     
     """
     # Scenario 1 - put there some description of scenario
-    args = pre_parse_args('@tests/test_1.opts --out_dir tests/temp')
+    args = preparse_args('@tests/test_1.opts --out_dir tests/temp')
     opts = bipype.parse_arguments(args)
-    with copy_of_folder_in_cwd('tests/input_or_some_subdirectory'):
+    with keeping_directory_clean('tests/input_or_some_subdirectory', move_to='some_waste_container'):
         bipype.prepare_taxonomy_stats(opts)
     assert files_identical('tests/temp/temp.out', 'tests/test_1.out')
     assert files_identical('tests/temp/temp_2.out', 'tests/test_1_b.out')
     
     # Scenario 2 - put there some description of scenario
-    args = pre_parse_args('@tests/test_2.opts --out_dir tests/temp')
+    args = preparse_args('@tests/test_2.opts --out_dir tests/temp')
     opts = bipype.parse_arguments(args)
-    with copy_of_folder_in_cwd('tests/input'):
+    with keeping_directory_clean('tests/input', move_to='some_bin'):
         bipype.prepare_taxonomy_stats(opts)
     assert files_identical('tests/temp/temp.out', 'tests/test_2.out')
     """
     
-    remove_entire_directory('tests/temp')
+    # remove_entire_directory('tests/temp')
     
 
 def test_sample():
@@ -86,16 +86,19 @@ def test_sample():
     import bipype
 
     create_directory('tests/temp')
-
+    create_directory('tests/temp/out')
+    create_directory('tests/temp/other')
+    
+    
     # Scenario 1 - Shotgun
-    args = pre_parse_args('@tests/shotgun.opts --out_dir tests/temp')
+    args = preparse_args('@tests/shotgun.opts --out_dir tests/temp/out')
     opts = bipype.parse_arguments(args)
 
-    with copy_of_folder_in_cwd('tests/input'):
+    with keeping_directory_clean('tests/data', move_to='tests/temp/other'):
         bipype.sample(opts)
 
-    # TODO: check which files Shotgun, etc (steps 3-6)  
     # assert files_identical('tests/temp/temp.out', 'tests/shotgun.out')
 
 
-    remove_entire_directory('tests/temp')
+    # at the moment we need all ouptut files to "peer review"
+    # remove_entire_directory('tests/temp')

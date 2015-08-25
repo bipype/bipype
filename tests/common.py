@@ -6,7 +6,7 @@ from contextlib import contextmanager
 
 def files_identical(filename_1, filename_2):
     """
-    Compare two files with diff
+    Compare two files with diff.
     """
     return_code = subprocess.call(['diff', filename_1, filename_2])
     # change from unix convention (0 = True) to Python convention 
@@ -57,12 +57,12 @@ def create_directory(path):
 
 def remove_entire_directory(path):
     """
-    Delete an >>entire<< directory tree
+    Delete an >>entire<< directory tree.
     """
     return shutil.rmtree(path)
 
 
-def pre_parse_args(args_string):
+def preparse_args(args_string):
     """
     Simulates argparse-like arguments handling,
     but does _not_ require running from command line. 
@@ -77,32 +77,20 @@ def pre_parse_args(args_string):
     return pre_parsed_args
 
 
-def copy_files_to_cwd(path, list_of_files):
+def move_files(move_from, files_to_move, move_to):
     """
-    Copies given files to cwd.
+    Moves files from given list or set.
     """
-    cwd = os.getcwd()
-
-    for item in list_of_files:
-        source = os.path.join(path, item)
-        destination = os.path.join(cwd, item)
-        shutil.copy(source, destination)
-
-
-def remove_files_from_cwd(list_of_files):
-    """
-    Removes files from given list from current working directory
-    """
-    cwd = os.getcwd()
     
-    for item in list_of_files:
-        full_path = os.path.join(cwd, item)
-        remove_file(full_path)
+    for item in files_to_move:
+        source = os.path.join(move_from, item)
+        destination = os.path.join(move_to, item)
+        shutil.move(source, destination)
 
 
 def get_files_list(path):
     """
-    Gets all >files< from directory specified by 'path'
+    Gets all >files< from directory specified by 'path'.
     """
     list_of_files = []
     for item in os.listdir(path):
@@ -114,15 +102,21 @@ def get_files_list(path):
 
 
 @contextmanager
-def copy_of_folder_in_cwd(path):
+def keeping_directory_clean(path, move_to='tests/temp/other_results'):
     """
     A wrapper designed to use with 'with' statement,
-    to allow easy running bipype on files from other place,
-    by creation a copy in current working directory,
-    and then cleaning by removing these files.
+    to keep our input directory clean despite messy,
+    in-place output from bipype components.
     """
-    list_of_files = get_files_list(path)
+    files_to_keep = get_files_list(path)
     
-    copy_files_to_cwd(path, list_of_files)
     yield
-    remove_files_from_cwd(list_of_files)
+    
+    all_files = get_files_list(path)
+    files_to_clean = set(all_files) - set(files_to_keep)
+    
+    if not move_to:
+        remove_files_from_dir(path, files_to_clean)
+    else:
+        move_files(path, files_to_clean, move_to)
+        

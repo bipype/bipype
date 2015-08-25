@@ -184,7 +184,7 @@ def tax_id_reader():
     """
     print 'reading tax ids'
     gi_tax_dict = {}
-    curr_t = datetime.now()
+    #curr_t = datetime.now()
     with open(PATH_GI_TAX) as file_:
         counter = 0
         for line in file_:
@@ -222,7 +222,7 @@ def tax_name_reader():
     """
     print 'reading tax names'
     tax_name_dict = {}
-    curr_t1 = datetime.now()
+    #curr_t1 = datetime.now()
     with open(PATH_TAX_NAME) as file_:
         counter = 0
         for line in file_:
@@ -937,7 +937,7 @@ def adapter_read_bck(adapter_file, filename):
     Returns:
         A tuple (fin_adap_1, fin_adap_2)
 
-"""
+    """
     with open(adapter_file, 'r') as plik:
         content = plik.readlines()
         for linia in content:
@@ -959,7 +959,7 @@ def adapter_read(filename):
 
         input: Amp18_BFp_B_p_GACGAC_L001_R1_001.fastq
         output: ('AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCACGACGACATCTCGTATGCCGTCTTCTGCTTG')
-"""
+    """
     adp_1 = 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT'
     adp_2 = 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCACNNNNNNATCTCGTATGCCGTCTTCTGCTTG'
     nameparts = split(filename, '_')
@@ -1002,7 +1002,7 @@ def cutadapt(mode, e, cat, R1_file, R2_file, adapter_file, usearch_16S=False, us
         
     GLOBALS:
         PATH_FQ2FA
-"""
+    """
     R1_fastq = pjoin(cat, R1_file)
     R2_fastq = pjoin(cat, R2_file)
     if adapter_file == 'use_filenames': #WARNING HARDCODE
@@ -1052,8 +1052,6 @@ def auto_tax_read(db_loc):
     with open(db_loc, 'rb') as fp:
         tax_names = pickle.load(fp)
         tax_id = pickle.load(fp)
-    # CHANGED
-    #fp.close()                      # TODO: 'fp' is already closed!
     return tax_id, tax_names
 
 
@@ -1095,8 +1093,6 @@ def reconstruct(mode, thr, e, pair, cat, prefix, rec_db_loc):
     """Runs bwa. Find the SA coordinates of the input reads.
     Generate alignments in the SAM format given single-end reads.
     Repetitive hits will be randomly chosen.
-
-
 
     Args:
         mode: if mode="run", then commands "bwa aln" and "bwa samse" were run
@@ -1495,10 +1491,6 @@ def SSU_read(loc, typ=None):
                         tax_line = line[2].replace(" ", "")
                         if len(tax_line.split(';')) == 1:
                             tax_line = line[-1].replace(" ", "")
-                    # CHANGED
-                    # TODO: if the count of 'Fungi' in <line> is other than 1 or 2,
-                    # TODO: then the following line breaks pipe, with error:
-                    # TODO: UnboundLocalError: local variable 'tax_line' referenced before assignment
                     else:
                         tax_line = ""
                     if tax_line == '-':
@@ -2626,11 +2618,11 @@ def prepare_taxonomy_stats(opts):
                 One of: ['in_situ', a_string_with_path_to_dir]
 
             opts.db_taxonomy_16S:
-                Path to 16S database used in taxonomy recognition
+                Path to 16S database used in taxonomy classification
                 (fasta with specially formatted headers)
 
             opts.db_taxonomy_ITS:
-                Path to ITS database used in taxonomy recognition
+                Path to ITS database used in taxonomy classification
                 (fasta with specially formatted headers)
 
     Input:
