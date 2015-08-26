@@ -302,6 +302,9 @@ def run_ko_remap():
     HARDCODED: Paths to files:
                     edger: 'meta/tables_edgeR/*[pn].txt'
                     deseq: 'meta/tables_DESeq2/*[pn].txt'
+               R templates:
+                    edger: meta/template_script_DESeq2.r'
+                    deseq: meta/template_script_edgeR.r'
     GLOBALS:
         - path to KO database:  PATH_KO_DB
     """
