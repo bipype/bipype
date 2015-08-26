@@ -1,3 +1,8 @@
+# metatranscriptomics.py
+
+PATH_KO_DB = '/home/pszczesny/soft/KEGG/ko.db'
+PATH_KO_PCKL = '/home/pszczesny/soft/bipype/kogenes.pickle'
+
 # refseq_bipype.py
 
 

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import argparse
-from ko_map_remap import ko_map_remap
+from metatranscriptomics_bipype import ko_map_remap
 from refseq_bipype import sample, prepare_taxonomy_stats
 from sys import argv as sargv
 from os import getcwd
@@ -17,18 +17,18 @@ def parse_arguments(args=None):
     general.add_argument("-t", "--threads",
         help='number of threads to be used',
         type = int,
-        default=8) 
+        default=8)
     general.add_argument("-m", "--mode",
         help='available modes: test, run',
         choices=['test', 'run'],
         type = str,
         default='test')
-    general.add_argument("--out_dir", "-o", 
+    general.add_argument("--out_dir", "-o",
         type=str,
-        metavar = 'OUTPUT_DIRECTORY', 
+        metavar = 'OUTPUT_DIRECTORY',
         default='in_situ',
         help='directory for output files')
-    general.add_argument("--ins_len", 
+    general.add_argument("--ins_len",
         default='9999',
         help='insert length - be advised - you better use it for single run',
         type=int)
@@ -36,16 +36,16 @@ def parse_arguments(args=None):
         type = str,
         help = 'alphanumerical postfix of processed file',
         default = '')
-    general.add_argument("-e", 
+    general.add_argument("-e",
         help = "use existing files",
         action='store_true')
     taxonomy_stats = parser.add_argument_group('taxonomy_stats options', 'options related to process of preparing taxonomy results')
-    taxonomy_stats.add_argument("-ot", "--output_type", 
+    taxonomy_stats.add_argument("-ot", "--output_type",
         nargs = '*',
         default= ['ITS', '16S'],
         help = 'Choice of files searched for an analysis, coded: 16S and ITS on usearches - file .usearch_ITS, .usearch_16S')
     dataclean = parser.add_argument_group('input cleaning', 'methods of cleaning input from noise')
-    dataclean.add_argument("-ic", "--initial_cleaning", 
+    dataclean.add_argument("-ic", "--initial_cleaning",
         choices = ['usearch', 'fastx'],
         type = str,
         default= '',
@@ -82,12 +82,12 @@ def parse_arguments(args=None):
         help = 'reconstruct relating to database, options: database_loc, prefix',
         nargs='?')
     contigs.add_argument("-humann",
-        help = 'mapping rapsearch using humann', 
+        help = 'mapping rapsearch using humann',
         dest='to_calculate',
         action='append_const',
         const='humann')
     contigs.add_argument("-rapsearch",
-        help = 'RAPsearch on protein database', 
+        help = 'RAPsearch on protein database',
         nargs = '?',
         choices = ['masl28', 'rap_prot', 'rap_KO'],
         dest='to_calculate',
@@ -95,23 +95,23 @@ def parse_arguments(args=None):
         const='rap_prot',
         default = 'rap_prot')
     db_loc = parser.add_argument_group('databases', 'locations of databases to be used for searches')
-    db_loc.add_argument("--db_16S", 
-        type=str, 
-        default=PATH_X16S_DB, 
+    db_loc.add_argument("--db_16S",
+        type=str,
+        default=PATH_X16S_DB,
         help='location of 16S database used in usearch (bowtie indexed')
-    db_loc.add_argument("--db_ITS", 
-        type=str, 
-        default=PATH_ITS_DB, 
+    db_loc.add_argument("--db_ITS",
+        type=str,
+        default=PATH_ITS_DB,
         help='location of ITS database used in usearch (bowtie indexed)')
-    db_loc.add_argument("--db_refseq_fungi", 
-        type=str, 
+    db_loc.add_argument("--db_refseq_fungi",
+        type=str,
         default=[PREF_PATH_REF_FUNGI],
-        nargs='*', 
+        nargs='*',
         help='location of refseq database to use for fungi analysis. Up to two paths allowed. If there are multiple databases with filenames like <path_which_you_specified><second_part_of_name> all will be loaded.')
-    db_loc.add_argument("--db_refseq_plant", 
+    db_loc.add_argument("--db_refseq_plant",
         type=str,
         default=[PREF_PATH_REF_PLANT_1, PREF_PATH_REF_PLANT_2],
-        nargs='*', 
+        nargs='*',
         help='location of refseq database to use for plants analysis. Up to two paths allowed. If there are multiple databases with filenames like <path_which_you_specified><second_part_of_name> all will be loaded.')
     db_loc.add_argument("--db_NCBI_taxonomy",
         type=str,
@@ -129,6 +129,11 @@ def parse_arguments(args=None):
         type=str,
         default=PATH_ITS_DATABASE,
         help='location of ITS database used in taxonomy classification (fasta with specially formatted headers)')
+    db_loc = parser.add_argument_group('metatranscriptomics', 'arguments for metatranscriptomic workflow')
+    db_loc.add_argument("--test",
+        type=str,
+        default="testtt",
+        help='test')
 
 
     parsed_args = parser.parse_args(args)
@@ -140,4 +145,4 @@ if __name__ == '__main__':
     opts = parse_arguments()
     sample(opts)
     prepare_taxonomy_stats(opts)
-    ko_map_remap(opts)
+    #ko_map_remap(opts)
