@@ -279,8 +279,23 @@ def out_content(filelist, kopath_count, path_names, method='DESeq2'):
                     outfile.write(outline)
 
 
+def fastq_to_fasta(_file):
+    """Runs fastq_to_fasta for _file and write output as out_file.
+
+    Writes output in "./meta/fasta/" directory.
+
+    GLOBAL:
+        - path to fastq_to_fasta program:               PATH_FQ2FA
+    """
+    out_file = _file.rsplit(".", 1)[ 0 ] + "fasta"
+    fq2fa_com = '%s < %s > %s -Q33'%(PATH_FQ2FA, _file, out_file)
+    system(fq2fa_com)
+
+
 def rapsearch2(input_file):
     """Runs rapsearch2() for input_file in fasta format.
+
+    Writes outputs in "./meta/m8/" directory.
 
     GLOBALS:
         - path to RAPSearch2 program:                   PATH_RAPSEARCH
@@ -291,6 +306,12 @@ def rapsearch2(input_file):
     rap_com = '%s -q %s -d %s -o %s -z 12 -v 20 -b 1 -t n -a t'%(
         PATH_RAPSEARCH, input_file, PATH_REF_PROT_KO, out_name)
     system(rap_com)
+
+
+def run_fastq_to_fasta():
+    """Runs fastq_to_fasta() for every .fastq in ./meta/fastq/"""
+    for _file in glob('meta/fastq/*fastq')+glob('meta/fastq/*fq'):
+        fastq_to_fasta(_file)
 
 
 def run_rapsearch():
@@ -313,7 +334,7 @@ def run_ko_map():
         p.start()
 
 
-def SARTools():
+def run_SARTools():
     system('Rscript meta/template_script_DESeq2.r')
     system('mv meta/tables/* meta/tables_DESeq2')
     system('Rscript meta/template_script_edgeR.r')
@@ -349,10 +370,11 @@ def metatranscriptomics(opts):
     """Performs analyse of metagenomic data.
 
     For more information please refer to
-    run_ko_map(), SARTools() & run_ko_remap()
+    run_fastq_to_fasta(), run_rapsearch() run_ko_map(),
+    run_SARTools() & run_ko_remap()
     """
+    run_fastq_to_fasta()
     run_rapsearch()
     run_ko_map()
-    SARTools()
+    run_SARTools()
     run_ko_remap()
-
