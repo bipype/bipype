@@ -41,6 +41,46 @@ def test_prepare_taxonomy_stats():
     """
     
     import bipype
+    
+    create_directory('tests/temp')
+    create_directory('tests/temp/out')
+    create_directory('tests/temp/other')
+    create_directory('tests/temp/out/shotgun')
+    create_directory('tests/temp/out/amplicons')
+    create_directory('tests/temp/out/amplicons_onlyITS')
+    create_directory('tests/temp/out/amplicons_only16S')
+    create_directory('tests/temp/out/biodiversity')
+    
+    # Scenario 2 - Amplicons
+    args_2 = preparse_args('@tests/amplicons.opts --out_dir tests/temp/out/amplicons')
+    opts_2 = bipype.parse_arguments(args_2)
+
+    with keeping_directory_clean('tests/data_do_opts/out/amplicons', move_to='tests/temp/other'):
+        bipype.prepare_taxonomy_stats(opts_2)
+        
+    #Scenario 3 - Amplicons only ITS
+    
+    args_3 = preparse_args('@tests/amplicons_onlyITS.opts --out_dir tests/temp/out/amplicons_onlyITS')
+    opts_3 = bipype.parse_arguments(args_3)
+
+    with keeping_directory_clean('tests/data_do_opts/out/amplicons_onlyITS', move_to='tests/temp/other'):
+        bipype.prepare_taxonomy_stats(opts_3)
+        
+    #Scenario 4 - Amplicons only 16S
+    
+    args_4 = preparse_args('@tests/amplicons_only16S.opts --out_dir tests/temp/out/amplicons_only16S')
+    opts_4 = bipype.parse_arguments(args_4)
+
+    with keeping_directory_clean('tests/data_do_opts/out/amplicons_only16S', move_to='tests/temp/other'):
+        bipype.prepare_taxonomy_stats(opts_4)
+        
+    #Scenario 5 - Biodiversity
+    
+    args_5 = preparse_args('@tests/biodiversity.opts --out_dir tests/temp/out/biodiversity')
+    opts_5 = bipype.parse_arguments(args_5)
+
+    with keeping_directory_clean('tests/data_do_opts/out/biodiversity', move_to='tests/temp/other'):
+        bipype.prepare_taxonomy_stats(opts_5)
 
     # create_directory('tests/temp')
 
@@ -78,7 +118,7 @@ def test_prepare_taxonomy_stats():
     # remove_entire_directory('tests/temp')
     
 
-def test_sample():
+def omit_test_sample():
     """
     Tests different scenarios of running sample function
     """
