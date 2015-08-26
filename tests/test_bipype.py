@@ -42,15 +42,6 @@ def test_prepare_taxonomy_stats():
     
     import bipype
 
-    create_directory('tests/temp')
-    create_directory('tests/temp/out')
-    create_directory('tests/temp/other')
-    
-    args = preparse_args('@tests/shotgun.opts --out_dir tests/temp/out')
-    opts = bipype.parse_arguments(args)
-
-    with keeping_directory_clean('tests/data', move_to='tests/temp/other'):
-        bipype.prepare_taxonomy_stats(opts)
     # create_directory('tests/temp')
 
     # How to create test?
@@ -97,14 +88,49 @@ def test_sample():
     create_directory('tests/temp')
     create_directory('tests/temp/out')
     create_directory('tests/temp/other')
-    
+    create_directory('tests/temp/out/shotgun')
+    create_directory('tests/temp/out/amplicons')
+    create_directory('tests/temp/out/amplicons_onlyITS')
+    create_directory('tests/temp/out/amplicons_only16S')
+    create_directory('tests/temp/out/biodiversity')
     
     # Scenario 1 - Shotgun
-    args = preparse_args('@tests/shotgun.opts --out_dir tests/temp/out')
-    opts = bipype.parse_arguments(args)
+    args_1 = preparse_args('@tests/shotgun.opts --out_dir tests/temp/out/shotgun')
+    opts_1 = bipype.parse_arguments(args_1)
 
     with keeping_directory_clean('tests/data', move_to='tests/temp/other'):
-        bipype.sample(opts)
+        bipype.sample(opts_1)
+        
+    # Scenario 2 - Amplicons
+    args_2 = preparse_args('@tests/amplicons.opts --out_dir tests/temp/out/amplicons')
+    opts_2 = bipype.parse_arguments(args_2)
+
+    with keeping_directory_clean('tests/data', move_to='tests/temp/other'):
+        bipype.sample(opts_2)
+        
+    #Scenario 3 - Amplicons only ITS
+    
+    args_3 = preparse_args('@tests/amplicons_onlyITS.opts --out_dir tests/temp/out/amplicons_onlyITS')
+    opts_3 = bipype.parse_arguments(args_3)
+
+    with keeping_directory_clean('tests/data', move_to='tests/temp/other'):
+        bipype.sample(opts_3)
+        
+    #Scenario 4 - Amplicons only 16S
+    
+    args_4 = preparse_args('@tests/amplicons_only16S.opts --out_dir tests/temp/out/amplicons_only16S')
+    opts_4 = bipype.parse_arguments(args_4)
+
+    with keeping_directory_clean('tests/data', move_to='tests/temp/other'):
+        bipype.sample(opts_4)
+        
+    #Scenario 5 - Biodiversity
+    
+    args_5 = preparse_args('@tests/biodiversity.opts --out_dir tests/temp/out/biodiversity')
+    opts_5 = bipype.parse_arguments(args_5)
+
+    with keeping_directory_clean('tests/data', move_to='tests/temp/other'):
+        bipype.sample(opts_5)
 
     # assert files_identical('tests/temp/temp.out', 'tests/shotgun.out')
 
