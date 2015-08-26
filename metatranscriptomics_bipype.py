@@ -105,7 +105,7 @@ def pickle_or_db(pickle, db): # Please, check if identifiers are correct.
         print('kogenes reading time', start_time-kogenes_time)
     else: # change this to fetchall in server version
         db.execute("select * from KoGenes")
-        KoPath_gid_all = c.fetchall()
+        KoPath_gid_all = db.fetchall()
         for koid, gid in KoPath_gid_all:
         if gid not in multi_id:
             multi_id[gid] = set([koid])
