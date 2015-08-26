@@ -115,6 +115,7 @@ def pickle_or_db(pickle, db): # Please, check if identifiers are correct.
             cPickle.dump(multi_id, output)
     return multi_id
 
+
 def get_pathways(database):
     """Make dictionary from pathways table from SQLite3 database.
 
@@ -218,20 +219,6 @@ def m8_to_ko(file_, multi_id): #
     print(file_, 'comparing time seconds', comparison_time-writing_time, 'total time', start_time-writing_time)
 
 
-def run_ko_map():
-    """Runs m8_to_ko() for every .m8 file in raw directory.
-
-    GLOBALS:
-        - path to KO database:                                  PATH_KO_DB
-        - pickle to dict from KO GENES table from KO database:  PATH_KO_PCKL
-    """
-    m8_list = glob('meta/m8/*m8')
-    data = pickle_or_db(PATH_KO_PCKL, connect_db(PATH_KO_DB))
-    for file_ in m8_list:
-        p=Process(target=m8_to_ko,args=(file_,data))
-        p.start()
-
-
 def out_content(filelist, kopath_count, path_names, method='DESeq2'):
     """For every item in 'kopath_count' dictionary and for every file
     in 'filelist', writes to output file line with KOs, which are common
@@ -292,6 +279,47 @@ def out_content(filelist, kopath_count, path_names, method='DESeq2'):
                     outfile.write(outline)
 
 
+def rapsearch2(input_file):
+    """Runs rapsearch2() for input_file in fasta format.
+
+    GLOBALS:
+        - path to RAPSearch2 program:                   PATH_RAPSEARCH
+        - path to similarity search database:           PATH_REF_PROT_KO
+    """
+    out_name = out_name.replace('fasta', 'txt.m8')
+    out_name = "m8/"+out_name
+    rap_com = '%s -q %s -d %s -o %s -z 12 -v 20 -b 1 -t n -a t'%(
+        PATH_RAPSEARCH, input_file, PATH_REF_PROT_KO, out_name)
+    system(rap_com)
+
+
+def run_rapsearch():
+    """Runs rapsearch2() for every .fasta in ./meta/fasta/"""
+    for _file in glob('meta/fasta/*fasta'):
+        rapsearch2(_file)
+
+
+def run_ko_map():
+    """Runs m8_to_ko() for every .m8 file in raw directory.
+
+    GLOBALS:
+        - path to KO database:                                  PATH_KO_DB
+        - pickle to dict from KO GENES table from KO database:  PATH_KO_PCKL
+    """
+    m8_list = glob('meta/m8/*m8')
+    data = pickle_or_db(PATH_KO_PCKL, connect_db(PATH_KO_DB))
+    for file_ in m8_list:
+        p=Process(target=m8_to_ko,args=(file_,data))
+        p.start()
+
+
+def SARTools():
+    system('Rscript meta/template_script_DESeq2.r')
+    system('mv meta/tables/* meta/tables_DESeq2')
+    system('Rscript meta/template_script_edgeR.r')
+    system('mv meta/tables/* meta/tables_edgeR')
+
+
 def run_ko_remap():
     """Runs out_content() for files from 'edger_paths' & 'deseq_paths'.
     Uses db for making 'path_names' & 'kopath_count' out_content() args
@@ -317,18 +345,13 @@ def run_ko_remap():
     out_content(edger_files, kopath_count, path_names, 'edgeR')
 
 
-def SARTools():
-    system('Rscript meta/template_script_DESeq2.r')
-    system('mv meta/tables/* meta/tables_DESeq2')
-    system('Rscript meta/template_script_edgeR.r')
-    system('mv meta/tables/* meta/tables_edgeR')
-
 def metatranscriptomics(opts):
     """Performs analyse of metagenomic data.
 
     For more information please refer to
     run_ko_map(), SARTools() & run_ko_remap()
     """
+    run_rapsearch()
     run_ko_map()
     SARTools()
     run_ko_remap()
