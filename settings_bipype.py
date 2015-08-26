@@ -5,7 +5,6 @@ PATH_KO_PCKL = '/home/pszczesny/soft/bipype/kogenes.pickle'
 
 # refseq_bipype.py
 
-
 PATH_GI_TAX = '/home/pszczesny/workingdata/refseq/db/tax_id/gi_taxid_nucl.dmp'
 PATH_TAX_NAME = '/home/pszczesny/workingdata/refseq/db/tax_id/names.dmp'
 PATH_RAPSEARCH = '/home/pszczesny/soft/RAPSearch2.12_64bits/bin/rapsearch'

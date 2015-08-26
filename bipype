@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import argparse
-from metatranscriptomics_bipype import ko_map_remap
+from metatranscriptomics_bipype import metatranscriptomics
 from refseq_bipype import sample, prepare_taxonomy_stats
 from sys import argv as sargv
 from os import getcwd
@@ -145,4 +145,4 @@ if __name__ == '__main__':
     opts = parse_arguments()
     sample(opts)
     prepare_taxonomy_stats(opts)
-    #ko_map_remap(opts)
+    #metatranscriptomics(opts)

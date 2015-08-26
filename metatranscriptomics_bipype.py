@@ -7,7 +7,7 @@ import cPickle
 from os.path import exists as pexists
 from os import system
 from collections import Counter
-#from time import time
+from time import time
 from settings_bipype import *
 
 def dicto_reduce(present, oversized):
@@ -187,7 +187,7 @@ def m8_to_ko(file_, multi_id): #
         K00627  0
         K00382  11
     """
-    #print('working on %s'%(file_))
+    print('working on %s'%(file_))
     tmp_ko_dict = {}
     outname = file_.replace('txt.m8', 'out')
     outname = outname.replace('Sample_GB_RNA_stress_', '')
@@ -196,26 +196,26 @@ def m8_to_ko(file_, multi_id): #
     for line in content:
         gid = line.split('\t')[1]
         hit_gid.append(gid)
-    #file_reading_time = time()
-    #print(file_, 'file_reading seconds', kogenes_time-file_reading_time, 'total time', start_time-file_reading_time)
+    file_reading_time = time()
+    print(file_, 'file_reading seconds', kogenes_time-file_reading_time, 'total time', start_time-file_reading_time)
     gid_count = Counter(hit_gid)
     multi_clean, gid_clean = dicto_reduce(gid_count, multi_id)
-    #cleaning_time = time()
-    #print(file_, 'cleaning time seconds', file_reading_time-cleaning_time, 'total time', start_time-cleaning_time)
+    cleaning_time = time()
+    print(file_, 'cleaning time seconds', file_reading_time-cleaning_time, 'total time', start_time-cleaning_time)
     for gid in gid_clean:
         for ko in multi_clean[gid]:
             try:
                 tmp_ko_dict[ko] += gid_clean[gid]
             except KeyError:
                 tmp_ko_dict[ko] = gid_clean[gid]
-    #comparison_time = time()
-    #print(file_, 'comparing time seconds', cleaning_time-comparison_time, 'total time', start_time-comparison_time)
+    comparison_time = time()
+    print(file_, 'comparing time seconds', cleaning_time-comparison_time, 'total time', start_time-comparison_time)
     with open("../out/",outname, 'w') as out_file:
         for ko in tmp_ko_dict:
             to_print = '%s\t%i\n'%(ko, tmp_ko_dict[ko])
             out_file.write(to_print)
-    #writing_time = time()c
-    #print(file_, 'comparing time seconds', comparison_time-writing_time, 'total time', start_time-writing_time)
+    writing_time = time()c
+    print(file_, 'comparing time seconds', comparison_time-writing_time, 'total time', start_time-writing_time)
 
 
 def run_ko_map():
@@ -299,7 +299,7 @@ def run_ko_remap():
     Arg:
         db: Path to SQLite3 database.
 
-    HARDCODED: Paths to files:
+    HARDCODED: Paths to files from SARTools:
                     edger: 'meta/tables_edgeR/*[pn].txt'
                     deseq: 'meta/tables_DESeq2/*[pn].txt'
                R templates:
@@ -323,7 +323,7 @@ def SARTools():
     system('Rscript meta/template_script_edgeR.r')
     system('mv meta/tables/* meta/tables_edgeR')
 
-def ko_map_remap(opts):
+def metatranscriptomics(opts):
     """Performs analyse of metagenomic data.
 
     For more information please refer to
