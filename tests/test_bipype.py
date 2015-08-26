@@ -42,6 +42,15 @@ def test_prepare_taxonomy_stats():
     
     import bipype
 
+    create_directory('tests/temp')
+    create_directory('tests/temp/out')
+    create_directory('tests/temp/other')
+    
+    args = preparse_args('@tests/shotgun.opts --out_dir tests/temp/out')
+    opts = bipype.parse_arguments(args)
+
+    with keeping_directory_clean('tests/data', move_to='tests/temp/other'):
+        bipype.prepare_taxonomy_stats(opts)
     # create_directory('tests/temp')
 
     # How to create test?
