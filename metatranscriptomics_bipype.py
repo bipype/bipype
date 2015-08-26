@@ -103,7 +103,7 @@ def pickle_or_db(pickle, db): # Please, check if identifiers are correct.
         multi_id = auto_tax_read(pickle)
         kogenes_time = time()
         print('kogenes reading time', start_time-kogenes_time)
-    else: # change this to fetchall in server version
+    else:
         db.execute("select * from KoGenes")
         KoPath_gid_all = db.fetchall()
         for koid, gid in KoPath_gid_all:
@@ -315,8 +315,8 @@ def run_fastq_to_fasta():
 
 
 def run_rapsearch():
-    """Runs rapsearch2() for every .fasta in ./meta/fasta/"""
-    for _file in glob('meta/fasta/*fasta'):
+    """Runs rapsearch2() for every .tmp.fasta in ./meta/fasta/"""
+    for _file in glob('meta/fasta/*tmp.fasta'):
         rapsearch2(_file)
 
 
