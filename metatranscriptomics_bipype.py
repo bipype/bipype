@@ -210,7 +210,7 @@ def m8_to_ko(file_, multi_id): #
                 tmp_ko_dict[ko] = gid_clean[gid]
     #comparison_time = time()
     #print(file_, 'comparing time seconds', cleaning_time-comparison_time, 'total time', start_time-comparison_time)
-    with open(outname, 'w') as out_file:
+    with open("../out/",outname, 'w') as out_file:
         for ko in tmp_ko_dict:
             to_print = '%s\t%i\n'%(ko, tmp_ko_dict[ko])
             out_file.write(to_print)

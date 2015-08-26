@@ -12,11 +12,11 @@ rm(list=ls())                                        # remove all the objects fr
 
 workDir <- "meta/"                                   # working directory for the R session
 
-projectName <- "Metatranscriptomics"                 # name of the project
-author <- "bipype"                                   # author of the statistical analysis/report
+projectName <- ""                                    # name of the project
+author <- ""                                         # author of the statistical analysis/report
 
 targetFile <- "target.txt"                           # path to the design/target file
-rawDir <- "m8"                                      # path to the directory containing raw counts files
+rawDir <- "out"                                      # path to the directory containing raw counts files
 featuresToRemove <- c("alignment_not_unique",        # names of the features to be removed
                       "ambiguous", "no_feature",     # (specific HTSeq-count information and rRNA for example)
                       "not_aligned", "too_low_aQual")
