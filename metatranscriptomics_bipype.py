@@ -5,7 +5,8 @@ from glob import glob
 from multiprocessing import Process
 import cPickle
 from os.path import exists as pexists
-from os import system
+from os.path import dirname, realpath #this imports may be deleted in one of the next versions
+from os import system, chdir #chdir may be deleted in one of the next versions
 from collections import Counter
 from time import time
 from settings_bipype import *
@@ -314,6 +315,16 @@ def run_fastq_to_fasta():
         fastq_to_fasta(_file)
 
 
+def run_cat_pairing():
+    """Merges fasta files with paired-end reads in ./meta/fasta/"""
+    for file_R1 in glob('meta/fasta/*R1*fasta'):
+        for file_R2 in glob('meta/fasta/*R2*fasta'):
+            if file_R1.split('R1')==file_R2.split('R2'):
+                outname = file_R1.replace('R1_','')
+                outname = outname.replace('.fasta','.tmp.fasta')
+                system('cat '+file_R1+' '+file_R2+' > '+outname)
+
+
 def run_rapsearch():
     """Runs rapsearch2() for every .tmp.fasta in ./meta/fasta/"""
     for _file in glob('meta/fasta/*tmp.fasta'):
@@ -327,9 +338,8 @@ def run_ko_map():
         - path to KO database:                                  PATH_KO_DB
         - pickle to dict from KO GENES table from KO database:  PATH_KO_PCKL
     """
-    m8_list = glob('meta/m8/*m8')
     data = pickle_or_db(PATH_KO_PCKL, connect_db(PATH_KO_DB))
-    for file_ in m8_list:
+    for file_ in glob('meta/m8/*m8'):
         p=Process(target=m8_to_ko,args=(file_,data))
         p.start()
 
@@ -373,7 +383,9 @@ def metatranscriptomics(opts):
     run_fastq_to_fasta(), run_rapsearch() run_ko_map(),
     run_SARTools() & run_ko_remap()
     """
+    chdir(dirname(realpath(__file__)))
     run_fastq_to_fasta()
+    run_cat_pairing()
     run_rapsearch()
     run_ko_map()
     run_SARTools()
