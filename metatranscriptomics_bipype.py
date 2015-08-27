@@ -99,6 +99,7 @@ def pickle_or_db(pickle, db): # Please, check if identifiers are correct.
     'args' was hardcoded to:
                     'kogenes.pckl' & c (variable with db's cursor)
     """
+    start_time = time()
     multi_id = {}
     if pexists(pickle):
         multi_id = auto_tax_read(pickle)
@@ -108,10 +109,10 @@ def pickle_or_db(pickle, db): # Please, check if identifiers are correct.
         db.execute("select * from KoGenes")
         KoPath_gid_all = db.fetchall()
         for koid, gid in KoPath_gid_all:
-        if gid not in multi_id:
-            multi_id[gid] = set([koid])
-        else:
-            multi_id[gid].add(koid)
+            if gid not in multi_id:
+                multi_id[gid] = set([koid])
+            else:
+                multi_id[gid].add(koid)
         with open(pickle, 'w') as output:
             cPickle.dump(multi_id, output)
     return multi_id
@@ -190,6 +191,7 @@ def m8_to_ko(file_, multi_id): #
         K00382  11
     """
     print('working on %s'%(file_))
+    start_time = ()
     tmp_ko_dict = {}
     outname = file_.replace('txt.m8', 'out')
     outname = outname.replace('Sample_GB_RNA_stress_', '')
@@ -216,7 +218,7 @@ def m8_to_ko(file_, multi_id): #
         for ko in tmp_ko_dict:
             to_print = '%s\t%i\n'%(ko, tmp_ko_dict[ko])
             out_file.write(to_print)
-    writing_time = time()c
+    writing_time = time()
     print(file_, 'comparing time seconds', comparison_time-writing_time, 'total time', start_time-writing_time)
 
 
@@ -288,7 +290,8 @@ def fastq_to_fasta(_file):
     GLOBAL:
         - path to fastq_to_fasta program:               PATH_FQ2FA
     """
-    out_file = _file.rsplit(".", 1)[ 0 ] + "fasta"
+    out_file = _file.rsplit(".", 1)[0] + ".fasta"
+    out_file = out_file.replace('/fastq/','/fasta/')
     fq2fa_com = '%s < %s > %s -Q33'%(PATH_FQ2FA, _file, out_file)
     system(fq2fa_com)
 
@@ -302,7 +305,7 @@ def rapsearch2(input_file):
         - path to RAPSearch2 program:                   PATH_RAPSEARCH
         - path to similarity search database:           PATH_REF_PROT_KO
     """
-    out_name = out_name.replace('fasta', 'txt.m8')
+    out_name = input_file.replace('fasta', 'txt.m8')
     out_name = "m8/"+out_name
     rap_com = '%s -q %s -d %s -o %s -z 12 -v 20 -b 1 -t n -a t'%(
         PATH_RAPSEARCH, input_file, PATH_REF_PROT_KO, out_name)
