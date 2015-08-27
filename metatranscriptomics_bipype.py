@@ -5,8 +5,8 @@ from glob import glob
 from multiprocessing import Process
 import cPickle
 from os.path import exists as pexists
-from os.path import dirname, realpath #this imports may be deleted in one of the next versions
-from os import system, chdir #chdir may be deleted in one of the next versions
+from os.path import dirname, realpath #this line may be deleted in one of the next versions
+from os import system, chdir, getcwd #chdir & getcwd may be deleted in one of the next versions
 from collections import Counter
 from time import time
 from settings_bipype import *
@@ -383,6 +383,7 @@ def metatranscriptomics(opts):
     run_fastq_to_fasta(), run_rapsearch() run_ko_map(),
     run_SARTools() & run_ko_remap()
     """
+    before_cwd = getcwd()
     chdir(dirname(realpath(__file__)))
     run_fastq_to_fasta()
     run_cat_pairing()
@@ -390,3 +391,4 @@ def metatranscriptomics(opts):
     run_ko_map()
     run_SARTools()
     run_ko_remap()
+    chdir(before_cwd)
