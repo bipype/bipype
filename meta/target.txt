@@ -1,5 +1,5 @@
 label	files	group
-16st_1	16st_1.out	16st
-16st_2	16st_2.out	16st
-ph7_1	ph7_1.out	ph7
-ph7_2	ph7_2.out	ph7
+ph5_1	GB_RNA_stress_pH5_1_ATGTCA_L004_001.out	ph5
+ph5_2	GB_RNA_stress_pH5_2_GCCAAT_L001_001.out	ph5
+ph7_1	GB_RNA_stress_pH7_1_CGATGT_L001_001.out	ph7
+ph7_2	GB_RNA_stress_pH7_2_TAGCTT_L003_001.out	ph7

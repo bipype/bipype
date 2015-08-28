@@ -350,11 +350,7 @@ def run_ko_map():
 
 def run_SARTools():
     system('Rscript meta/template_script_DESeq2.r')
-    system('mv meta/tables/* meta/DESeq2')
-    system('mv meta/_report.html meta/DESeq2')
     system('Rscript meta/template_script_edgeR.r')
-    system('mv meta/tables/* meta/edgeR')
-    system('mv meta/_report.html meta/edgeR')
 
 
 def run_ko_remap():
@@ -391,10 +387,10 @@ def metatranscriptomics(opts):
     """
     before_cwd = getcwd()
     chdir(dirname(realpath(__file__)))
-    #run_fastq_to_fasta()
-    #run_cat_pairing()
-    #run_rapsearch()
-    #run_ko_map()
-    #run_SARTools()
+    run_fastq_to_fasta()
+    run_cat_pairing()
+    run_rapsearch()
+    run_ko_map()
+    run_SARTools()
     run_ko_remap()
     chdir(before_cwd)
