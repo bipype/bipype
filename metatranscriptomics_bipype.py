@@ -182,9 +182,8 @@ def m8_to_ko(file_, multi_id): #
         file_:    Path to BLAST Tabular (flag: -m 8) format file
         multi_id: Dict {KEGG GENES identifier : set[KO identifiers]}
 
-    Output file (outname) has following path:
+    Output file (outname) has following name:
         outname = file_.replace('txt.m8', 'out')
-        outname = outname.replace('Sample_GB_RNA_stress_', '')
     & following format:
         K00161  2
         K00627  0
@@ -194,7 +193,6 @@ def m8_to_ko(file_, multi_id): #
     start_time = time()
     tmp_ko_dict = {}
     outname = file_.replace('txt.m8', 'out')
-    outname = outname.replace('Sample_GB_RNA_stress_', '')
     content = open(file_, 'r')
     hit_gid = [] # List of KEGG GENES identifiers from file_
     for line in content:
@@ -270,7 +268,7 @@ def out_content(filelist, kopath_count, path_names, method='DESeq2'):
             for line in filecontent:
                 Kid = line.rstrip().split('\t')[0]
                 Kids.add(Kid)
-        with open('meta/'+outname, 'w') as outfile:
+        with open('meta/remap/'+outname, 'w') as outfile:
             outfile.write('ko_path_id;ko_path_name;percent common;common KOs\n')
             for path, Kset in kopath_count.items():
                 common = Kids&Kset
@@ -343,12 +341,21 @@ def run_ko_map():
         - pickle to dict from KO GENES table from KO database:  PATH_KO_PCKL
     """
     data = pickle_or_db(PATH_KO_PCKL, connect_db(PATH_KO_DB))
+    p_list=[]
     for file_ in glob('meta/m8/*m8'):
         p=Process(target=m8_to_ko,args=(file_,data))
         p.start()
-
+        p_list.append(p)
+    for p in p_list:
+        p.join() 
 
 def run_SARTools():
+    """Runs SARTools in R.
+
+    HARDCODED: R templates:
+                    edger: meta/template_script_DESeq2.r'
+                    deseq: meta/template_script_edgeR.r'
+    """
     system('Rscript meta/template_script_DESeq2.r')
     system('Rscript meta/template_script_edgeR.r')
 
@@ -363,17 +370,14 @@ def run_ko_remap():
     HARDCODED: Paths to files from SARTools:
                     edger: 'meta/edgeR/*[pn].txt'
                     deseq: 'meta/DESeq2/*[pn].txt'
-               R templates:
-                    edger: meta/template_script_DESeq2.r'
-                    deseq: meta/template_script_edgeR.r'
     GLOBALS:
         - path to KO database:  PATH_KO_DB
     """
     cursor = connect_db(PATH_KO_DB)
     path_names = get_pathways(cursor)
     kopath_keys, kopath_count = get_kopathways(cursor)
-    edger_files = glob('meta/edgeR/*[pn].txt')
-    deseq_files = glob('meta/DESeq2/*[pn].txt')
+    edger_files = glob('meta/edgeR/tables/*[pn].txt')
+    deseq_files = glob('meta/DESeq2/tables/*[pn].txt')
     out_content(deseq_files, kopath_count, path_names)
     out_content(edger_files, kopath_count, path_names, 'edgeR')
 

@@ -1,5 +1,5 @@
 label	files	group
-ph5_1	GB_RNA_stress_pH5_1_ATGTCA_L004_001.txt.m8	ph5
-ph5_2	GB_RNA_stress_pH5_2_GCCAAT_L001_001.txt.m8	ph5
-ph7_1	GB_RNA_stress_pH7_1_CGATGT_L001_001.txt.m8	ph7
-ph7_2	GB_RNA_stress_pH7_2_TAGCTT_L003_001.txt.m8	ph7
+ph5_1	GB_RNA_stress_pH5_1_ATGTCA_L004_001.out	ph5
+ph5_2	GB_RNA_stress_pH5_2_GCCAAT_L001_001.out	ph5
+ph7_1	GB_RNA_stress_pH7_1_CGATGT_L001_001.out	ph7
+ph7_2	GB_RNA_stress_pH7_2_TAGCTT_L003_001.out	ph7
