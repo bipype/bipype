@@ -349,9 +349,11 @@ def run_ko_map():
 
 def run_SARTools():
     system('Rscript meta/template_script_DESeq2.r')
-    system('mv meta/tables/* meta/tables_DESeq2')
+    system('mv meta/tables/* meta/DESeq2')
+    system('mv meta/_report.html meta/DESeq2')
     system('Rscript meta/template_script_edgeR.r')
-    system('mv meta/tables/* meta/tables_edgeR')
+    system('mv meta/tables/* meta/edgeR')
+    system('mv meta/_report.html meta/edgeR')
 
 
 def run_ko_remap():
@@ -362,8 +364,8 @@ def run_ko_remap():
         db: Path to SQLite3 database.
 
     HARDCODED: Paths to files from SARTools:
-                    edger: 'meta/tables_edgeR/*[pn].txt'
-                    deseq: 'meta/tables_DESeq2/*[pn].txt'
+                    edger: 'meta/edgeR/*[pn].txt'
+                    deseq: 'meta/DESeq2/*[pn].txt'
                R templates:
                     edger: meta/template_script_DESeq2.r'
                     deseq: meta/template_script_edgeR.r'
@@ -373,8 +375,8 @@ def run_ko_remap():
     cursor = connect_db(PATH_KO_DB)
     path_names = get_pathways(cursor)
     kopath_keys, kopath_count = get_kopathways(cursor)
-    edger_files = glob('meta/tables_edgeR/*[pn].txt')
-    deseq_files = glob('meta/tables_edgeR/*[pn].txt')
+    edger_files = glob('meta/edgeR/*[pn].txt')
+    deseq_files = glob('meta/DESeq2/*[pn].txt')
     out_content(deseq_files, kopath_count, path_names)
     out_content(edger_files, kopath_count, path_names, 'edgeR')
 
