@@ -35,7 +35,7 @@ def test_paths_from_settings():
         assert path_exists(var)
 
 
-def test_prepare_taxonomy_stats():
+def omit_test_prepare_taxonomy_stats():
     """
     Tests different scenarios of running prepare_taxonomy_stats function
     """
@@ -118,7 +118,7 @@ def test_prepare_taxonomy_stats():
     # remove_entire_directory('tests/temp')
     
 
-def omit_test_sample():
+def test_sample():
     """
     Tests different scenarios of running sample function
     """
