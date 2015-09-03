@@ -10,13 +10,13 @@
 ################################################################################
 rm(list=ls())                                        # remove all the objects from the R session
 
-workDir <- "meta/"                                   # working directory for the R session
+workDir <- "meta/DESeq2"                             # working directory for the R session
 
 projectName <- ""                                    # name of the project
 author <- ""                                         # author of the statistical analysis/report
 
-targetFile <- "target.txt"                           # path to the design/target file
-rawDir <- "out"                                      # path to the directory containing raw counts files
+targetFile <- "../target.txt"                           # path to the design/target file
+rawDir <- "../out"                                      # path to the directory containing raw counts files
 featuresToRemove <- c("alignment_not_unique",        # names of the features to be removed
                       "ambiguous", "no_feature",     # (specific HTSeq-count information and rRNA for example)
                       "not_aligned", "too_low_aQual")

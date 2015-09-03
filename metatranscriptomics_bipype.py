@@ -182,30 +182,29 @@ def m8_to_ko(file_, multi_id): #
         file_:    Path to BLAST Tabular (flag: -m 8) format file
         multi_id: Dict {KEGG GENES identifier : set[KO identifiers]}
 
-    Output file (outname) has following path:
+    Output file (outname) has following name:
         outname = file_.replace('txt.m8', 'out')
-        outname = outname.replace('Sample_GB_RNA_stress_', '')
     & following format:
         K00161  2
         K00627  0
         K00382  11
     """
     print('working on %s'%(file_))
-    start_time = ()
+    start_time = time()
     tmp_ko_dict = {}
     outname = file_.replace('txt.m8', 'out')
-    outname = outname.replace('Sample_GB_RNA_stress_', '')
     content = open(file_, 'r')
     hit_gid = [] # List of KEGG GENES identifiers from file_
     for line in content:
-        gid = line.split('\t')[1]
-        hit_gid.append(gid)
+        if line[0]!='#':
+            gid = line.split('\t')[1]
+            hit_gid.append(gid)
     file_reading_time = time()
-    print(file_, 'file_reading seconds', kogenes_time-file_reading_time, 'total time', start_time-file_reading_time)
+    print(file_, 'file_reading seconds', start_time-file_reading_time)
     gid_count = Counter(hit_gid)
     multi_clean, gid_clean = dicto_reduce(gid_count, multi_id)
     cleaning_time = time()
-    print(file_, 'cleaning time seconds', file_reading_time-cleaning_time, 'total time', start_time-cleaning_time)
+    print(file_, 'cleaning time seconds', file_reading_time-cleaning_time)
     for gid in gid_clean:
         for ko in multi_clean[gid]:
             try:
@@ -214,7 +213,7 @@ def m8_to_ko(file_, multi_id): #
                 tmp_ko_dict[ko] = gid_clean[gid]
     comparison_time = time()
     print(file_, 'comparing time seconds', cleaning_time-comparison_time, 'total time', start_time-comparison_time)
-    with open("../out/",outname, 'w') as out_file:
+    with open(outname.replace('m8','out'), 'w') as out_file:
         for ko in tmp_ko_dict:
             to_print = '%s\t%i\n'%(ko, tmp_ko_dict[ko])
             out_file.write(to_print)
@@ -269,7 +268,7 @@ def out_content(filelist, kopath_count, path_names, method='DESeq2'):
             for line in filecontent:
                 Kid = line.rstrip().split('\t')[0]
                 Kids.add(Kid)
-        with open('meta/'+outname, 'w') as outfile:
+        with open('meta/remap/'+outname, 'w') as outfile:
             outfile.write('ko_path_id;ko_path_name;percent common;common KOs\n')
             for path, Kset in kopath_count.items():
                 common = Kids&Kset
@@ -305,8 +304,8 @@ def rapsearch2(input_file):
         - path to RAPSearch2 program:                   PATH_RAPSEARCH
         - path to similarity search database:           PATH_REF_PROT_KO
     """
-    out_name = input_file.replace('fasta', 'txt.m8')
-    out_name = "m8/"+out_name
+    out_name = input_file.replace('tmp.fasta', 'txt')
+    out_name = out_name.replace('fasta/','m8/')
     rap_com = '%s -q %s -d %s -o %s -z 12 -v 20 -b 1 -t n -a t'%(
         PATH_RAPSEARCH, input_file, PATH_REF_PROT_KO, out_name)
     system(rap_com)
@@ -325,7 +324,7 @@ def run_cat_pairing():
             if file_R1.split('R1')==file_R2.split('R2'):
                 outname = file_R1.replace('R1_','')
                 outname = outname.replace('.fasta','.tmp.fasta')
-                system('cat '+file_R1+' '+file_R2+' > '+outname)
+                system('cat '+file_R1+' '+file_R2+' >> '+outname)
 
 
 def run_rapsearch():
@@ -342,16 +341,23 @@ def run_ko_map():
         - pickle to dict from KO GENES table from KO database:  PATH_KO_PCKL
     """
     data = pickle_or_db(PATH_KO_PCKL, connect_db(PATH_KO_DB))
+    p_list=[]
     for file_ in glob('meta/m8/*m8'):
         p=Process(target=m8_to_ko,args=(file_,data))
         p.start()
-
+        p_list.append(p)
+    for p in p_list:
+        p.join() 
 
 def run_SARTools():
+    """Runs SARTools in R.
+
+    HARDCODED: R templates:
+                    edger: meta/template_script_DESeq2.r'
+                    deseq: meta/template_script_edgeR.r'
+    """
     system('Rscript meta/template_script_DESeq2.r')
-    system('mv meta/tables/* meta/tables_DESeq2')
     system('Rscript meta/template_script_edgeR.r')
-    system('mv meta/tables/* meta/tables_edgeR')
 
 
 def run_ko_remap():
@@ -362,19 +368,16 @@ def run_ko_remap():
         db: Path to SQLite3 database.
 
     HARDCODED: Paths to files from SARTools:
-                    edger: 'meta/tables_edgeR/*[pn].txt'
-                    deseq: 'meta/tables_DESeq2/*[pn].txt'
-               R templates:
-                    edger: meta/template_script_DESeq2.r'
-                    deseq: meta/template_script_edgeR.r'
+                    edger: 'meta/edgeR/*[pn].txt'
+                    deseq: 'meta/DESeq2/*[pn].txt'
     GLOBALS:
         - path to KO database:  PATH_KO_DB
     """
     cursor = connect_db(PATH_KO_DB)
     path_names = get_pathways(cursor)
     kopath_keys, kopath_count = get_kopathways(cursor)
-    edger_files = glob('meta/tables_edgeR/*[pn].txt')
-    deseq_files = glob('meta/tables_edgeR/*[pn].txt')
+    edger_files = glob('meta/edgeR/tables/*[pn].txt')
+    deseq_files = glob('meta/DESeq2/tables/*[pn].txt')
     out_content(deseq_files, kopath_count, path_names)
     out_content(edger_files, kopath_count, path_names, 'edgeR')
 
