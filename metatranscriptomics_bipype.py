@@ -1,6 +1,5 @@
 #!/usr/bin/python
 import sqlite3
-
 from glob import glob
 from multiprocessing import Process
 import cPickle
@@ -126,7 +125,7 @@ def get_pathways(database):
 
     Returns:
         Dictionary in following format:
-                {PID:Name}
+                {KEGG_Pathway_id:Name}
             For example:
                 {   'ko04060':'Cytokine-cytokine receptor interaction',
                     'ko00910':'Nitrogen metabolism'    }
@@ -147,12 +146,12 @@ def get_kopathways(database):
 
     Returns:
         Two dictionaries:
-            {KO identifier:PID}
+            {KO identifier:set[KEGG_Pathway_ids]}
             For example:
-                {   'K01194':'ko00500',
-                    'K04501':'ko04390'    }
+                {   'K01194':set(['ko00500','ko00600',...]),
+                    'K04501':set(['ko04390',...])   }
             &
-            {PID:set[KO identifiers]}
+            {KEGG_Pathway_id:set[KO identifiers]}
             For example:
                 {ko12345:set([K12345, K12346,...]),...}
     """
@@ -230,11 +229,11 @@ def out_content(filelist, kopath_count, path_names, method='DESeq2'):
         filelist:      List of paths to tab-delimited .txt files, where
                        first column is a KO identifier.
 
-        kopath_count:  Dictionary in {PID:set[KO identifiers]} format.
+        kopath_count:  {KEGG_Pathway_id:set[KO identifiers]} dict.
                        For example:
                             {ko12345:set([K12345, K12346,...]),...}
 
-        path_names:    Dictionary in {PID:Name} format.
+        path_names:    Dictionary in {KEGG_Pathway_id:Name} format.
                        For example:
                    {'ko04060':'Cytokine-cytokine receptor interaction',c
                     'ko00910':'Nitrogen metabolism'}
@@ -347,7 +346,7 @@ def run_ko_map():
         p.start()
         p_list.append(p)
     for p in p_list:
-        p.join() 
+        p.join()
 
 def run_SARTools():
     """Runs SARTools in R.
@@ -382,12 +381,16 @@ def run_ko_remap():
     out_content(edger_files, kopath_count, path_names, 'edgeR')
 
 
+def run_new_ko_remap():
+    return None
+
+
 def metatranscriptomics(opts):
     """Performs analyse of metagenomic data.
 
     For more information please refer to
     run_fastq_to_fasta(), run_rapsearch() run_ko_map(),
-    run_SARTools() & run_ko_remap()
+    run_SARTools(), run_ko_remap() & run_new_ko_remap().
     """
     before_cwd = getcwd()
     chdir(dirname(realpath(__file__)))
@@ -397,4 +400,5 @@ def metatranscriptomics(opts):
     run_ko_map()
     run_SARTools()
     run_ko_remap()
+    run_new_ko_remap()
     chdir(before_cwd)
