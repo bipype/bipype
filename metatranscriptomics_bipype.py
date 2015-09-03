@@ -274,7 +274,7 @@ def out_content(filelist, kopath_count, path_names, method='DESeq2'):
             for path, Kset in kopath_count.items():
                 common = Kids&Kset
                 if len(common) > 0:
-                    percent_ko = str(int(len(common)*100.0/len(Kset)))
+                    percent_ko = str(len(common)*100.0/len(Kset))
                     print_ko = ' '.join(common)
                     path_name_comma = path_names[path]
                     path_name = path_name_comma.replace(',', ' _')
