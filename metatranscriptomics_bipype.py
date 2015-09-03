@@ -1,14 +1,14 @@
-#!/usr/bin/python
 import sqlite3
+import cPickle
 from glob import glob
 from multiprocessing import Process
-import cPickle
 from os.path import exists as pexists
 from os.path import dirname, realpath #this line may be deleted in one of the next versions
 from os import system, chdir, getcwd #chdir & getcwd may be deleted in one of the next versions
 from collections import Counter
 from time import time
 from settings_bipype import *
+
 
 def dicto_reduce(present, oversized):
     """Removes all elements from dictionaries, which keys aren't present
@@ -347,6 +347,7 @@ def run_ko_map():
         p_list.append(p)
     for p in p_list:
         p.join()
+
 
 def run_SARTools():
     """Runs SARTools in R.
