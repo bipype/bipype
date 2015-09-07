@@ -1,12 +1,17 @@
 import sqlite3
 import cPickle
+import subprocess
+from bs4 import BeautifulSoup
 from glob import glob
+from urllib import urlopen
 from multiprocessing import Process
-from os.path import exists as pexists
-from os.path import dirname, realpath #this line may be deleted in one of the next versions
-from os import system, chdir, getcwd #chdir & getcwd may be deleted in one of the next versions
 from collections import Counter
 from time import time
+from os.path import exists as pexists
+from os.path import join as pjoin
+from os.path import dirname, realpath #this line may be deleted in one of the next versions
+from os import system, chdir, getcwd #chdir & getcwd may be deleted in one of the next versions
+
 from settings_bipype import *
 
 
@@ -160,7 +165,10 @@ def get_kopathways(database):
     kopathways = {}
     kopath_path = {}
     for kopath in kopaths:
-        kopathways[kopath[0]] = kopath[1]
+        if kopath[0] not in kopathways:
+            kopathways[kopath[0]] = set([kopath[1]])
+        else:
+            kopathways[kopath[0]].add(kopath[1])
         try:
             kopath_path[kopath[1]].add(kopath[0])
         except KeyError:
@@ -287,8 +295,7 @@ def fastq_to_fasta(_file):
     """
     out_file = _file.rsplit(".", 1)[0] + ".fasta"
     out_file = out_file.replace('/fastq/','/fasta/')
-    fq2fa_com = '%s < %s > %s -Q33'%(PATH_FQ2FA, _file, out_file)
-    system(fq2fa_com)
+    subprocess.check_call([PATH_FQ2FA, '-i', _file ,'-o', out_file ,'-Q33'])
 
 
 def rapsearch2(input_file):
@@ -302,9 +309,8 @@ def rapsearch2(input_file):
     """
     out_name = input_file.replace('tmp.fasta', 'txt')
     out_name = out_name.replace('fasta/','m8/')
-    rap_com = '%s -q %s -d %s -o %s -z 12 -v 20 -b 1 -t n -a t'%(
-        PATH_RAPSEARCH, input_file, PATH_REF_PROT_KO, out_name)
-    system(rap_com)
+    subprocess.check_call([PATH_RAPSEARCH,'-q',input_file,'-d',PATH_REF_PROT_KO,'-o',out_name,
+        '-z','16','-v','20','-b','1','-t','n','-a','t']) #opts threading
 
 
 def get_ko_fc(ko_dict, ref_cond, filepath):
@@ -319,13 +325,13 @@ def get_ko_fc(ko_dict, ref_cond, filepath):
         ko_dict with added fold changes from table file
         """
     with open(filepath) as _file:
-        l_cond = filepath.split('\\')[-1].split('vs',2)
+        l_cond = filepath.split('/')[-1].split('.')[0].split('vs',2)
         if l_cond[0] != ref_cond:
             cond = l_cond[0]
         else:
             cond = l_cond[1]
         file_content = _file.readlines()
-        fc_index = file_content[0].rstrip().split('\t').index('FoldChange')
+        fc_index = file_content[0].rstrip().split('\t').index('FC')
         for i in range(1, len(file_content)):
             line = file_content[i].rstrip().split('\t')
             KO = line[0]
@@ -428,7 +434,7 @@ def mapper_write(ko_path_dict, all_conds, out_dir):
     for every combination of condition & KEGG_Pathway_id .
 
     Args:
-        ko_dict:
+        ko_path_dict:
           {KEGG_Pathway_id:{KO_id:{cond1:value1, cond2:value2...}...}...}
         all_conds:  list of conditions (list of strings)
         out_dir:    relative output directory path
@@ -442,10 +448,10 @@ def mapper_write(ko_path_dict, all_conds, out_dir):
                   & following format:
         KO_id corresponding_fold_change
     """
-    cond_paths=[]
     for cond in all_conds:
         path = pjoin(out_dir, cond)
-        for pathway in dicto.keys():
+        system('mkdir '+path)
+        for pathway in ko_path_dict.keys():
             header = '#KO ' + path + '\n'
             filename = pathway + '.txt'
             output_path = pjoin(path, filename)
@@ -470,7 +476,11 @@ def run_cat_pairing():
             if file_R1.split('R1')==file_R2.split('R2'):
                 outname = file_R1.replace('R1_','')
                 outname = outname.replace('.fasta','.tmp.fasta')
-                system('cat '+file_R1+' '+file_R2+' >> '+outname)
+                subprocess.check_call(['touch',outname])
+                with open (outname, 'w') as out:
+                    with open(file_R1) as f1, open(file_R2) as f2:
+                        out.write(f1.read())
+                        out.write(f2.read())
 
 
 def run_rapsearch():
@@ -539,7 +549,7 @@ def run_pre_ko_remap(ref_cond='pH7'): # In the final version default value will 
     kopath_keys, kopath_values = get_kopathways(cursor)
     edger_files = glob('meta/edgeR/tables/*[pn].txt')
     deseq_files = glob('meta/DESeq2/tables/*[pn].txt')
-    return all_conds, path_names, kopath_keys, kopath_values,
+    return all_conds, path_names, kopath_keys, kopath_values, \
             edger_files, deseq_files
 
 
@@ -557,7 +567,7 @@ def run_ko_remap(deseq_files, edger_files, kopath_values, path_names):
     out_content(edger_files, kopath_values, path_names, 'edgeR')
 
 
-def run_new_ko_remap(deseq_files, edger_files, kopath_values, ref_cond='pH7'): # In the final version default value of ref_cond will be not present
+def run_new_ko_remap(deseq_files, edger_files, kopath_values, all_conds, ref_cond='pH7'): # In the final version default value of ref_cond will be not present
     """Runs get_ko_fc(), low_change(), mapper() and mapper_write()
     in appropriate way for files from deseq_files and edger_files.
 
@@ -566,6 +576,7 @@ def run_new_ko_remap(deseq_files, edger_files, kopath_values, ref_cond='pH7'): #
         edger_files:    list of edgeR outputs paths
         ref_cond:       Reference condition (group) - string
         kopath_values:  {KEGG_Pathway_id:set[KO identifiers]} dict
+        all_conds:      list of conditions (list of strings)
 
     Returns:
         ko_dict_deseq:  {KO_id:{cond1:value1, cond2:value2...}...} dict
@@ -578,15 +589,17 @@ def run_new_ko_remap(deseq_files, edger_files, kopath_values, ref_cond='pH7'): #
     ko_dict_deseq = {}
     ko_dict_edger = {}
     for _file in deseq_files:
-        if ref_cond in _file: get_ko_fc(ko_dict_deseq, ref_cond, _file)
+        if ref_cond in _file:
+            ko_dict_deseq = get_ko_fc(ko_dict_deseq, ref_cond, _file)
     for _file in edger_files:
-        if ref_cond in _file: get_ko_fc(ko_dict_edger, ref_cond, _file)
-    ko_dict_deseq = low_change(ko_dict_deseq)
-    ko_dict_edger = low_change(ko_dict_edger)
+        if ref_cond in _file:
+            ko_dict_edger= get_ko_fc(ko_dict_edger, ref_cond, _file)
+    ko_dict_deseq = low_change(ko_dict_deseq, all_conds)
+    ko_dict_edger = low_change(ko_dict_edger, all_conds)
     mapper_deseq = mapper(ko_dict_deseq, kopath_values)
     mapper_edger = mapper(ko_dict_edger, kopath_values)
-    mapper_write(mapper_deseq, 'meta/new_ko_remap/deseq/')
-    mapper_write(mapper_edger, 'meta/new_ko_remap/edger/')
+    mapper_write(mapper_deseq, all_conds, 'meta/new_ko_remap/deseq/')
+    mapper_write(mapper_edger, all_conds, 'meta/new_ko_remap/edger/')
     return ko_dict_deseq, ko_dict_edger
 
 
@@ -611,7 +624,7 @@ def run_ko_csv(ko_dict_deseq, ko_dict_edger, all_conds, kopath_keys, \
     for touple in [(ko_dict_deseq, 'meta/csv/deseq.csv'),
                    (ko_dict_edger, 'meta/csv/edger.csv')]:
         filepath = touple[1]
-        ko_dict = touple[2]
+        ko_dict = touple[0]
         with open(filepath, 'wb') as _file:
             l_header = ['KO_id', 'Gene_name', 'paths ids', 'paths names']
             for cond in all_conds: l_header.append('FC '+ref_cond+' vs '+cond)
@@ -620,10 +633,10 @@ def run_ko_csv(ko_dict_deseq, ko_dict_edger, all_conds, kopath_keys, \
             for Kid in ko_dict.keys():
                 to_write = [Kid]                    # ['K01369']
                 to_write.append(get_kegg_name(Kid)) # ['K01369','LGMN']
-                if Kid in kopath.keys():
+                if Kid in kopath_keys.keys():
                     koids = []
                     konames = []
-                    for path in kopath[Kid]:
+                    for path in kopath_keys[Kid]:
                          koids.append(path)
                          konames.append(path_names[path])
                     to_write.append(','.join(koids))    # ['K01369','LGMN', 'ko04612, ko04142']
@@ -631,7 +644,7 @@ def run_ko_csv(ko_dict_deseq, ko_dict_edger, all_conds, kopath_keys, \
                 else:
                     to_write.append('NA')
                     to_write.append('NA')
-                for cond in conds: to_write.append(str(ko_dict[Kid][cond]))
+                for cond in all_conds: to_write.append(str(ko_dict[Kid][cond]))
                 # ['K01369','LGMN', 'ko04612, ko04142','Antigen processing and presentation,Lysosome','0','1.12','2.32']
                 _file.write((';'.join(to_write))+'\n')
 
@@ -654,7 +667,7 @@ def metatranscriptomics(opts):
         edger_files, deseq_files = run_pre_ko_remap()
     run_ko_remap(deseq_files, edger_files, kopath_values, path_names)
     ko_dict_deseq, ko_dict_edger = \
-        run_new_ko_remap(deseq_files, edger_files, kopath_values) # add ref_cond!
-    #run_ko_csv(ko_dict_deseq, ko_dict_edger, all_conds, kopath_keys, \
-        #path_names) # add ref_cond!
+        run_new_ko_remap(deseq_files, edger_files, kopath_values, all_conds) # add ref_cond!
+    run_ko_csv(ko_dict_deseq, ko_dict_edger, all_conds, kopath_keys, \
+        path_names) # add ref_cond!
     chdir(before_cwd)

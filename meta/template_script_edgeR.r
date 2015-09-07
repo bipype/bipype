@@ -22,7 +22,7 @@ featuresToRemove <- c("alignment_not_unique",        # names of the features to 
                       "not_aligned", "too_low_aQual")
 
 varInt <- "group"                                    # factor of interest
-condRef <- "ph7"                                     # reference biological condition
+condRef <- "pH7"                                     # reference biological condition
 batch <- NULL                                        # blocking factor: NULL (default) or "batch" for example
 
 alpha <- 0.05                                        # threshold of statistical significance

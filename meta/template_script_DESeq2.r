@@ -22,7 +22,7 @@ featuresToRemove <- c("alignment_not_unique",        # names of the features to 
                       "not_aligned", "too_low_aQual")
 
 varInt <- "group"                                    # factor of interest
-condRef <- "ph7"                                     # reference biological condition
+condRef <- "pH7"                                     # reference biological condition
 batch <- NULL                                        # blocking factor: NULL (default) or "batch" for example
 
 fitType <- "parametric"                              # mean-variance relationship: "parametric" (default) or "local"
@@ -69,7 +69,7 @@ exploreCounts(object=out.DESeq2$dds, group=target[,varInt], typeTrans=typeTrans,
 
 # summary of the analysis (boxplots, dispersions, diag size factors, export table, nDiffTotal, histograms, MA plot)
 summaryResults <- summarizeResults.DESeq2(out.DESeq2, group=target[,varInt], col=colors,
-                                          independentFiltering=independentFiltering, 
+                                          independentFiltering=independentFiltering,
                                           cooksCutoff=cooksCutoff, alpha=alpha)
 
 # save image of the R session
