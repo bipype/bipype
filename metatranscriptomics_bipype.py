@@ -234,7 +234,7 @@ def m8_to_ko(file_, multi_id):
 
 
 def out_content(filelist, kopath_values, path_names, method = 'DESeq2'):
-    r"""For every item in 'kopath_values' dictionary and for every file
+    """For every item in 'kopath_values' dictionary and for every file
         in 'filelist', writes to output file line with KOs, which are common
         for item.value and the set of KOs obtained from file.
 
@@ -248,7 +248,7 @@ def out_content(filelist, kopath_values, path_names, method = 'DESeq2'):
 
             path_names:    Dictionary in {KEGG_Pathway_id:Name} format.
                            For example:
-                       {'ko04060':'Cytokine-cytokine receptor interaction',c
+                       {'ko04060':'Cytokine-cytokine receptor interaction',
                         'ko00910':'Nitrogen metabolism'}
 
             method:        Argument used only as a part of output file name
@@ -322,7 +322,7 @@ def rapsearch2(input_file, threads):
     """
     out_name = input_file.replace('tmp.fasta', 'txt')
     out_name = out_name.replace('fasta/', 'm8/')
-    subprocess.check_call([PATH_RAPSEARCH,'-q', input_file, '-d', 
+    subprocess.check_call([PATH_RAPSEARCH,'-q', input_file, '-d',
      PATH_REF_PROT_KO, '-o', out_name, '-z', str(threads),
      '-v', '20', '-b', '1', '-t', 'n', '-a', 't'])
 
@@ -668,7 +668,8 @@ def run_ko_csv(ko_dict_deseq, ko_dict_edger, all_conds, kopath_keys, path_names,
                 deseq: 'csv/deseq.csv'
                 edger: 'csv/edger.csv'
     """
-    for touple in [(ko_dict_deseq, 'csv/deseq.csv'), (ko_dict_edger, 'csv/edger.csv')]:
+    for touple in [(ko_dict_deseq, 'csv/deseq.csv'),
+                   (ko_dict_edger, 'csv/edger.csv')]:
         filepath = touple[1]
         ko_dict = touple[0]
         with open(filepath, 'wb') as _file:
@@ -678,20 +679,21 @@ def run_ko_csv(ko_dict_deseq, ko_dict_edger, all_conds, kopath_keys, path_names,
             header = ';'.join(l_header + ['\n'])
             _file.write(header)
             for Kid in ko_dict.keys():
-                to_write = [Kid]
-                to_write.append(get_kegg_name(Kid))
+                to_write = [Kid]                    # ['K01369']
+                to_write.append(get_kegg_name(Kid)) # ['K01369','LGMN']
                 if Kid in kopath_keys.keys():
                     koids = []
                     konames = []
                     for path in kopath_keys[Kid]:
                         koids.append(path)
                         konames.append(path_names[path])
-                    to_write.append(','.join(koids))
-                    to_write.append(','.join(konames))
+                    to_write.append(','.join(koids))    # ['K01369','LGMN', 'ko04612, ko04142']
+                    to_write.append(','.join(konames))  # ['K01369','LGMN', 'ko04612, ko04142','Antigen processing and presentation,Lysosome']
                 else:
                     to_write.append('NA')
                     to_write.append('NA')
                 for cond in all_conds:
+                # ['K01369','LGMN', 'ko04612, ko04142','Antigen processing and presentation,Lysosome','0','1.12','2.32']
                     to_write.append(str(ko_dict[Kid][cond]))
                 _file.write(';'.join(to_write) + '\n')
 
@@ -710,7 +712,7 @@ def metatranscriptomics(opts):
     system('mkdir ' + work_dir)
     system('cp -r metatr_results/metatr_pattern/* ' + work_dir)
     chdir(work_dir)
-    (ref_cond, all_conds, fastqs,) = config_from_file(work_dir, opts.metatr_config)
+    ref_cond, all_conds, fastqs = config_from_file(work_dir, opts.metatr_config)
     print '\nconfiguration file reading: DONE\n\n'
     run_fastq_to_fasta(fastqs)
     print '\nfastq_to_fasta: DONE\n\n'
@@ -722,13 +724,16 @@ def metatranscriptomics(opts):
     print '\nKO mapping: DONE\n\n'
     run_SARTools()
     print '\nSARTools: DONE\n\n'
-    (path_names, kopath_keys, kopath_values, edger_files, deseq_files,) = run_pre_ko_remap(ref_cond)
+    path_names, kopath_keys, kopath_values, edger_files, deseq_files = \
+     run_pre_ko_remap(ref_cond)
     if opts.metatr_output_type == 'old' or 'both' in opts.metatr_output_type:
         run_ko_remap(deseq_files, edger_files, kopath_values, path_names)
     if 'new' in opts.metatr_output_type or 'both' in opts.metatr_output_type:
-        (ko_dict_deseq, ko_dict_edger,) = run_new_ko_remap(deseq_files, edger_files, kopath_values, all_conds, ref_cond)
+        ko_dict_deseq, ko_dict_edger = run_new_ko_remap(
+         deseq_files, edger_files, kopath_values, all_conds, ref_cond)
     print '\npathway mapping: DONE\n\n'
     if 'csv' in opts.metatr_output_type:
-        run_ko_csv(ko_dict_deseq, ko_dict_edger, all_conds, kopath_keys, path_names, ref_cond)
+        run_ko_csv(ko_dict_deseq, ko_dict_edger, all_conds, kopath_keys,
+         path_names, ref_cond)
     print '\ngenerating summative CSV: DONE\n\n'
     chdir(before_cwd)
