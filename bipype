@@ -133,9 +133,9 @@ def parse_arguments(args=None):
     metatr.add_argument("--metatr_config",
         type=str,
         help='confriguration file which is necessary to launch metatranscriptomic part of bipype'),
-    metatr.add_argument("-mot","--metatr_output_type"
+    metatr.add_argument("-mot","--metatr_output_type",
         type=str,
-        choice=['old','new','new-csv','both','both-csv'],
+        choices=['old','new','new-csv','both','both-csv'],
         default='both-csv',
         help='determines type of the one of the outputs from metatranscriptomic part of bipype')
     return parser.parse_args(args)
