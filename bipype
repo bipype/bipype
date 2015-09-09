@@ -129,20 +129,17 @@ def parse_arguments(args=None):
         type=str,
         default=PATH_ITS_DATABASE,
         help='location of ITS database used in taxonomy classification (fasta with specially formatted headers)')
-    db_loc = parser.add_argument_group('metatranscriptomics', 'arguments for metatranscriptomic workflow')
-    db_loc.add_argument("--test",
+    metatr = parser.add_argument_group('metatranscriptomics', 'parameters for metatranscriptomic pipe')
+    metatr.add_argument("--metatr_config",
         type=str,
-        default="testtt",
-        help='test')
-
-
-    parsed_args = parser.parse_args(args)
-
-    return parsed_args
+        help='Confriguration file which is necessary to launch metatranscriptomic part of bipype.')
+    return parser.parse_args(args)
 
 
 if __name__ == '__main__':
     opts = parse_arguments()
-    sample(opts)
-    prepare_taxonomy_stats(opts)
-    #metatranscriptomics(opts)
+    if (opts.metatr_config): metatranscriptomics(opts)
+    else:
+        sample(opts)
+        prepare_taxonomy_stats(opts)
+

@@ -7,10 +7,11 @@ from urllib import urlopen
 from multiprocessing import Process
 from collections import Counter
 from time import time
+from datetime import datetime
 from os.path import exists as pexists
 from os.path import join as pjoin
-from os.path import dirname, realpath #this line may be deleted in one of the next versions
-from os import system, chdir, getcwd #chdir & getcwd may be deleted in one of the next versions
+from os.path import dirname, realpath
+from os import system, chdir, getcwd
 
 from settings_bipype import *
 
@@ -79,7 +80,7 @@ def auto_tax_read(db_loc):
     return dictionary
 
 
-def pickle_or_db(pickle, db): # Please, check if identifiers are correct.
+def pickle_or_db(pickle, db):
     """Reads pickle or SQL database, than makes a dict.
 
     If appropriate pickle (a dict) is available, it is read.
@@ -187,7 +188,7 @@ def m8_to_ko(file_, multi_id):
         multi_id: Dict {KEGG GENES identifier : set[KO identifiers]}
 
     Output file (outname) has following name:
-        outname = file_.replace('txt.m8', 'out')
+        outname = file_.replace('txt.m8', 'count')
     & following format:
         K00161  2
         K00627  0
@@ -196,7 +197,7 @@ def m8_to_ko(file_, multi_id):
     print('working on %s'%(file_))
     start_time = time()
     tmp_ko_dict = {}
-    outname = file_.replace('txt.m8', 'out')
+    outname = file_.replace('txt.m8', 'count')
     content = open(file_, 'r')
     hit_gid = [] # List of KEGG GENES identifiers from file_
     for line in content:
@@ -217,7 +218,7 @@ def m8_to_ko(file_, multi_id):
                 tmp_ko_dict[ko] = gid_clean[gid]
     comparison_time = time()
     print(file_, 'comparing time seconds', cleaning_time-comparison_time, 'total time', start_time-comparison_time)
-    with open(outname.replace('m8','out'), 'w') as out_file:
+    with open(outname.replace('m8','counts'), 'w') as out_file:
         for ko in tmp_ko_dict:
             to_print = '%s\t%i\n'%(ko, tmp_ko_dict[ko])
             out_file.write(to_print)
@@ -272,7 +273,7 @@ def out_content(filelist, kopath_values, path_names, method='DESeq2'):
             for line in filecontent:
                 Kid = line.rstrip().split('\t')[0]
                 Kids.add(Kid)
-        with open('meta/remap/'+outname, 'w') as outfile:
+        with open('ko_remap/'+outname, 'w') as outfile:
             outfile.write('ko_path_id;ko_path_name;percent common;common KOs\n')
             for path, Kset in kopath_values.items():
                 common = Kids&Kset
@@ -285,23 +286,24 @@ def out_content(filelist, kopath_values, path_names, method='DESeq2'):
                     outfile.write(outline)
 
 
-def fastq_to_fasta(_file):
+def fastq_to_fasta(fastq):
     """Runs fastq_to_fasta for _file and write output as out_file.
 
-    Writes output in "./meta/fasta/" directory.
+    Writes output in "fasta/" directory.
 
     GLOBAL:
         - path to fastq_to_fasta program:               PATH_FQ2FA
     """
-    out_file = _file.rsplit(".", 1)[0] + ".fasta"
-    out_file = out_file.replace('/fastq/','/fasta/')
-    subprocess.check_call([PATH_FQ2FA, '-i', _file ,'-o', out_file ,'-Q33'])
+    out_file = fastq.rsplit(".", 1)[0] + ".fasta"
+    out_file = out_file.rsplit('/', 1)[-1]
+    out_file = 'fasta/' + out_file
+    subprocess.check_call([PATH_FQ2FA, '-i', fastq ,'-o', out_file ,'-Q33'])
 
 
-def rapsearch2(input_file):
+def rapsearch2(input_file, threads):
     """Runs rapsearch2() for input_file in fasta format.
 
-    Writes outputs in "./meta/m8/" directory.
+    Writes outputs in "m8/" directory.
 
     GLOBALS:
         - path to RAPSearch2 program:                   PATH_RAPSEARCH
@@ -310,7 +312,7 @@ def rapsearch2(input_file):
     out_name = input_file.replace('tmp.fasta', 'txt')
     out_name = out_name.replace('fasta/','m8/')
     subprocess.check_call([PATH_RAPSEARCH,'-q',input_file,'-d',PATH_REF_PROT_KO,'-o',out_name,
-        '-z','16','-v','20','-b','1','-t','n','-a','t']) #opts threading
+        '-z',str(threads),'-v','20','-b','1','-t','n','-a','t'])
 
 
 def get_ko_fc(ko_dict, ref_cond, filepath):
@@ -364,14 +366,14 @@ def low_change(ko_dict, all_conds):
     For example:
         low_change( { 'K12345':{'pH5':1.41, 'pH6':1.73},
                       'K23456':{'pH6':2.0, 'pH8':2.24}   },
-                    ['ph5','ph6','ph8'] )
-        give        { 'K12345':{'pH5':1.41, 'pH6':1.73, 'ph8':0.0},
-                      'K23456':{'ph5':0.0, 'pH6':2.0, 'pH8':2.24}   }
+                    ['pH5','pH6','pH8'] )
+        give        { 'K12345':{'pH5':1.41, 'pH6':1.73, 'pH8':0.0},
+                      'K23456':{'pH5':0.0, 'pH6':2.0, 'pH8':2.24}   }
 
     """
     for KO, conds in ko_dict.items():
         for cond in all_conds:
-            if cond not in all_conds:
+            if cond not in conds:
                 ko_dict[KO][cond] = 0.0
     return ko_dict
 
@@ -440,7 +442,7 @@ def mapper_write(ko_path_dict, all_conds, out_dir):
         out_dir:    relative output directory path
 
     Output file has following path:
-        ./out_dir/condX/
+        out_dir/condX/
                   , following name:
         KEGG_Pathway_id.txt
                   , following header:
@@ -463,16 +465,57 @@ def mapper_write(ko_path_dict, all_conds, out_dir):
                     _file.write(line)
 
 
-def run_fastq_to_fasta():
-    """Runs fastq_to_fasta() for every .fastq in ./meta/fastq/"""
-    for _file in glob('meta/fastq/*fastq')+glob('meta/fastq/*fq'):
-        fastq_to_fasta(_file)
+def config_from_file(work_dir, _file):
+    """Reads paramaters from configuration _file. Prepares target.txt
+
+    Args:
+        work_dir:   current working directory
+        _file       configuration file for metatranscriptomic pipeline
+
+    Returns:
+        ref_cond:   reference condition defined by user
+        all_conds:  set of conditions (groups) from target.txt
+        fastqs:     list of fastq files on which analysis will be done
+    """
+    all_conds=[]
+    fastqs=[]
+    with open(_file) as f:
+        lines = f.readlines()
+        ref_cond = lines[0].split()[0]
+    with open('target.txt','w') as f:
+        f.write('label\tfiles\tgroup')
+        for line in lines[1:]:
+            line = line.split()
+            all_conds.append(line[3])
+            fastqs.append(line[1])
+            fastqs.append(line[2])
+            target_name = line[1].rsplit('/',1)[-1]
+            target_name = target_name.replace('R1_','')
+            target_name = target_name.replace('.fastq','.count')
+            f.write('\n' + line[0] +'\t'+ target_name +'\t'+ line[3])
+    with open('template_script_DESeq2.r') as f:
+        lines = f.readlines()
+        lines[24] = 'condRef <- "'+ref_cond+'"'+'\n'
+    with open('template_script_DESeq2.r','w') as f:
+        for line in lines: f.write(line)
+    with open('template_script_edgeR.r') as f:
+        lines = f.readlines()
+        lines[24] = 'condRef <- "'+ref_cond+'"'+'\n'
+    with open('template_script_edgeR.r','w') as f:
+        for line in lines: f.write(line)
+    return ref_cond, set(all_conds), fastqs
+
+
+def run_fastq_to_fasta(fastqs):
+    """Runs fastq_to_fasta() for every .fastq in fastqs"""
+    for fastq in fastqs:
+        fastq_to_fasta(fastq)
 
 
 def run_cat_pairing():
-    """Merges fasta files with paired-end reads in ./meta/fasta/"""
-    for file_R1 in glob('meta/fasta/*R1*fasta'):
-        for file_R2 in glob('meta/fasta/*R2*fasta'):
+    """Merges fasta files with paired-end reads in fasta/"""
+    for file_R1 in glob('fasta/*R1*fasta'):
+        for file_R2 in glob('fasta/*R2*fasta'):
             if file_R1.split('R1')==file_R2.split('R2'):
                 outname = file_R1.replace('R1_','')
                 outname = outname.replace('.fasta','.tmp.fasta')
@@ -483,10 +526,10 @@ def run_cat_pairing():
                         out.write(f2.read())
 
 
-def run_rapsearch():
-    """Runs rapsearch2() for every .tmp.fasta in ./meta/fasta/"""
-    for _file in glob('meta/fasta/*tmp.fasta'):
-        rapsearch2(_file)
+def run_rapsearch(threads):
+    """Runs rapsearch2() for every .tmp.fasta in fasta/"""
+    for _file in glob('fasta/*tmp.fasta'):
+        rapsearch2(_file, threads)
 
 
 def run_ko_map():
@@ -498,7 +541,7 @@ def run_ko_map():
     """
     data = pickle_or_db(PATH_KO_PCKL, connect_db(PATH_KO_DB))
     p_list=[]
-    for file_ in glob('meta/m8/*m8'):
+    for file_ in glob('m8/*m8'):
         p=Process(target=m8_to_ko,args=(file_,data))
         p.start()
         p_list.append(p)
@@ -510,14 +553,14 @@ def run_SARTools():
     """Runs SARTools in R.
 
     HARDCODED: R templates:
-                    edger: meta/template_script_DESeq2.r'
-                    deseq: meta/template_script_edgeR.r'
+                    edger: template_script_DESeq2.r'
+                    deseq: template_script_edgeR.r'
     """
-    system('Rscript meta/template_script_DESeq2.r')
-    system('Rscript meta/template_script_edgeR.r')
+    system('Rscript template_script_DESeq2.r')
+    system('Rscript template_script_edgeR.r')
 
 
-def run_pre_ko_remap(ref_cond='pH7'): # In the final version default value will be not present
+def run_pre_ko_remap(ref_cond):
     """Prepares args for run_(pre_/new_)ko_remap()
 
     Arg:
@@ -529,27 +572,21 @@ def run_pre_ko_remap(ref_cond='pH7'): # In the final version default value will 
         kopath_values:  {KEGG_Pathway_id:set[KO identifiers]} dict
         edger_files:    list of edgeR outputs paths
         deseq_diles:    list of DESeq outputs paths
-        all_conds:      list of conditions (groups) from target.txt
 
     HARDCODED: Paths to files from SARTools:
-                    edger: 'meta/edgeR/*[pn].txt'
-                    deseq: 'meta/DESeq2/*[pn].txt'
+                    edger: 'edger/*[pn].txt'
+                    deseq: 'deseq/*[pn].txt'
     GLOBALS:
         - path to KO database:  PATH_KO_DB
     """
-    all_conds=[]
-    with open('meta/target.txt') as _file:
-        for line in _file:
-            if line.split()[0]!='label' and len(line.split())==3:
-                tmp_cond = line.split()[2]
-                if tmp_cond!=ref_cond and tmp_cond not in all_conds:
-                    all_conds.append(tmp_cond)
     cursor = connect_db(PATH_KO_DB)
     path_names = get_pathways(cursor)
     kopath_keys, kopath_values = get_kopathways(cursor)
-    edger_files = glob('meta/edgeR/tables/*[pn].txt')
-    deseq_files = glob('meta/DESeq2/tables/*[pn].txt')
-    return all_conds, path_names, kopath_keys, kopath_values, \
+    #edger_files = glob('edger/tables/*[pn].txt') change it after tests!!!!!
+    edger_files = glob('edger/tables/*.txt')
+    #deseq_files = glob('deseq/tables/*[pn].txt') change it after tests!!!!!
+    deseq_files = glob('deseq/tables/*.txt')
+    return path_names, kopath_keys, kopath_values, \
             edger_files, deseq_files
 
 
@@ -567,7 +604,7 @@ def run_ko_remap(deseq_files, edger_files, kopath_values, path_names):
     out_content(edger_files, kopath_values, path_names, 'edgeR')
 
 
-def run_new_ko_remap(deseq_files, edger_files, kopath_values, all_conds, ref_cond='pH7'): # In the final version default value of ref_cond will be not present
+def run_new_ko_remap(deseq_files, edger_files, kopath_values, all_conds, ref_cond):
     """Runs get_ko_fc(), low_change(), mapper() and mapper_write()
     in appropriate way for files from deseq_files and edger_files.
 
@@ -583,8 +620,8 @@ def run_new_ko_remap(deseq_files, edger_files, kopath_values, all_conds, ref_con
         ko_dict_edger:  {KO_id:{cond1:value1, cond2:value2...}...} dict
 
     HARDCODED: Output directories paths:
-                deseq: 'meta/new_ko_remap/deseq/'
-                edger: 'meta/new_ko_remap/edger/'
+                deseq: 'new_ko_remap/deseq/'
+                edger: 'new_ko_remap/edger/'
     """
     ko_dict_deseq = {}
     ko_dict_edger = {}
@@ -598,13 +635,13 @@ def run_new_ko_remap(deseq_files, edger_files, kopath_values, all_conds, ref_con
     ko_dict_edger = low_change(ko_dict_edger, all_conds)
     mapper_deseq = mapper(ko_dict_deseq, kopath_values)
     mapper_edger = mapper(ko_dict_edger, kopath_values)
-    mapper_write(mapper_deseq, all_conds, 'meta/new_ko_remap/deseq/')
-    mapper_write(mapper_edger, all_conds, 'meta/new_ko_remap/edger/')
+    mapper_write(mapper_deseq, all_conds, 'new_ko_remap/deseq/')
+    mapper_write(mapper_edger, all_conds, 'new_ko_remap/edger/')
     return ko_dict_deseq, ko_dict_edger
 
 
 def run_ko_csv(ko_dict_deseq, ko_dict_edger, all_conds, kopath_keys, \
-               path_names, ref_cond='pH7'):
+               path_names, ref_cond):
     """For given ko_dicts writes CSV files with pathways and foldchanges
 
     Args:
@@ -618,11 +655,11 @@ def run_ko_csv(ko_dict_deseq, ko_dict_edger, all_conds, kopath_keys, \
         KO_id;Gene_name;paths ids;paths names;FC vs cond1;FC vs cond2;...;
 
     HARDCODED: Output files paths:
-            deseq: 'meta/csv/deseq.csv'
-            edger: 'meta/csv/edger.csv'
+            deseq: 'csv/deseq.csv'
+            edger: 'csv/edger.csv'
     """
-    for touple in [(ko_dict_deseq, 'meta/csv/deseq.csv'),
-                   (ko_dict_edger, 'meta/csv/edger.csv')]:
+    for touple in [(ko_dict_deseq, 'csv/deseq.csv'),
+                   (ko_dict_edger, 'csv/edger.csv')]:
         filepath = touple[1]
         ko_dict = touple[0]
         with open(filepath, 'wb') as _file:
@@ -654,20 +691,30 @@ def metatranscriptomics(opts):
 
     For more information please refer to
     run_fastq_to_fasta(), run_rapsearch() run_ko_map(), run_SARTools(),
-    run_pre_ko_remap(), run_ko_remap() & run_new_ko_remap().
+    run_pre_ko_remap(), run_ko_remap(), run_new_ko_remap(), run_ko_csv().
     """
     before_cwd = getcwd()
     chdir(dirname(realpath(__file__)))
-    run_fastq_to_fasta()
+    timestamp = '_'.join(str(datetime.now()).split())
+    work_dir = 'metatr_results/metatr_results_' + timestamp + "/"
+    system('mkdir ' + work_dir)
+    system('cp -r metatr_results/metatr_pattern/* ' + work_dir)
+    chdir(work_dir)
+
+    ref_cond, all_conds, fastqs = config_from_file(work_dir, opts.metatr_config)
+
+    run_fastq_to_fasta(fastqs)
     run_cat_pairing()
-    run_rapsearch()
+    run_rapsearch(opts.threads)
     run_ko_map()
     run_SARTools()
-    all_conds, path_names, kopath_keys, kopath_values, \
-        edger_files, deseq_files = run_pre_ko_remap()
+    path_names, kopath_keys, kopath_values, \
+        edger_files, deseq_files = run_pre_ko_remap(ref_cond)
     run_ko_remap(deseq_files, edger_files, kopath_values, path_names)
     ko_dict_deseq, ko_dict_edger = \
-        run_new_ko_remap(deseq_files, edger_files, kopath_values, all_conds) # add ref_cond!
+        run_new_ko_remap(deseq_files, edger_files, kopath_values, all_conds,
+        ref_cond)
     run_ko_csv(ko_dict_deseq, ko_dict_edger, all_conds, kopath_keys, \
-        path_names) # add ref_cond!
+        path_names, ref_cond)
+
     chdir(before_cwd)
