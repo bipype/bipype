@@ -23,7 +23,7 @@ def dicto_reduce(present, oversized):
             present:                Dictionary
             oversized:              Dictionary
 
-        Results:p
+        Results:
             oversized, present      Dictionaries
 
         ATTENTION: Order of parametres is opposite to results.
@@ -34,15 +34,13 @@ def dicto_reduce(present, oversized):
             >>> dicto_reduce(dict_1, dict_2)
             ({'a': 3, 'c': 4}, {'a': 1, 'c': 3})
             >>>
-        """
+    """
     surplus = set(oversized.keys()) - set(present.keys())
     for gid in surplus:
         del oversized[gid]
-
     unaccounted = set(present.keys()) - set(oversized.keys())
     for gid in unaccounted:
         del present[gid]
-
     return (oversized, present)
 
 
@@ -54,7 +52,7 @@ def connect_db(db):
 
         Returns:
             Cursor object to database
-        """
+    """
     conn = sqlite3.connect(db)
     conn.row_factory = sqlite3.Row
     conn.text_factory = str
@@ -66,7 +64,7 @@ def get_tables(database):
 
         Arg:
             database: Cursor object to SQLite3 database.
-        """
+    """
     database.execute("SELECT name FROM sqlite_master WHERE type='table';")
     tables = database.fetchall()
     for row in tables:
@@ -104,7 +102,7 @@ def pickle_or_db(pickle, db):
         Code from this fuction was not a fuction in previous version and
         'args' was hardcoded to:
                         'kogenes.pckl' & c (variable with db's cursor)
-        """
+    """
     start_time = time()
     multi_id = {}
     if pexists(pickle):
@@ -119,7 +117,6 @@ def pickle_or_db(pickle, db):
                 multi_id[gid] = set([koid])
             else:
                 multi_id[gid].add(koid)
-
         with open(pickle, 'w') as output:
             cPickle.dump(multi_id, output)
     return multi_id
@@ -137,7 +134,7 @@ def get_pathways(database):
                 For example:
                     {   'ko04060':'Cytokine-cytokine receptor interaction',
                         'ko00910':'Nitrogen metabolism'    }
-        """
+    """
     database.execute('select * from Pathways')
     paths = database.fetchall()
     pathways = {}
@@ -162,7 +159,7 @@ def get_kopathways(database):
                 {KEGG_Pathway_id:set[KO identifiers]}
                 For example:
                     {ko12345:set([K12345, K12346,...]),...}
-        """
+    """
     database.execute('select * from KoPathways')
     kopaths = database.fetchall()
     kopathways = {}
@@ -195,7 +192,7 @@ def m8_to_ko(file_, multi_id):
             K00161  2
             K00627  0
             K00382  11
-        """
+    """
     print 'working on %s' % file_
     start_time = time()
     tmp_ko_dict = {}
@@ -206,20 +203,18 @@ def m8_to_ko(file_, multi_id):
         if line[0] != '#':
             gid = line.split('\t')[1]
             hit_gid.append(gid)
-
     file_reading_time = time()
-    print (file_, 'file_reading seconds', start_time - file_reading_time)
+    print (file_, 'file_reading seconds', file_reading_time - start_time)
     gid_count = Counter(hit_gid)
     (multi_clean, gid_clean,) = dicto_reduce(gid_count, multi_id)
     cleaning_time = time()
-    print (file_, 'cleaning time seconds', file_reading_time - cleaning_time)
+    print (file_, 'cleaning time seconds', cleaning_time - file_reading_time)
     for gid in gid_clean:
         for ko in multi_clean[gid]:
             try:
                 tmp_ko_dict[ko] += gid_clean[gid]
             except KeyError:
                 tmp_ko_dict[ko] = gid_clean[gid]
-
     comparison_time = time()
     print (file_,
      'comparing time seconds',
@@ -230,7 +225,6 @@ def m8_to_ko(file_, multi_id):
         for ko in tmp_ko_dict:
             to_print = '%s\t%i\n' % (ko, tmp_ko_dict[ko])
             out_file.write(to_print)
-
     writing_time = time()
     print (file_,
      'comparing time seconds',
@@ -271,7 +265,7 @@ def out_content(filelist, kopath_values, path_names, method = 'DESeq2'):
             ko_path_id;ko_path_name;percent common;common KOs
 
         Writes only lines with non-zero common KOs.
-        """
+    """
     for filepath in filelist:
         if '\\' in filepath:
             filename = filepath.split('\\')[-1]
@@ -286,7 +280,6 @@ def out_content(filelist, kopath_values, path_names, method = 'DESeq2'):
             for line in filecontent:
                 Kid = line.rstrip().split('\t')[0]
                 Kids.add(Kid)
-
         with open('ko_remap/' + outname, 'w') as outfile:
             outfile.write('ko_path_id;ko_path_name;percent common;common KOs\n')
             for (path, Kset,) in kopath_values.items():
@@ -310,16 +303,12 @@ def fastq_to_fasta(fastq):
 
         GLOBAL:
             - path to fastq_to_fasta program:               PATH_FQ2FA
-        """
+    """
     out_file = fastq.rsplit('.', 1)[0] + '.fasta'
     out_file = out_file.rsplit('/', 1)[-1]
     out_file = 'fasta/' + out_file
     subprocess.check_call([PATH_FQ2FA,
-     '-i',
-     fastq,
-     '-o',
-     out_file,
-     '-Q33'])
+     '-i', fastq, '-o', out_file, '-Q33'])
 
 
 def rapsearch2(input_file, threads):
@@ -330,26 +319,12 @@ def rapsearch2(input_file, threads):
         GLOBALS:
             - path to RAPSearch2 program:                   PATH_RAPSEARCH
             - path to similarity search database:           PATH_REF_PROT_KO
-        """
+    """
     out_name = input_file.replace('tmp.fasta', 'txt')
     out_name = out_name.replace('fasta/', 'm8/')
-    subprocess.check_call([PATH_RAPSEARCH,
-     '-q',
-     input_file,
-     '-d',
-     PATH_REF_PROT_KO,
-     '-o',
-     out_name,
-     '-z',
-     str(threads),
-     '-v',
-     '20',
-     '-b',
-     '1',
-     '-t',
-     'n',
-     '-a',
-     't'])
+    subprocess.check_call([PATH_RAPSEARCH,'-q', input_file, '-d', 
+     PATH_REF_PROT_KO, '-o', out_name, '-z', str(threads),
+     '-v', '20', '-b', '1', '-t', 'n', '-a', 't'])
 
 
 def get_ko_fc(ko_dict, ref_cond, filepath):
@@ -362,7 +337,7 @@ def get_ko_fc(ko_dict, ref_cond, filepath):
 
         Returns:
             ko_dict with added fold changes from table file
-            """
+        """
     with open(filepath) as _file:
         l_cond = filepath.split('/')[-1].split('.')[0].split('vs', 2)
         if l_cond[0] != ref_cond:
@@ -387,7 +362,6 @@ def get_ko_fc(ko_dict, ref_cond, filepath):
                 ko_dict[KO][cond] = fc
             else:
                 ko_dict[KO] = {cond: fc}
-
     return ko_dict
 
 
@@ -408,13 +382,11 @@ def low_change(ko_dict, all_conds):
             give        { 'K12345':{'pH5':1.41, 'pH6':1.73, 'pH8':0.0},
                           'K23456':{'pH5':0.0, 'pH6':2.0, 'pH8':2.24}   }
 
-        """
+    """
     for (KO, conds,) in ko_dict.items():
         for cond in all_conds:
             if cond not in conds:
                 ko_dict[KO][cond] = 0.0
-
-
     return ko_dict
 
 
@@ -426,7 +398,7 @@ def get_kegg_name(ko):
 
         Returns:
             name assigned to ko (string)
-        """
+    """
     url = 'http://www.kegg.jp/dbget-bin/www_bget?ko:' + ko
     name = 'NA'
     ko_kegg = urlopen(url).read().decode('utf-8')
@@ -445,7 +417,6 @@ def get_kegg_name(ko):
                                 content = tr.find('td')
                                 if content:
                                     name = content.find(text=True)
-
     return name
 
 
@@ -459,7 +430,7 @@ def mapper(ko_dict, ko_set):
         Returns:
             mapper_d:
               {KEGG_Pathway_id:{KO_id:{cond1:value1, cond2:value2...}...}...}
-        """
+    """
     all_ko = set(ko_dict.keys())
     mapper_d = {}
     for (path_name, path_Kids,) in ko_set.items():
@@ -469,8 +440,6 @@ def mapper(ko_dict, ko_set):
             for Kid in kommon:
                 fc = ko_dict[Kid]
                 mapper_d[path_name][Kid] = fc
-
-
     return mapper_d
 
 
@@ -492,7 +461,7 @@ def mapper_write(ko_path_dict, all_conds, out_dir):
             # KO KEGG_Pathway_id
                       & following format:
             KO_id corresponding_fold_change
-        """
+    """
     for cond in all_conds:
         path = pjoin(out_dir, cond)
         system('mkdir ' + path)
@@ -518,7 +487,7 @@ def config_from_file(work_dir, _file):
             ref_cond:   reference condition defined by user
             all_conds:  set of conditions (groups) from target.txt
             fastqs:     list of fastq files on which analysis will be done
-        """
+    """
     all_conds = []
     fastqs = []
     with open(_file) as f:
@@ -535,21 +504,18 @@ def config_from_file(work_dir, _file):
             target_name = target_name.replace('R1_', '')
             target_name = target_name.replace('.fastq', '.count')
             f.write('\n' + line[0] + '\t' + target_name + '\t' + line[3])
-
     with open('template_script_DESeq2.r') as f:
         lines = f.readlines()
         lines[24] = 'condRef <- "' + ref_cond + '"' + '\n'
     with open('template_script_DESeq2.r', 'w') as f:
         for line in lines:
             f.write(line)
-
     with open('template_script_edgeR.r') as f:
         lines = f.readlines()
         lines[24] = 'condRef <- "' + ref_cond + '"' + '\n'
     with open('template_script_edgeR.r', 'w') as f:
         for line in lines:
             f.write(line)
-
     return (ref_cond, set(all_conds), fastqs)
 
 
@@ -586,14 +552,13 @@ def run_ko_map():
         GLOBALS:
             - path to KO database:                                  PATH_KO_DB
             - pickle to dict from KO GENES table from KO database:  PATH_KO_PCKL
-        """
+    """
     data = pickle_or_db(PATH_KO_PCKL, connect_db(PATH_KO_DB))
     p_list = []
     for file_ in glob('m8/*m8'):
         p = Process(target=m8_to_ko, args=(file_, data))
         p.start()
         p_list.append(p)
-
     for p in p_list:
         p.join()
 
@@ -604,7 +569,7 @@ def run_SARTools():
         HARDCODED: R templates:
                         edger: template_script_DESeq2.r'
                         deseq: template_script_edgeR.r'
-        """
+    """
     system('Rscript template_script_DESeq2.r')
     system('Rscript template_script_edgeR.r')
 
@@ -627,17 +592,13 @@ def run_pre_ko_remap(ref_cond):
                         deseq: 'deseq/*[pn].txt'
         GLOBALS:
             - path to KO database:  PATH_KO_DB
-        """
+    """
     cursor = connect_db(PATH_KO_DB)
     path_names = get_pathways(cursor)
     (kopath_keys, kopath_values,) = get_kopathways(cursor)
     edger_files = glob('edger/tables/*.txt')
     deseq_files = glob('deseq/tables/*.txt')
-    return (path_names,
-     kopath_keys,
-     kopath_values,
-     edger_files,
-     deseq_files)
+    return (path_names, kopath_keys, kopath_values, edger_files, deseq_files)
 
 
 def run_ko_remap(deseq_files, edger_files, kopath_values, path_names):
@@ -649,7 +610,7 @@ def run_ko_remap(deseq_files, edger_files, kopath_values, path_names):
             edger_files:    list of edgeR outputs paths
             kopath_values:  {KEGG_Pathway_id:set[KO identifiers]} dict
             path_names:     {KEGG_Pathway_id:Name} dict
-        """
+    """
     out_content(deseq_files, kopath_values, path_names)
     out_content(edger_files, kopath_values, path_names, 'edgeR')
 
@@ -672,17 +633,15 @@ def run_new_ko_remap(deseq_files, edger_files, kopath_values, all_conds, ref_con
         HARDCODED: Output directories paths:
                     deseq: 'new_ko_remap/deseq/'
                     edger: 'new_ko_remap/edger/'
-        """
+    """
     ko_dict_deseq = {}
     ko_dict_edger = {}
     for _file in deseq_files:
         if ref_cond in _file:
             ko_dict_deseq = get_ko_fc(ko_dict_deseq, ref_cond, _file)
-
     for _file in edger_files:
         if ref_cond in _file:
             ko_dict_edger = get_ko_fc(ko_dict_edger, ref_cond, _file)
-
     ko_dict_deseq = low_change(ko_dict_deseq, all_conds)
     ko_dict_edger = low_change(ko_dict_edger, all_conds)
     mapper_deseq = mapper(ko_dict_deseq, kopath_values)
@@ -708,18 +667,14 @@ def run_ko_csv(ko_dict_deseq, ko_dict_edger, all_conds, kopath_keys, path_names,
         HARDCODED: Output files paths:
                 deseq: 'csv/deseq.csv'
                 edger: 'csv/edger.csv'
-        """
+    """
     for touple in [(ko_dict_deseq, 'csv/deseq.csv'), (ko_dict_edger, 'csv/edger.csv')]:
         filepath = touple[1]
         ko_dict = touple[0]
         with open(filepath, 'wb') as _file:
-            l_header = ['KO_id',
-             'Gene_name',
-             'paths ids',
-             'paths names']
+            l_header = ['KO_id', 'Gene_name', 'paths ids', 'paths names']
             for cond in all_conds:
                 l_header.append('FC ' + ref_cond + ' vs ' + cond)
-
             header = ';'.join(l_header + ['\n'])
             _file.write(header)
             for Kid in ko_dict.keys():
@@ -731,7 +686,6 @@ def run_ko_csv(ko_dict_deseq, ko_dict_edger, all_conds, kopath_keys, path_names,
                     for path in kopath_keys[Kid]:
                         koids.append(path)
                         konames.append(path_names[path])
-
                     to_write.append(','.join(koids))
                     to_write.append(','.join(konames))
                 else:
@@ -739,7 +693,6 @@ def run_ko_csv(ko_dict_deseq, ko_dict_edger, all_conds, kopath_keys, path_names,
                     to_write.append('NA')
                 for cond in all_conds:
                     to_write.append(str(ko_dict[Kid][cond]))
-
                 _file.write(';'.join(to_write) + '\n')
 
 
@@ -749,7 +702,7 @@ def metatranscriptomics(opts):
         For more information please refer to
         run_fastq_to_fasta(), run_rapsearch() run_ko_map(), run_SARTools(),
         run_pre_ko_remap(), run_ko_remap(), run_new_ko_remap(), run_ko_csv().
-        """
+    """
     before_cwd = getcwd()
     chdir(dirname(realpath(__file__)))
     timestamp = '_'.join(str(datetime.now()).split())
