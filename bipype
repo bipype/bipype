@@ -147,4 +147,3 @@ if __name__ == '__main__':
     else:
         sample(opts)
         prepare_taxonomy_stats(opts)
-
