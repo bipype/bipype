@@ -597,7 +597,9 @@ def run_pre_ko_remap(ref_cond):
     path_names = get_pathways(cursor)
     (kopath_keys, kopath_values,) = get_kopathways(cursor)
     edger_files = glob('edger/tables/*.txt')
+    #edger_files = glob('edger/tables/*[pn].txt') change it after tests!!!!!
     deseq_files = glob('deseq/tables/*.txt')
+    #deseq_files = glob('deseq/tables/*[pn].txt') change it after tests!!!!!
     return (path_names, kopath_keys, kopath_values, edger_files, deseq_files)
 
 
@@ -736,4 +738,10 @@ def metatranscriptomics(opts):
         run_ko_csv(ko_dict_deseq, ko_dict_edger, all_conds, kopath_keys,
          path_names, ref_cond)
     print '\ngenerating summative CSV: DONE\n\n'
+    if (opts.out_dir=='in_situ'):
+        out_dir=before_cwd
+    else:
+        out_dir=opts.out_dir
+    system('mv ../'+work_dir.split('/',1)[1]+' '+out_dir) #what should be moved/removed?
     chdir(before_cwd)
+    print '\nMETATRANSCRIPTOMIC WORKFLOW DONE\n\n'
