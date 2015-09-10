@@ -108,7 +108,7 @@ def pickle_or_db(pickle, db):
     if pexists(pickle):
         multi_id = auto_tax_read(pickle)
         kogenes_time = time()
-        print ('kogenes reading time', start_time - kogenes_time)
+        print ('kogenes reading time', kogenes_time - start_time)
     else:
         db.execute('select * from KoGenes')
         KoPath_gid_all = db.fetchall()
@@ -193,7 +193,6 @@ def m8_to_ko(file_, multi_id):
             K00627  0
             K00382  11
     """
-    print 'working on %s' % file_
     start_time = time()
     tmp_ko_dict = {}
     outname = file_.replace('txt.m8', 'count')
@@ -216,21 +215,14 @@ def m8_to_ko(file_, multi_id):
             except KeyError:
                 tmp_ko_dict[ko] = gid_clean[gid]
     comparison_time = time()
-    print (file_,
-     'comparing time seconds',
-     cleaning_time - comparison_time,
-     'total time',
-     start_time - comparison_time)
+    print (file_, 'comparing time seconds', comparison_time-cleaning_time)
     with open(outname.replace('m8', 'counts'), 'w') as out_file:
         for ko in tmp_ko_dict:
             to_print = '%s\t%i\n' % (ko, tmp_ko_dict[ko])
             out_file.write(to_print)
     writing_time = time()
-    print (file_,
-     'comparing time seconds',
-     comparison_time - writing_time,
-     'total time',
-     start_time - writing_time)
+    print (file_, 'comparing time seconds', writing_time - comparison_time,
+        'total time', writing_time - start_time)
 
 
 def out_content(filelist, kopath_values, path_names, method = 'DESeq2'):
