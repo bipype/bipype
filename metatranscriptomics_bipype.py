@@ -487,15 +487,24 @@ def config_from_file(work_dir, _file):
         ref_cond = lines[0].split()[0]
     with open('target.txt', 'w') as f:
         f.write('label\tfiles\tgroup')
+        idents = []
         for line in lines[1:]:
+            id_num = 1
             line = line.split()
-            all_conds.append(line[3])
+            all_conds.append(line[2])
+            while True:
+                hyp_ident = line[2] + '_' + str(id_num)
+                if hyp_ident in idents:
+                    id_num+=1
+                else:
+                    idents.append(hyp_ident)
+                    break
+            fastqs.append(line[0])
             fastqs.append(line[1])
-            fastqs.append(line[2])
-            target_name = line[1].rsplit('/', 1)[-1]
+            target_name = line[0].rsplit('/', 1)[-1]
             target_name = target_name.replace('R1_', '')
             target_name = target_name.replace('.fastq', '.count')
-            f.write('\n' + line[0] + '\t' + target_name + '\t' + line[3])
+            f.write('\n' + hyp_ident '_' + '\t' + target_name + '\t' + line[2])
     with open('template_script_DESeq2.r') as f:
         lines = f.readlines()
         lines[24] = 'condRef <- "' + ref_cond + '"' + '\n'
@@ -720,13 +729,13 @@ def metatranscriptomics(opts):
     print '\nSARTools: DONE\n\n'
     path_names, kopath_keys, kopath_values, edger_files, deseq_files = \
      run_pre_ko_remap(ref_cond)
-    if opts.metatr_output_type == 'old' or 'both' in opts.metatr_output_type:
+    if opts.metatr_output_type != 'new':
         run_ko_remap(deseq_files, edger_files, kopath_values, path_names)
-    if 'new' in opts.metatr_output_type or 'both' in opts.metatr_output_type:
+    if opts.metatr_output_type != 'old':
         ko_dict_deseq, ko_dict_edger = run_new_ko_remap(
          deseq_files, edger_files, kopath_values, all_conds, ref_cond)
     print '\npathway mapping: DONE\n\n'
-    if 'csv' in opts.metatr_output_type:
+    if opts.metatr_output_type != 'old':
         run_ko_csv(ko_dict_deseq, ko_dict_edger, all_conds, kopath_keys,
          path_names, ref_cond)
     print '\ngenerating summative CSV: DONE\n\n'
@@ -734,6 +743,15 @@ def metatranscriptomics(opts):
         out_dir=before_cwd
     else:
         out_dir=opts.out_dir
-    system('mv ../'+work_dir.split('/',1)[1]+' '+out_dir) #what should be moved/removed?
+    system('mkdir out_dir')
+    if opts.metatr_output_type != 'new':
+        old_path = out + '/old'
+        system('mkdir '+out_path)
+        system('cp ko_remap/* '+old_path)
+    if opts.metatr_output_type != 'old':
+        system('cp csv/* '+out_dir)
+    system('cp edger/_report.html ' + out_dir)
+    system('cp deseq/_report.html ' + out_dir)
+    system('rm -rf ../metatr_results_' + timestamp + '/'
     chdir(before_cwd)
     print '\nMETATRANSCRIPTOMIC WORKFLOW DONE\n\n'

@@ -1269,7 +1269,6 @@ def sample(opts):
     GLOBALS:
         PATH_FQ2FA
     """
-
     if len(opts.db_refseq_plant) == 1:
         opts.db_refseq_plant += [False]
     if len(opts.db_refseq_fungi) == 1:
