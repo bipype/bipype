@@ -747,7 +747,7 @@ def metatranscriptomics(opts):
     if opts.metatr_output_type != 'new':
         old_path = out_dir + '/old'
         system('mkdir '+out_path)
-        system('cp ko_remap/* '+old_path)
+        system('cp ko_remap/* '+out_path)
     if opts.metatr_output_type != 'old':
         system('cp csv/* '+out_dir)
     system('cp edger/_report.html ' + out_dir + '/edger_report.html')
