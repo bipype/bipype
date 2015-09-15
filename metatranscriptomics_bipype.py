@@ -504,7 +504,7 @@ def config_from_file(work_dir, _file):
             target_name = line[0].rsplit('/', 1)[-1]
             target_name = target_name.replace('R1_', '')
             target_name = target_name.replace('.fastq', '.count')
-            f.write('\n' + hyp_ident '_' + '\t' + target_name + '\t' + line[2])
+            f.write('\n' + hyp_ident +'_\t' + target_name + '\t' + line[2])
     with open('template_script_DESeq2.r') as f:
         lines = f.readlines()
         lines[24] = 'condRef <- "' + ref_cond + '"' + '\n'
@@ -745,13 +745,13 @@ def metatranscriptomics(opts):
         out_dir=opts.out_dir
     system('mkdir out_dir')
     if opts.metatr_output_type != 'new':
-        old_path = out + '/old'
+        old_path = out_dir + '/old'
         system('mkdir '+out_path)
         system('cp ko_remap/* '+old_path)
     if opts.metatr_output_type != 'old':
         system('cp csv/* '+out_dir)
     system('cp edger/_report.html ' + out_dir)
     system('cp deseq/_report.html ' + out_dir)
-    system('rm -rf ../metatr_results_' + timestamp + '/'
+    system('rm -rf ../metatr_results_' + timestamp)
     chdir(before_cwd)
     print '\nMETATRANSCRIPTOMIC WORKFLOW DONE\n\n'
