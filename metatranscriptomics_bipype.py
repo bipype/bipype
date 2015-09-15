@@ -750,8 +750,8 @@ def metatranscriptomics(opts):
         system('cp ko_remap/* '+old_path)
     if opts.metatr_output_type != 'old':
         system('cp csv/* '+out_dir)
-    system('cp edger/_report.html ' + out_dir)
-    system('cp deseq/_report.html ' + out_dir)
+    system('cp edger/_report.html ' + out_dir + '/edger_report.html')
+    system('cp deseq/_report.html ' + out_dir + '/deseq_report.html')
     system('rm -rf ../metatr_results_' + timestamp)
     chdir(before_cwd)
     print '\nMETATRANSCRIPTOMIC WORKFLOW DONE\n\n'
