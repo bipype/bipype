@@ -1,5 +1,5 @@
 pH15
-pH15_1	path_to_file_1_R1.fastq	path_to_file_1_R2.fastq	pH15
-pH15_2	path_to_file_2_R1.fastq	path_to_file_2_R2.fastq	pH15
-pH-1_1	path_to_file_3_R1.fastq	path_to_file_3_R2.fastq	pH-1
-pH-1_2	path_to_file_4_R1.fastq	path_to_file_4_R2.fastq	pH-1
+path_to_file_1_R1.fastq	path_to_file_1_R2.fastq	pH15
+path_to_file_2_R1.fastq	path_to_file_2_R2.fastq	pH15
+path_to_file_3_R1.fastq	path_to_file_3_R2.fastq	pH-1
+path_to_file_4_R1.fastq	path_to_file_4_R2.fastq	pH-1
