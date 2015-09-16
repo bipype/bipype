@@ -476,7 +476,7 @@ def bowtie2_run(mode, proc, ref, out, inp1, inp2=False):
     if inp2:
         print 'bowtie2 -p %i -x %s -1 %s -2 %s -S %s'%(proc, ref, inp1, inp2, out)
         if mode == 'run':
-            system(PATH_BOWTIE2' -p %i -x %s -1 %s -2 %s -S %s'%(proc, ref, inp1, inp2, out))
+            system(PATH_BOWTIE2+' -p %i -x %s -1 %s -2 %s -S %s'%(proc, ref, inp1, inp2, out))
     else:
         print 'bowtie2 -p %i -x %s -f -U %s -S %s'%(proc, ref, inp1, out)
         if mode == 'run':
