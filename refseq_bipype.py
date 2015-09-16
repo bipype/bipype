@@ -853,9 +853,11 @@ def MV(mode, e, k_mers, cat, pair, ins_len, rap=False):
         k_max += 1
     else:
         pass
+    path_idx = None
     for idx in xrange(k_min, k_max, k_step):
         todo = ['velveth', 'velvetg', 'meta']
         tmp_out_dir = out_dir + '_k-mer_' + str(idx)
+        if path_idx == None: path_idx = tmp_out_dir
         log_loc = tmp_out_dir + '/logfile'
         velveth_run = PATH_VELVETH+' %s %i -%s -shortPaired %s %s'%(
             tmp_out_dir, idx, fileext, pjoin(cat, pair[0]), pjoin(cat, pair[1])
@@ -887,6 +889,7 @@ def MV(mode, e, k_mers, cat, pair, ins_len, rap=False):
             rap_f =  pair_uni_name(pair) + '.rapsearch'
             rap_out = pjoin(tmp_out_dir, rap_f)
             rapsearch(mode, e, rap_in,  rap_out)
+    return path_idx
 
 
 def usearch(mode, e, search_type, infile, database, threads):
@@ -1291,9 +1294,9 @@ def sample(opts):
                 reconstruct(opts.mode, opts.threads, opts.e, pair, cat, opts.reconstruct, opts.db_reconstruct)
             if opts.MV != None:
                 if 'rap_prot' in opts.to_calculate:
-                    MV(opts.mode, opts.e, opts.MV, cat, pair, opts.ins_len, 1)
+                    idx_path = MV(opts.mode, opts.e, opts.MV, cat, pair, opts.ins_len, 1)
                 else:
-                    MV(opts.mode, opts.e, opts.MV, cat, pair, opts.ins_len)
+                    idx_path = MV(opts.mode, opts.e, opts.MV, cat, pair, opts.ins_len)
             if ('f' in opts.to_calculate) or ('b' in opts.to_calculate):
                 postfix = opts.postfix + 'fungi'
                 refseq_mapping(
@@ -1418,6 +1421,7 @@ def sample(opts):
                     usearch(opts.mode, opts.e, '16S', pjoin(cat, fasta), opts.db_16S, opts.threads)
                 if 'ITS' in opts.to_calculate:
                     usearch(opts.mode, opts.e, 'ITS', pjoin(cat, fasta), opts.db_ITS, opts.threads)
+    return idx_path
 
 
 def SSU_read(loc, typ=None):

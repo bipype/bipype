@@ -143,7 +143,11 @@ def parse_arguments(args=None):
 
 if __name__ == '__main__':
     opts = parse_arguments()
-    if (opts.metatr_config): metatranscriptomics(opts)
+    if (opts.metatr_config):
+        metatranscriptomics(opts)
     else:
-        sample(opts)
+        directory = sample(opts)
+        old_dir = getcwd()
+        chdir(directory)
         prepare_taxonomy_stats(opts)
+        chdir(old_dir)
