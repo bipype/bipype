@@ -2669,6 +2669,7 @@ def prepare_taxonomy_stats(opts):
     krona_xml_name, krona_html_name = out_namespace(opts.out_dir, opts.output_type)
     xml_names, xml_dict, tax_tree, name_total_count = xml_format(analysed_dict, pure_tax)
     krona_unit = 'reads'
+    chdir('../')
     xml_string = xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, krona_unit)
     # Writes xml_string into the file given by out_namespace
     outprint(xml_string, krona_xml_name)
