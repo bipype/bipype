@@ -24,13 +24,13 @@ def cat_read(mode, fileext, paired_end=True):
                       file6_in_this_directory_path]
     }
     Paths to files (values of dict) are relative.
-    
+
     Args:
-        mode:       If mode is 'run', the gunzip command will be 
+        mode:       If mode is 'run', the gunzip command will be
                     executed to extract compressed files.
         fileext:    Extension of sequence files, which will be putted into
                     the dict.
-        paired_end: If True, only paired-end reads are included 
+        paired_end: If True, only paired-end reads are included
                     in the dict (default True).
     """
     double_ext = ['contigs.fa', 'txt.m8']
@@ -67,37 +67,37 @@ def cat_read(mode, fileext, paired_end=True):
 
 def exist_check(program, names, todo):
     """Checks if a part of program is actually done.
-    
+
     Function tries to find output files from different parts of program
     and basing on the results, removes corresponding tokens from
     todo list.
-    
+
     In one special case (program=='usearch_0') function checks size of
     the file specified by <names> argument in bits. If size==0: todo=[]
-    and PANIC MODE information is printed. 
-    
+    and PANIC MODE information is printed.
+
     Args:
         program:  One of the following strings representing programs
                   (de facto functions):
-                        'refseq'            (&)        
+                        'refseq'            (&)
                         'usearch'           (@)
                         'usearch_0'         (@)
                         'MV'                (^)
                         'rapsearch'         (@)
                         'cutadapt'          (^)
-                        
-                        
+
+
         names:    There are three possibilities:
                     (&) A dict in following format:
-        {file extension : path to file with corresponding extension}          
+        {file extension : path to file with corresponding extension}
                     (@) A string (one path)
                     (^) A list of paths
-                  Paths are hypothetical - if one really exists, 
+                  Paths are hypothetical - if one really exists,
                   appropriate token is removed from todo list.
 
         todo:     List of tokens representing different parts of
                   function specified by 'program' argument.
-    
+
     Please, pay attention to mutual compatibility of arguments.
     For more information please refer to adequate one of the following
     functions code:
@@ -106,7 +106,7 @@ def exist_check(program, names, todo):
         - MV()
         - rapsearch()
         - cutadapt()
-               
+
     Result:
         todo:     Checked list of tokens.
     """
@@ -169,16 +169,16 @@ def exist_check(program, names, todo):
 
 def tax_id_reader():
     """Returns a dict with {GI:TaxID} from file.
-    
+
     Keys and values are integers.
-    
+
     File has following format:
     13  9913
     15  9915
     16  9771
     17  9771
     where first column is a GI, second is a TaxID.
-    
+
     GLOBLAS:
         PATH_GI_TAX
     """
@@ -199,13 +199,13 @@ def tax_id_reader():
 
 def tax_name_reader():
     """Returns a dict with {TaxID:scientific_name} from file.
-    
+
     Lines without scientific names are omitted.
-    
+
     Keys are integers, values are strings.
-    
+
     Example (appropriate file format included):
-    
+
         File:
     2   |       prokaryotes     |       prokaryotes <Bacteria>  |       in-part |
     6   |       Azorhizobium    |               |       scientific name |
@@ -213,10 +213,10 @@ def tax_name_reader():
     6   |       Azotirhizobium  |               |       equivalent name |
     7   |       ATCC 43989      |               |       type material   |
     7   |       Azorhizobium caulinodans        |               |       scientific name |
-     
+
         Output:
             {6:'Azotirhizobium', 7:'Azorhizobium caulinodans'}
-         
+
     GLOBALS:
         PATH_TAX_NAME
     """
@@ -243,13 +243,13 @@ def tax_name_reader():
 
 def idx_reader(file_path):
     """Reads file in samtools idxstats output format.
-    
-    Arg:    
+
+    Arg:
         file_path: path to samtools idxstats output file
                    'File is TAB-delimited with each line consisting of
-                    reference sequence name, sequence length, 
-                    # mapped reads and # unmapped reads.' 
-        
+                    reference sequence name, sequence length,
+                    # mapped reads and # unmapped reads.'
+
     Returns:
         a dict with {GI:#_mapped_reads} (keys and values are integers).
     """
@@ -265,8 +265,8 @@ def idx_reader(file_path):
 
 def idx_map(mode, file_, tax_name_dict, tax_id_dict, outfile):
     """Parses and writes data from samtools idxstats output file.
-        
-    Firstly, using idx_reader(file_), creates {GI:#_mapped_reads} 
+
+    Firstly, using idx_reader(file_), creates {GI:#_mapped_reads}
     (a dict).
     Secondly, replaces every GI (key) with TaxID if appropriate
     one is available in tax_id_dict.
@@ -275,23 +275,23 @@ def idx_map(mode, file_, tax_name_dict, tax_id_dict, outfile):
     Finally, writes data (sorted by numbers of mapped reads in
     decreasing order) to outfile in key;value format, where:
         key   is GI/TaxID/scientific name
-        value is number of mapped reads 
-        
+        value is number of mapped reads
+
     Args:
         mode:          If (mode == 'run'), function do mentioned things
                        Elif (mode == 'test') function prints
                             file_ and outfile arguments.
                        Else function do nothing.
-                       
-        file_:         Path to samtools idxstats output file. 
+
+        file_:         Path to samtools idxstats output file.
                        For more information refer to idx_reader()
-                       
+
         tax_name_dict: {TaxID:scientific_name} dict.
                        For more information refer to tax_name_reader()
-                                             
+
         tax_id_dict:   {GI:TaxID} dict,
                        For more information refer to tax_id_reader()
-                       
+
         outfile:       Path to output file.
     """
     from operator import itemgetter
@@ -352,29 +352,29 @@ def refseq_ref_namespace(directory, seq, postfix, out_dir='in_situ', map_dir='in
     """Returns a dict within:
         - keys are following file extensions: fastq, sam, sam2, bam,
           sorted, sorted.bam, idx_stats, tax_count, map_count
-        - values are paths to file with corresponding extension. 
+        - values are paths to file with corresponding extension.
         Filenames have following format:
         sample_name + '_' + postfix + extension where sample_name is
-        basename of seq (if seq is a file) or 
+        basename of seq (if seq is a file) or
         output of pair_uni_name(seq) (if seq is a tuple)
 
     Args:
 
         directory: Path to directory, where file with .fastq extension
                    will be written
-        
+
         seq:       Tuple of paired_end read or sequence file.
-        
+
         postfix:   String added to the end of file basenames.
-        
-        out_dir:   Path to directory, where files with .sam, .sam2, 
-                   .bam,.sorted, .sorted.bam, .idx_stats and .tax_count 
+
+        out_dir:   Path to directory, where files with .sam, .sam2,
+                   .bam,.sorted, .sorted.bam, .idx_stats and .tax_count
                    extensions will be written.
                    If out_dir is 'in_situ' (default), out_dir=directory
-        
-        map_dir:   Path to directory, where file with 
+
+        map_dir:   Path to directory, where file with
                    .map_count extension will be written. If map_dir is
-                   'in_situ'(default),map_dir=out_dir.   
+                   'in_situ'(default),map_dir=out_dir.
 """
     if out_dir == 'in_situ':
         out_dir = directory
@@ -420,20 +420,20 @@ def fastq_dict(seq_dict, root, file_):  # Why not defaultdict from collections?
 
 def paired_end_match(seq_dict):
     """Returns a dict with paths to paired-end reads only.
-    
+
     Arg:
         seq_dict: {directory_path:file_path}
-    
-    Returns:    
+
+    Returns:
         Dict in following format:
     {directory_path1:[(paired-end_read1R1_path, paired-end_read1R2_path),
                       (paired-end_read2R1_path, paired-end_read2R2_path),
                       (paired-end_read3R1_path, paired-end_read3R2_path)],
      directory_path2:[(paired-end_read4R1_path, paired-end_read4R2_path)]
     }
-    
+
     Paths to files (both in input and output dict) are relative.
-    """ 
+    """
     pe_dict = {}
     for directory in seq_dict:
         for seq1, seq2 in combinations(seq_dict[directory], 2):
@@ -448,39 +448,39 @@ def paired_end_match(seq_dict):
 
 
 def bowtie2_run(mode, proc, ref, out, inp1, inp2=False):
-    """If mode=='run', launches Bowtie 2.  
-    
+    """If mode=='run', launches Bowtie 2.
+
     Args:
         mode
-        
+
         proc: [-p in Bowtie 2] 'Number of alignment threads to launch.'
-        
+
         ref:  [-x in Bowtie 2] 'The basename of the index
                                 for the reference genome.'
-                                
+
         out:  [-S in Bowtie 2] 'File to write SAM alignments to.'
-        
+
         inp1: [-1 in Bowtie 2] 'Comma-separated list of files
                                 containing mate 1s (filename usually
-                                includes _1), e.g. 
+                                includes _1), e.g.
                                 -1 flyA_1.fq,flyB_1.fq  '
-                                
+
         inp2: [-2 in Bowtie 2]  'Comma-separated list of files
                                 containing mate 2s (filename usually
-                                includes _2), e.g. 
+                                includes _2), e.g.
                                 -2 flyA_2.fq,flyB_2.fq  '
               If inp2=False: -2 argument is not given in Bowtie 2.
                      (False by default)
-              Else: inp2 string is passed to Bowtie 2 as -2 argument.              
+              Else: inp2 string is passed to Bowtie 2 as -2 argument.
     """
     if inp2:
         print 'bowtie2 -p %i -x %s -1 %s -2 %s -S %s'%(proc, ref, inp1, inp2, out)
         if mode == 'run':
-            system('bowtie2 -p %i -x %s -1 %s -2 %s -S %s'%(proc, ref, inp1, inp2, out))
+            system(PATH_BOWTIE2' -p %i -x %s -1 %s -2 %s -S %s'%(proc, ref, inp1, inp2, out))
     else:
         print 'bowtie2 -p %i -x %s -f -U %s -S %s'%(proc, ref, inp1, out)
         if mode == 'run':
-            system('bowtie2 -p %i -x %s -f -U %s -S %s'%(proc, ref, inp1, out))
+            system(PATH_BOWTIE2+' -p %i -x %s -f -U %s -S %s'%(proc, ref, inp1, out))
 
 
 def sam_merge(sam1, sam2):
@@ -570,7 +570,7 @@ def bam_indexing(mode, sorted_bam): # multi
 
 def bam_idxstating(mode, sorted_bam, idxstats): # multi
     """Launch samtools idxstats.
-    
+
     Args:
         mode:       if mode=='run', launch program.
         sorted_bam: path to file in BAM format, which is the input
@@ -581,19 +581,19 @@ def bam_idxstating(mode, sorted_bam, idxstats): # multi
     print 'samtools idxstats %s > %s'%(sorted_bam, idxstats)
     if mode == 'run':
         system ('samtools idxstats %s > %s'%(sorted_bam, idxstats))
- 
-                    
+
+
 def idxstat_perling(mode, idxstats, map_count): # multi
     """Counts and writes to map_count both:
        - (sum of all (numbers of mapped reads) in <idxstats>),
        - (sum of all (numbers of unmapped reads) in <idxstats>).
-    
+
     Function launches short "one-liner" in perl.
-    
+
     Output has following format:
                     #mapped - #unmapped
-    For example:        123 - 456  
-    
+    For example:        123 - 456
+
     Args:
         mode:      If mode=='run' "one-liner" is launched.
         idxstats:  Path to samtools idxstats output file.
@@ -609,47 +609,47 @@ def idxstat_perling(mode, idxstats, map_count): # multi
 
 
 def refseq_mapping(mode, e, directory, pair, postfix, refseq, tax_name_dict, tax_id_dict, threads, map_dir, refseq_2=False):
-    """Aligns reads to reference sequence(s) using Bowtie 2, 
+    """Aligns reads to reference sequence(s) using Bowtie 2,
        than parses and writes data to files.
-    
+
     Firstly, Bowtie 2 align reads to reference sequence (or sequences,
         if refseq_2 is not False and merge output SAM files).
     Secondly, BAM files are made, sorted and indexed.
     Thirdly, Function launches 'samtools idxstats'.
     In the next step, perl 'one-liner' counts and writes to file
         sums of mapped reads and unmapped reads.
-    Finally, idx_map() function is called: 
+    Finally, idx_map() function is called:
         Parse data from samtools idxstats output file and
         writes data to outfile in key; value format, where:
         key     is    GI/TaxID/scientific name
-        value   is    number of mapped reads.   
-                        
+        value   is    number of mapped reads.
+
     Args:
         mode:            If mode=='run', function operate on data
                          and print information about it.
                          Else, prints information, without operating
                          on data (it is kind of test).
-        
+
         e:               If True, checks if a part of workflow is
                          actually done and doesn't duplicate this jobs.
                          For more information, please refer to
                          exist_check() function.
 
         directory:       Path to directory, where files will be written.
-        
+
         pair:            Tuple of paths to file (paired-end reads) OR
                          String: path to sequence file.
-        
+
         postfix:         String added to the end of files basenames.
                          Argument for refseq_ref_namespace().
-        
+
         refseq:          'The basename of the index for the reference
                          genome.' Argument for bowtie2_run().
-                               
+
         tax_name_dict:   {TaxID:scientific_name} (a dict).
                          For more information refer to tax_name_reader()
                          Argument for idx_map().
-                                             
+
         tax_id_dict:     {GI:TaxID} (a dict),
                          For more information refer to tax_id_reader()
                          Argument for idx_map().
@@ -668,7 +668,7 @@ def refseq_mapping(mode, e, directory, pair, postfix, refseq, tax_name_dict, tax
                          If refseq_2==False, Bowtie 2 is working only
                          on 'refseq' argument.
                          (False by default).
-                         
+
     For more information take a look at:  refseq_ref_namespace()
                                           exist_check()
                                           bowtie2_run()
@@ -779,10 +779,10 @@ def rapsearch(mode, e, contig_loc, rap_out, KEGG=None):
 
     HARDCODED:
         if KEGG='masl28282828282828282828282828282828282828282828282828282828'
-            
+
     GLOBALS:
         - path to RAPSearch program: PATH_RAPSEARCH
-        - paths to data for RAPSearch: 
+        - paths to data for RAPSearch:
             PATH_REF_PROT_MASL28,
             PATH_REF_PROT_KO,
             PATH_REF_PROT_ELSE
@@ -857,11 +857,11 @@ def MV(mode, e, k_mers, cat, pair, ins_len, rap=False):
         todo = ['velveth', 'velvetg', 'meta']
         tmp_out_dir = out_dir + '_k-mer_' + str(idx)
         log_loc = tmp_out_dir + '/logfile'
-        velveth_run = 'velveth %s %i -%s -shortPaired %s %s'%(
+        velveth_run = PATH_VELVETH+' %s %i -%s -shortPaired %s %s'%(
             tmp_out_dir, idx, fileext, pjoin(cat, pair[0]), pjoin(cat, pair[1])
             )
-        velvetg_run = 'velvetg %s -exp_cov auto -ins_length %i'%(tmp_out_dir, ins_len)
-        meta_run = 'meta-velvetg %s -ins_length %i | tee %s'%(tmp_out_dir, ins_len, log_loc)
+        velvetg_run = PATH_VELVETG+' %s -exp_cov auto -ins_length %i'%(tmp_out_dir, ins_len)
+        meta_run = PATH_METAVELVETG+' %s -ins_length %i | tee %s'%(tmp_out_dir, ins_len, log_loc)
         print velveth_run, '\n', velvetg_run, '\n', meta_run
         if e:
             filelist = [pjoin(tmp_out_dir, 'meta-velvetg.contigs.fa')]
@@ -891,7 +891,7 @@ def MV(mode, e, k_mers, cat, pair, ins_len, rap=False):
 
 def usearch(mode, e, search_type, infile, database, threads):
     """Launches Usearch with -usearch_local command.
-    
+
     HARDCODED:
         - Usearch options:
             - evalue = 0.01
@@ -900,7 +900,7 @@ def usearch(mode, e, search_type, infile, database, threads):
     Args:
         mode:        If mode=='run' Usearch is launched.
         e:           If True, checks if a part of workflow is
-                        actually done and doesn't duplicate this 
+                        actually done and doesn't duplicate this
                         jobs. For more information, please
                         refer to exist_check() function.
         search_type &
@@ -972,17 +972,17 @@ def adapter_read(filename):
 def cutadapt(mode, e, cat, R1_file, R2_file, adapter_file, usearch_16S=False, usearch_ITS=False, threads=False):
     """Searches for the adapters in reads from input files, removes them,
     when it finds them and writes to output files which have .cutadapt.fastq
-    extension.  
+    extension.
     Then function runs FLASH (software tool to merge paired-end reads)
-    with .cutadapt.fastq  
+    with .cutadapt.fastq
     files as input and .amplicons.cutadapt.flash.merged.fastq files as output.
     These results are input for fastq_to_fasta which converts file format from
-    fastq to fasta. 
+    fastq to fasta.
 
     Args:
         mode:             if mode=='run', function operate on data
         e:                if True, checks if a part of the workflow is actually
-                          done 
+                          done
                           and omits these parts, to avoid duplicating this job.
         cat:              name of folder with R_1 and R_2 files
         R1_file, R2_file: input files
@@ -999,7 +999,7 @@ def cutadapt(mode, e, cat, R1_file, R2_file, adapter_file, usearch_16S=False, us
      For more information please refer to:
         - adapter_read_bck()
         - adapter_read()
-        
+
     GLOBALS:
         PATH_FQ2FA
     """
@@ -1146,11 +1146,11 @@ def humann(mode, e, m8_dict, typ='m8'):
 Copies humann to the current directory, moves input (*.m8) files to the input directory,
 copies hmp_metadata.dat file to the input directory
  and runs humann
- 
+
 GLOBALS:
         - path to humann program: PATH_HUMANN
         - path to data for humann: PATH_HUMANN_DATA
-        
+
 Args:
     mode: if mode="run", then humann will be copied to the current directory
     e: if e=True, then function checks existion of humann-0.99 results folder
@@ -1215,57 +1215,57 @@ def sample(opts):
                 A mode in which the program will be run.
 
                 One of: ['test', 'run']
-     
+
             opts.db_NCBI_taxonomy:
                 Path to pickle file
-                
+
             opts.reconstruct:
                 Boolean attribute, which allows to run reconstruct function if True.
-            
+
             opts.MV:
                 k-length nucleotids reads list or None
-            
+
             opts.db_reconstruct:
                 input database with fasta files
-                
+
             opts.threads:
                 Number of threads (multi-threading mode)
-                
+
             opts.e:
                 Boolean attribute, which checks file existing
-                
+
             opts.ins_len:
                 200 in case, when read length is less,
                 then 200 and 500 in other case.
-                
+
             opts.db_refseq_fungi:
                 A list of paths to refseq databases to use in fungi analysis.
                 Up to two paths are allowed.
                 Warning:
                 If there are multiple databases with filenames like
                 <your_path><second_part_of_name>, all will be loaded.
-                
+
             opts.db_refseq_plant:
                 A list of paths to refseq databases to use in plants analysis.
                 Up to two paths are allowed.
                 Also check warning in opts.db_refseq_fungi description.
-                
+
             opts.our_dir:
                 Directory where sums of mapped and unmapped
                 reads will be written
-                
+
             opts.postfix:
 
 
             opts.cutadapt:
                 List of adapter types: 16S, ITS or 'both'.
-                
+
             opts.db_16S:
                 list of 16S adapters
-                
+
             opts.db_ITS:
                 list of ITS adapters
-                
+
     GLOBALS:
         PATH_FQ2FA
     """
@@ -1273,7 +1273,7 @@ def sample(opts):
         opts.db_refseq_plant += [False]
     if len(opts.db_refseq_fungi) == 1:
         opts.db_refseq_fungi += [False]
-    
+
     if opts.to_calculate == None:
         opts.to_calculate = []
     refseq_test = len(set(['f', 'b', 'p']) & set(opts.to_calculate))
@@ -1504,7 +1504,7 @@ def tuple_to_dict(tuple_dict):
        - keys are elements from input dict's tuples,
        - values are dicts.
 
- 
+
     Args:
         tuple_dict: a dict.
         Example: {('first','second','third'): 10, ('first','second'): 30, ...}
@@ -1570,8 +1570,8 @@ def tuple_to_xml_dict(tuple_dict):
                 ('first','third','fifth':30)
                 ...
             }
-   
- 
+
+
     Example:
         input:
             {
@@ -1589,7 +1589,7 @@ def tuple_to_xml_dict(tuple_dict):
                 'Bacteria': 20,
                 'Canis lupus familiaris': 10
             }
-    """   
+    """
     fin_dict = {}
     for taxonomy in tuple_dict:
         for level in taxonomy:
@@ -1626,8 +1626,8 @@ def dict_purify(bac_dict):
 def file_analysis(typ, name, SSU=None):
     """Using given SSU as database, performs 'statistical' analysis
     of taxonomy from file <name>. It counts occurrences of different
-    species in given file and returns result in form of two dicts. 
-    
+    species in given file and returns result in form of two dicts.
+
     The threshold hardcoded in dict_purify is used,
     to remove neglectable entities.
 
@@ -1639,7 +1639,7 @@ def file_analysis(typ, name, SSU=None):
             wrong with this variable, when passed in only file_analysis
             call present in this file. The issue is linked to "full path
             or basename?" question. It should be investigated, in fully
-            functional testing environment. 
+            functional testing environment.
 
         SSU: A dict with taxonomic data, where:
                 keys are sequence identifiers; values are lists of taxonomic
@@ -1655,7 +1655,7 @@ def file_analysis(typ, name, SSU=None):
                 (full_bac_dict, tax_bac_dict)
             If data of type 'ITS' was successfully analysed:
                 (full_fun_dict, tax_fun_dict)
-                
+
         full_bac_dict / full_fun_dict: a dict of dicts.
             It represents taxonomic tree. Generally in this dict:
                 - keys are names of taxa,
@@ -1785,13 +1785,13 @@ def file_analysis(typ, name, SSU=None):
 def input_locations(mode, out_types):
     """Generates lists of locations where input files are located.
     Lists are grouped by directories and later, by "output types".
-    
+
     As input files considered are only files,
     which meet all the following conditions:
         - they are located in current working directory
           or in subdirectories of current working directory,
         - have suffix of filename equal to <out_type>,
-        - if <out_type> is 'ITS' or '16S', filenames also 
+        - if <out_type> is 'ITS' or '16S', filenames also
           have to contain 'usearch_' before the <out_type> in name.
 
     Args:
@@ -1998,7 +1998,7 @@ def tree_of_life(full_dict):
 
     Returns:
         A tuple (full_tree, file_total_count)
-    
+
         full_tree: A dict without information about type and file.
             Example:
             {
@@ -2014,7 +2014,7 @@ def tree_of_life(full_dict):
                     }
                 }
             }
-        
+
         file_total_count: A dict within information about files are kept
             and values of every leaf are summed into values representing
             total count of species inside particular file.
@@ -2041,18 +2041,18 @@ def xml_name_parse(full_dic):
     to this sequence (inclusive). This set of nucleotides in most cases
     will represent "index" from naming schema for fastq files, so
     since this step, many files will belong to one alias.
-    
+
     Otherwise, the first chunk of filename will be used. In this case,
     filename will be splitted with dot '.' as delimiter. It also
     indicates grouping files with similar filenames since this step.
-    
+
     Keep in mind, that this step groups files referring to the same
     dataset under single name, and technically is vulnerable for errors:
     If filenames given to this functions do not follow appropriate
     naming schema or when these filenames are not named in prefix-code
     convention, then some false-positives might be generated in
     some of functions which use results of xml_name_parse().
-    
+
     Example:
         Following filenames:
             '16S_ArchV3V4_M_BF_02_TAGCTT_L001_001.amplicons.cutadapt.flash.merged.fastq.extendedFrags.fasta.usearch_16S'
@@ -2080,7 +2080,7 @@ def xml_name_parse(full_dic):
     Returns:
         A list with simplified filenames.
         The list is guaranteed to not have any duplicates.
-        
+
         Example:
         ['filename_1', 'filename_2']
 
@@ -2114,20 +2114,20 @@ def xml_name_parse(full_dic):
 def xml_vals(xml_names, tax_dict):
     """Reformats information extracted from tax_dict into another dict,
     to allow use of this data in xml-generation process.
-    
+
     Keep in mind, that this step - along with generation of xml_names
     in xml_name_parse - groups files referring to the same dataset under
     a single name, and technically is vulnerable for some errors:
     If filenames given to these functions do not follow appropriate
     naming schema or when these filenames are not named in prefix-code
     convention, then some false-positives might be generated when
-    grouping results and this will influence results. 
+    grouping results and this will influence results.
 
     Args:
         xml_names: readable identifiers of groups of files referring to
             common dataset, derived from filenames.
             Example ['filename_1', 'filename_2']
-            
+
         tax_dict: A dict, where:
             keys are file identifiers,
             values are dicts, where:
@@ -2135,7 +2135,7 @@ def xml_vals(xml_names, tax_dict):
                 values are numbers of occurrences of particular taxon.
 
             Example:
-            {   
+            {
                 'filename_1.ext':
                 {
                     'Bacillaceae': 5, 'Anoxybacillus': 5
@@ -2146,14 +2146,14 @@ def xml_vals(xml_names, tax_dict):
                     'Listeriaceae': 19, 'Listeria': 19, 'Lgrayi': 16, 'Linnocua': 3
                 }
             }
-        
+
     Returns:
         A dict, where:
             - keys are names of taxa,
             - values are lists with counters of occurrences of particular
               taxon in subsequent groups of files. Order on this list
               is defined by order of names in xml_names list.
-              
+
         Example:
         {
             'Anoxybacillus': [5, 1],
@@ -2229,24 +2229,24 @@ def deunique(node):
 def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
     """Generates xml string, dedicated to use with Krona.
     Xml is generated with use of default python xml module.
-    
+
     Args:
-        
+
         xml_names: a list of readable identifiers of datasets.
             Example: ['filename_1', 'filename_2']
-        
+
         xml_dict: a dict with lists of occurrences of nodes by node.
             Keys are names of nodes. Values are lists of constant length,
             where every item on position *X* means: number of occurrences
             of node in dataset on position *X* on list xml_names.
-            
+
             Note, that for all i: len(xml_dict[i]) is equal to len(xml_names).
-            
+
             Example:
             {node_1: [count_1, count_2, ... count_x],
              node_2: [count_1, count_2, ... count_x]}
 
-        tax_tree: a dict of dicts, etc. In form of nested dicts, 
+        tax_tree: a dict of dicts, etc. In form of nested dicts,
             represents phylogenetic tree.
             Example:
             {a:{aa:{}, ab:{aba:{}, abb:{abba:{}}}}}
@@ -2262,27 +2262,27 @@ def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
 
     Returns:
         A single string with generated xml.
-    
+
     HARDCODED:
         Number of levels to iterate in tax_tree is hardcoded to 9.
         As original comment states:
         'however it ignores all absent levels! which is actually kind of cool'
     """
-    # Create a xml 
+    # Create a xml
     import xml.etree.ElementTree as ET
     krona = ET.Element('krona')
-    
+
     # Set units
     attributes = ET.SubElement(krona, 'attributes', magnitude=unit)
     attribute = ET.SubElement(attributes, 'attribute', display=unit)
     attribute.text = unit
-    
+
     # Put dataset names into the xml
     datasets = ET.SubElement(krona, 'datasets')
     for name in xml_names:
         dataset = ET.SubElement(datasets, 'dataset')
         dataset.text = name
-    
+
     # Put counts adequate to corresponding names into the xml
     node = ET.SubElement(krona, 'node', name='%s count'%(unit))
     reads = ET.SubElement(node, unit)
@@ -2293,8 +2293,8 @@ def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
     # CHANGED
     # I have commented this line, after consultation on slack (Michal)
     # recurse_depth = dict_depth(tax_tree)
-    
-    # Translate tex_tree into xml 
+
+    # Translate tex_tree into xml
     for lvl_1 in tax_tree:
         node1 = ET.SubElement(node, 'node', name=deunique(lvl_1))
         reads1 = ET.SubElement(node1, unit)
@@ -2365,17 +2365,17 @@ def xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, unit='reads'):
 def name_total_reduction(xml_names, file_total_count):
     """Rewrites given <file_total_count> dict, to group total counts
     by names (datasets), instant of grouping by filenames.
-    
+
     Keep in mind, that this step - along with generation of xml_names
     in xml_name_parse - groups files referring to the same dataset under
     single name, and technically is vulnerable for some errors.
     For more information, check description of xml_vals() function.
-    
+
     Args:
         xml_names: readable identifiers of groups of files referring to
             common dataset; derived from filenames.
             Example: ['filename_1', 'filename_2']
-        
+
         file_total_count: A dict within information about files are kept
             and values of every leaf are summed into values (usually
             representing total count of species inside particular file)
@@ -2453,21 +2453,21 @@ def xml_format(full_dict, tax_dict):
                     'Listeriaceae': 19, 'Listeria': 19, 'Lgrayi': 16, 'Linnocua': 3
                 }
             }
-        
+
 
     Returns:
         A tuple: (xml_names, xml_dict, tax_tree, name_total_count)
-        
+
         xml_names: readable identifiers of groups of files referring to
             common dataset; derived from filenames.
             Example: ['filename_1', 'filename_2']
-        
+
         xml_dict: a dict, where:
             - keys are names of taxa,
             - values are lists with counters of occurences of particular
               taxon in subsequent groups of files. Order on this list
               is defined by order of names in xml_names list.
-                  
+
             Example:
             {
                 'Anoxybacillus': [5, 1],
@@ -2477,7 +2477,7 @@ def xml_format(full_dict, tax_dict):
                 'Listeria': [0, 19],
                 'Listeriaceae': [0, 19]
             }
-        
+
         tax_tree: a dict without information about type and file.
             Example:
             {
@@ -2493,8 +2493,8 @@ def xml_format(full_dict, tax_dict):
                     }
                 }
             }
-        
-        
+
+
         name_total_count: a dict, where keys are names as present in
             xml_names and values are summed total counts (usually of
             occurrences of different species).
@@ -2505,19 +2505,19 @@ def xml_format(full_dict, tax_dict):
     #   - first represents full taxonomic tree
     #   - second presents how many species are inside particular files
     tax_tree, file_total_count = tree_of_life(full_dict)
-    
+
     # Creates a list of simplified filenames (full filenames comes
     # from <full_dic>). The list is guaranteed to not have duplicates.
     xml_names = xml_name_parse(full_dict)
-    
+
     # Reformats information extracted from tax_dict into another dict,
     # to allow use of this data in xml-generation process.
     xml_dict = xml_vals(xml_names, tax_dict)
-    
+
     # Rewrites given <file_total_count> dict, to group total counts
     # by names (datasets), instant of grouping by filenames.
     name_total_count = name_total_reduction(xml_names, file_total_count)
-    
+
     return xml_names, xml_dict, tax_tree, name_total_count
 
 
@@ -2526,17 +2526,17 @@ def out_namespace(curr, out_type):
     are or will be placed. Path composition varies, according to given
     arguments and always contains some string representation of <out_type>.
     Paths may start in current working directory or in directory specified by <curr>.
-    
+
     A basename is generated accordingly to the following table:
-    
+
         out_type                |   basename (filename without extension)
-        
+
         'txt'                   |  'humann-graphlan'
         a str other than 'txt'  |  out_type
         a list of strings       |  '_'.join(out_type)
-    
+
     Examples of generated basenames, basing on <out_type>:
-    
+
         for 'ITS':                ('ITS.krona', 'ITS.html')
         for ['ITS', '16S']:       ('ITS_16S.krona', 'ITS_16S.html')
         for 'txt':                'humann-graphlan'
@@ -2598,22 +2598,22 @@ def prepare_taxonomy_stats(opts):
 
     Args:
         opts: A namespace, where:
-  
+
             opts.output_type:
                 Allows to choice on which files the analysis will be
                 performed and also determines basenames of output files.
-                
+
                 One of: ['ITS', '16S']
-                
+
             opts.mode:
                 A mode in which the program will be run.
-                
+
                 One of: ['test', 'run']
-     
+
             opts.out_dir:
                 Indicates, where the output files should be located.
-                To specify current working directory, use 'in_situ'. 
-                
+                To specify current working directory, use 'in_situ'.
+
                 One of: ['in_situ', a_string_with_path_to_dir]
 
             opts.db_taxonomy_16S:
@@ -2625,7 +2625,7 @@ def prepare_taxonomy_stats(opts):
                 (fasta with specially formatted headers)
 
     Input:
-    
+
         Analysis will be performed on files, meeting all the following conditions:
             - files are located in current working directory
               or in subdirectories of current working directory,
@@ -2637,11 +2637,11 @@ def prepare_taxonomy_stats(opts):
 
         Output files will be placed in <opts.out_dir> directory, with
         basenames depending on <opts.output_type>.
-        
+
         Examples of filenames:
             for 'ITS':                ('ITS.krona', 'ITS.html')
-            for ['ITS', '16S']:       ('ITS_16S.krona', 'ITS_16S.html') 
-   
+            for ['ITS', '16S']:       ('ITS_16S.krona', 'ITS_16S.html')
+
     """
     SSU = {}
     # Extracts from specially formatted FASTA file taxonomical data
@@ -2650,7 +2650,7 @@ def prepare_taxonomy_stats(opts):
         SSU['16S'] = SSU_read(opts.db_taxonomy_16S, '16S')
     if 'ITS' in opts.output_type:
         SSU['ITS'] = SSU_read(opts.db_taxonomy_ITS)
-    # Generates list of locations were input files are located. 
+    # Generates list of locations were input files are located.
     input_dic = input_locations(opts.mode, opts.output_type)
     analysed_dict = {}
     tax_dict = {}

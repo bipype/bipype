@@ -15,6 +15,10 @@ PATH_USEARCH = '/home/pszczesny/soft/usearch'
 PATH_FQ2FA = '/usr/local/bioinformatics/fastx_toolkit/bin/fastq_to_fasta'
 PATH_HUMANN = '/home/pszczesny/soft/humann-0.99'
 PATH_HUMANN_DATA = '/home/pszczesny/soft/humann-0.99/input/hmp_metadata.dat'
+PATH_BOWTIE2 = '/home/pszczesny/bin/bowtie2'
+PATH_VELVETH = '/home/pszczesny/soft/bipype/Velvet/velveth'
+PATH_VELVETG = '/home/pszczesny/soft/bipype/Velvet/velvetg'
+PATH_METAVELVETG = '/home/pszczesny/soft/bipype/MetaVelvet/meta-velvetg'
 
 # bipype
 
