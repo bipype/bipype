@@ -701,6 +701,25 @@ def run_ko_csv(ko_dict_deseq, ko_dict_edger, all_conds, kopath_keys, path_names,
                 _file.write(';'.join(to_write) + '\n')
 
 
+def progress(what, estimated_percentage=None, done=True):
+    """Prints specially formatted information about progress.
+
+    Args:
+        what - a string with name of operation which was just performed,
+            and should be reported to standard output as don or failed,
+        estimated_percentage (optional) - an integer.
+            Percent should be calculated as part of whole execution;
+            first and last 5 percent should be reserved for programs
+            which runs 'metatranscriptomics': for pre- and postprocessing,
+        done (optional) - informs whether the operation from 'what' argument
+            failed or was successfully done. By default: True (prints DONE).
+    """
+    state = 'DONE' if done else 'FAILED'
+    print '{0}: {1}'.format(what, state)
+    if estimated_percentage is not None:
+        print 'progress={0}'.format(estimated_percentage)
+
+
 def metatranscriptomics(opts):
     """Performs analyse of metagenomic data.
 
@@ -716,17 +735,17 @@ def metatranscriptomics(opts):
     system('cp -r metatr_results/metatr_pattern/* ' + work_dir)
     chdir(work_dir)
     ref_cond, all_conds, fastqs = config_from_file(work_dir, opts.metatr_config)
-    print '\nconfiguration file reading: DONE\n\n'
+    progress('configuration file reading', 15)
     run_fastq_to_fasta(fastqs)
-    print '\nfastq_to_fasta: DONE\n\n'
+    progress('fastq_to_fasta', 25)
     run_cat_pairing()
-    print '\ncat: DONE\n\n'
+    progress('cat', 35)
     run_rapsearch(opts.threads)
-    print '\nrapsearch: DONE\n\n'
+    progress('rapsearch', 45)
     run_ko_map()
-    print '\nKO mapping: DONE\n\n'
+    progress('KO mapping', 55)
     run_SARTools()
-    print '\nSARTools: DONE\n\n'
+    progress('SARTools', 65)
     path_names, kopath_keys, kopath_values, edger_files, deseq_files = \
      run_pre_ko_remap(ref_cond)
     if opts.metatr_output_type != 'new':
@@ -734,11 +753,11 @@ def metatranscriptomics(opts):
     if opts.metatr_output_type != 'old':
         ko_dict_deseq, ko_dict_edger = run_new_ko_remap(
          deseq_files, edger_files, kopath_values, all_conds, ref_cond)
-    print '\npathway mapping: DONE\n\n'
+    progress('pathway mapping', 75)
     if opts.metatr_output_type != 'old':
         run_ko_csv(ko_dict_deseq, ko_dict_edger, all_conds, kopath_keys,
          path_names, ref_cond)
-    print '\ngenerating summative CSV: DONE\n\n'
+    progress('generating summative CSV', 85)
     if (opts.out_dir=='in_situ'):
         out_dir=before_cwd
     else:
@@ -754,4 +773,4 @@ def metatranscriptomics(opts):
     system('cp deseq/_report.html ' + out_dir + '/deseq_report.html')
     system('rm -rf ../metatr_results_' + timestamp)
     chdir(before_cwd)
-    print '\nMETATRANSCRIPTOMIC WORKFLOW DONE\n\n'
+    progress('METATRANSCRIPTOMIC WORKFLOW', 95)
