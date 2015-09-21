@@ -4,6 +4,8 @@ import argparse
 from metatranscriptomics_bipype import metatranscriptomics
 from refseq_bipype import sample, prepare_taxonomy_stats
 from sys import argv as sargv
+import shutil
+import os
 from os import getcwd
 from settings_bipype import *
 
@@ -28,6 +30,9 @@ def parse_arguments(args=None):
         metavar = 'OUTPUT_DIRECTORY',
         default='in_situ',
         help='directory for output files')
+    general.add_argument("--input", "-i",
+        nargs='*',
+        default=None)
     general.add_argument("--ins_len",
         default='9999',
         help='insert length - be advised - you better use it for single run',
@@ -143,8 +148,14 @@ def parse_arguments(args=None):
 
 if __name__ == '__main__':
     opts = parse_arguments()
-    if (opts.metatr_config):
+    if opts.metatr_config:
         metatranscriptomics(opts)
     else:
+        if opts.input:
+            temp_path = getcwd()
+            if not os.path.exists(temp_path):
+                os.makedirs(temp_path)
+            for input_file in opts.input:
+                shutil.copy(input_file, os.path.join(temp_path))
         sample(opts)
         prepare_taxonomy_stats(opts)
