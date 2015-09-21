@@ -58,7 +58,7 @@ def cat_read(mode, fileext, paired_end=True):
                     seq_dict = fastq_dict(seq_dict, root, file_[:-3])
             else:
                 pass
-    if paired_end == True:
+    if paired_end:
         seq_dict = paired_end_match(seq_dict)
     else:
         pass
@@ -420,16 +420,19 @@ def fastq_dict(seq_dict, root, file_):  # Why not defaultdict from collections?
 
 def paired_end_match(seq_dict):
     """Returns a dict with paths to paired-end reads only.
+    Files will be matched as pair if their names differs only by parts:
+        - R1 and R2, if the parts of filename are separated by underscores ('_')
+        - 1 and 2, if the parts of filename are separated by dots ('.')
 
     Arg:
         seq_dict: {directory_path:file_path}
 
     Returns:
         Dict in following format:
-    {directory_path1:[(paired-end_read1R1_path, paired-end_read1R2_path),
-                      (paired-end_read2R1_path, paired-end_read2R2_path),
-                      (paired-end_read3R1_path, paired-end_read3R2_path)],
-     directory_path2:[(paired-end_read4R1_path, paired-end_read4R2_path)]
+    {directory_path1:[(paired-end_read1_R1_path, paired-end_read1_R2_path),
+                      (paired-end_read2_R1_path, paired-end_read2_R2_path),
+                      (paired-end_read3_R1_path, paired-end_read3_R2_path)],
+     directory_path2:[(paired-end_read4_R1_path, paired-end_read4_R2_path)]
     }
 
     Paths to files (both in input and output dict) are relative.
@@ -437,9 +440,13 @@ def paired_end_match(seq_dict):
     pe_dict = {}
     for directory in seq_dict:
         for seq1, seq2 in combinations(seq_dict[directory], 2):
-            seq1_s = set(split(seq1, '_'))
-            seq2_s = set(split(seq2, '_'))
-            if seq1_s^seq2_s == set(['R1', 'R2']):
+            # for format with underscores
+            seq1_u = set(split(seq1, '_'))
+            seq2_u = set(split(seq2, '_'))
+            # for format with dots, like output of metAMOS preprocessing
+            seq1_d = set(split(seq1, '_'))
+            seq2_d = set(split(seq2, '_'))
+            if seq1_u ^ seq2_u == {'R1', 'R2'} or seq1_d ^ seq2_d == {'1', '2'}:
                 if directory in pe_dict:
                     pe_dict[directory].append((seq1, seq2))
                 else:
@@ -1042,6 +1049,8 @@ def cutadapt(mode, e, cat, R1_file, R2_file, adapter_file, usearch_16S=False, us
     R2_fastq = pjoin(cat, R2_file)
     if adapter_file == 'use_filenames': #WARNING HARDCODE
         adapter_1, adapter_2 = adapter_read(R1_file)
+    elif adapter_file == 'use_paths':
+        adapter_1, adapter_2 = adapter_read(R1_fastq)
     else:
         adapter_1, adapter_2 = adapter_read_bck(adapter_file, R1_file)
     outname_1 = '.'.join(split(R1_fastq, '.')[:-1]) + '.cutadapt.fastq'
