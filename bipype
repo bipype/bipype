@@ -75,8 +75,8 @@ def parse_arguments(args=None):
         const = 'f',
         default = 'f')
     contigs = parser.add_argument_group('contig reconstruction', 'methods of contig reconstruction to be used during the run')
-    contigs.add_argument("-MV", default=None,
-        help = 'MetaVelvet [initial k-mer size - default = 31, [final k-mer size, [step - default=2 (odd numbers)]]]',
+    contigs.add_argument("-assembler", default=None, # It should be done in less 'sophisticated' way
+        help = '"MH" for Megahit or (for MetaVelvet) [initial k-mer size - default = 31, [final k-mer size, [step - default=2 (odd numbers)]]]',
         nargs='*')
     contigs.add_argument("-reconstruct", default=None, const="rec_",
         help = 'reconstruct relating to database, options: database_loc, prefix',
@@ -146,8 +146,5 @@ if __name__ == '__main__':
     if (opts.metatr_config):
         metatranscriptomics(opts)
     else:
-        directory = sample(opts)
-        old_dir = getcwd()
-        chdir(directory)
+        sample(opts)
         prepare_taxonomy_stats(opts)
-        chdir(old_dir)

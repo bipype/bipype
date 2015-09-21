@@ -19,6 +19,7 @@ PATH_BOWTIE2 = '/home/pszczesny/bin/bowtie2'
 PATH_VELVETH = '/home/pszczesny/soft/Velvet/velveth'
 PATH_VELVETG = '/home/pszczesny/soft/Velvet/velvetg'
 PATH_METAVELVETG = '/home/pszczesny/soft/MetaVelvet/meta-velvetg'
+PATH_MEGAHIT = '/home/pszczesny/soft/megahit/megahit'
 
 # bipype
 
