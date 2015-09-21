@@ -299,8 +299,7 @@ def fastq_to_fasta(fastq):
     out_file = fastq.rsplit('.', 1)[0] + '.fasta'
     out_file = out_file.rsplit('/', 1)[-1]
     out_file = 'fasta/' + out_file
-    subprocess.check_call([PATH_FQ2FA,
-     '-i', fastq, '-o', out_file, '-Q33'])
+    subprocess.check_call([PATH_FQ2FA, '-i', fastq, '-o', out_file, '-Q33'])
 
 
 def rapsearch2(input_file, threads):
@@ -349,7 +348,7 @@ def get_ko_fc(ko_dict, ref_cond, filepath):
                 fc = base_fc
                 fc_num = False
             if '.down.' in filepath and fc_num:
-                fc = -1.0 / linia[fc_index]
+                fc = -1.0 / float(line[fc_index])
             if KO in ko_dict.keys():
                 ko_dict[KO][cond] = fc
             else:
@@ -468,11 +467,10 @@ def mapper_write(ko_path_dict, all_conds, out_dir):
                     _file.write(line)
 
 
-def config_from_file(work_dir, _file):
-    """Reads paramaters from configuration _file. Prepares target.txt
+def config_from_file(_file):
+    """Reads parameters from configuration _file. Prepares target.txt
 
         Args:
-            work_dir:   current working directory
             _file       configuration file for metatranscriptomic pipeline
 
         Returns:
@@ -504,7 +502,7 @@ def config_from_file(work_dir, _file):
             target_name = line[0].rsplit('/', 1)[-1]
             target_name = target_name.replace('R1_', '')
             target_name = target_name.replace('.fastq', '.count')
-            f.write('\n' + hyp_ident +'_\t' + target_name + '\t' + line[2])
+            f.write('\n' + hyp_ident + '_\t' + target_name + '\t' + line[2])
     with open('template_script_DESeq2.r') as f:
         lines = f.readlines()
         lines[24] = 'condRef <- "' + ref_cond + '"' + '\n'
@@ -575,11 +573,8 @@ def run_SARTools():
     system('Rscript template_script_edgeR.r')
 
 
-def run_pre_ko_remap(ref_cond):
+def run_pre_ko_remap():
     """Prepares args for run_(pre_/new_)ko_remap()
-
-        Arg:
-            ref_cond:       Reference condition (group) - string
 
         Returns:
             path_names:     {KEGG_Pathway_id:Name} dict
@@ -734,7 +729,7 @@ def metatranscriptomics(opts):
     system('mkdir ' + work_dir)
     system('cp -r metatr_results/metatr_pattern/* ' + work_dir)
     chdir(work_dir)
-    ref_cond, all_conds, fastqs = config_from_file(work_dir, opts.metatr_config)
+    ref_cond, all_conds, fastqs = config_from_file(opts.metatr_config)
     progress('configuration file reading', 15)
     run_fastq_to_fasta(fastqs)
     progress('fastq_to_fasta', 25)
@@ -747,7 +742,7 @@ def metatranscriptomics(opts):
     run_SARTools()
     progress('SARTools', 65)
     path_names, kopath_keys, kopath_values, edger_files, deseq_files = \
-     run_pre_ko_remap(ref_cond)
+     run_pre_ko_remap()
     if opts.metatr_output_type != 'new':
         run_ko_remap(deseq_files, edger_files, kopath_values, path_names)
     if opts.metatr_output_type != 'old':
