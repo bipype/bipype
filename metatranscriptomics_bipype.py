@@ -758,10 +758,10 @@ def metatranscriptomics(opts):
         run_ko_csv(ko_dict_deseq, ko_dict_edger, all_conds, kopath_keys,
          path_names, ref_cond)
     progress('generating summative CSV', 85)
-    if (opts.out_dir=='in_situ'):
-        out_dir=before_cwd
+    if opts.out_dir == 'in_situ':
+        out_dir = before_cwd
     else:
-        out_dir=opts.out_dir
+        out_dir = opts.out_dir
     system('mkdir out_dir')
     if opts.metatr_output_type != 'new':
         old_path = out_dir + '/old'
