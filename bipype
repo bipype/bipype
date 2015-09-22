@@ -47,7 +47,7 @@ def parse_arguments(args=None):
     taxonomy_stats = parser.add_argument_group('taxonomy_stats options', 'options related to process of preparing taxonomy results')
     taxonomy_stats.add_argument("-ot", "--output_type",
         nargs = '*',
-        default= ['ITS', '16S'],
+        default= ['ITS', '16S', 'txt'],
         help = 'Choice of files searched for an analysis, coded: 16S and ITS on usearches - file .usearch_ITS, .usearch_16S')
     dataclean = parser.add_argument_group('input cleaning', 'methods of cleaning input from noise')
     dataclean.add_argument("-ic", "--initial_cleaning",
@@ -94,7 +94,7 @@ def parse_arguments(args=None):
     contigs.add_argument("-rapsearch",
         help = 'RAPsearch on protein database',
         nargs = '?',
-        choices = ['masl28', 'rap_prot', 'rap_KO'],
+        choices = ['rap_KEGG', 'rap_prot', 'rap_KO'],
         dest='to_calculate',
         action='append',
         const='rap_prot',

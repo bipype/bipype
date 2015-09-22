@@ -785,7 +785,7 @@ def rapsearch(mode, e, contig_loc, rap_out, KEGG=None):
             then ko.pep.rapsearch.db is chosen as protein database
 
     HARDCODED:
-        if KEGG='masl28282828282828282828282828282828282828282828282828282828'
+        if KEGG='masl'
 
     GLOBALS:
         - path to RAPSearch program: PATH_RAPSEARCH
@@ -796,7 +796,7 @@ def rapsearch(mode, e, contig_loc, rap_out, KEGG=None):
     """
     rap_log = rap_out + '.log'
     rap_err = rap_out + '.err'
-    if KEGG == 'masl28282828282828282828282828282828282828282828282828282828':
+    if KEGG == 'masl':
         ref_prot_loc = PATH_REF_PROT_MASL28
         rap_com = '%s -q %s -d %s -o %s -z 12 -v 20 -b 1 -t n -a t 1> %s 2> %s'%(
             PATH_RAPSEARCH, contig_loc, ref_prot_loc, rap_out, rap_log, rap_err
