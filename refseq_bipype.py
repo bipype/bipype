@@ -1464,23 +1464,23 @@ def sample(opts):
                     usearch(opts.mode, opts.e, 'ITS', pjoin(cat, fasta), opts.db_ITS, opts.threads)
 
 
-def SSU_read(loc, typ=None):
+def SSU_read(loc, headers_type='ITS'):
     """Extracts from specially formatted FASTA file taxonomic data
     and returns them as hierarchically organised dict.
 
     Headers of FASTA files should follow schemas presented by following examples:
 
-        - Default format (used in UNITE database):
+        - ITS format (used in UNITE database):
         >DQ233785|uncultured ectomycorrhizal fungus|Fungi|Thelephora terrestris|Fungi; Basidiomycota; Agaricomycotina; Agaricomycetes; Incertae sedis; Thelephorales; Thelephoraceae; Thelephora; Thelephora terrestris
 
-        - Alternative format (a.k.a '16S'):
+        - 16S format (alternative):
         >AF093247.1.2007 Eukaryota;Amoebozoa;Mycetozoa;Myxogastria;;Hyperamoeba_sp._ATCC50750
 
     Args:
         loc: location - path to the FASTA file
 
-        typ: tells function which format of header is present in given file.
-            If specified, indicates use of alternative format. Default: None.
+        headers_type: tells which format of header is present in given file.
+            If specified, indicates use of alternative format. Default: 'ITS'.
 
     Returns:
         A dict with taxonomic data, where:
@@ -1521,11 +1521,11 @@ def SSU_read(loc, typ=None):
         for linia in fasta_file.readlines():
             if linia[0] == '>':
                 linia = linia.rstrip()
-                if typ:
+                if headers_type == '16S':
                     linia = linia.split()
                     tax_idx = linia[0][1:]
                     tax_dict[tax_idx] = linia[1].split(';')
-                else:
+                elif headers_type == 'ITS':
                     line = linia.split('|')
                     tax_idx = line[0][1:]
                     if linia.count('Fungi') == 2:
@@ -1539,6 +1539,8 @@ def SSU_read(loc, typ=None):
                     if tax_line == '-':
                         tax_line = 'Fungi'+';'+linia.split('|')[1].replace(" ", "_")
                     tax_dict[tax_idx] = tax_line.split(';')
+                else:
+                    raise KeyError('Unknown headers_type %s' % headers_type)
     return tax_dict
 
 
@@ -2565,35 +2567,32 @@ def xml_format(full_dict, tax_dict):
     return xml_names, xml_dict, tax_tree, name_total_count
 
 
-def out_namespace(curr, out_type):
+def out_namespace(curr, out_types):
     """"Generates paths to places, where krona xml and krona html files
     are or will be placed. Path composition varies, according to given
     arguments and always contains some string representation of <out_type>.
     Paths may start in current working directory or in directory specified by <curr>.
 
-    A basename is generated accordingly to the following table:
+    If 'txt' is one of output_types, the basename of output files will be
+    'humann-graphlan'; otherwise, the basename will be concatenation of
+    elements from 'out_types' list, with underscore '_' as glue.
 
-        out_type                |   basename (filename without extension)
+    In case of multiple elements on <out_types> list, they will be sorted, so
+    the output files will have consistent names regardless to parameters' order.
 
-        'txt'                   |  'humann-graphlan'
-        a str other than 'txt'  |  out_type
-        a list of strings       |  '_'.join(out_type)
+    Examples of generated filenames, basing on <out_types>:
 
-    Examples of generated basenames, basing on <out_type>:
-
-        for 'ITS':                ('ITS.krona', 'ITS.html')
-        for ['ITS', '16S']:       ('ITS_16S.krona', 'ITS_16S.html')
-        for 'txt':                'humann-graphlan'
+        for ['ITS']:            'ITS.krona', 'ITS.html'
+        for ['ITS', '16S']:     '16S_ITS.krona', '16S_ITS.html'
+        for ['txt']:            'humann-graphlan.krona', 'humann-graphlan.html'
 
 
     Args:
         curr: A string - path to directory where the files are/will be placed.
-              If curr is 'in_situ', the path will start in current working directory.
+            If curr is 'in_situ', the path will start in current working directory.
 
-        out_type: A variable that determines the basename of file.
-
-            In practice, we expect here: 'ITS', '16S', 'txt'
-            or some combination of first two in form of a list.
+        out_type: A list which determines the basename of output files.
+            In practice, we expect list of elements: 'ITS', '16S' or 'txt'.
 
     Returns:
         A tuple (out_xml, out_html):
@@ -2606,20 +2605,18 @@ def out_namespace(curr, out_type):
     """
     if curr == 'in_situ':
         curr = getcwd()
-    if type(out_type) == str:
-        if out_type != 'txt':
-            out_xml = pjoin(curr, out_type+'.krona')
-        else:
-            out_xml = pjoin(curr, 'humann-graphlan.krona')
-    elif type(out_type) == list:
-        out_xml = pjoin(curr, '_'.join(out_type)+'.krona')
+
+    if 'txt' in out_types:
+        out_xml = pjoin(curr, 'humann-graphlan.krona')
     else:
-        print 'Unknown type of output type:', out_type, ' is ', type(out_type)
+        out_xml = pjoin(curr, '_'.join(sorted(out_types)) + '.krona')
+
     out_html = out_xml.replace('krona', 'html')
+
     return out_xml, out_html
 
 
-def outprint(xml_string, out_xml):
+def create_krona_xml(xml_string, out_xml):
     """Writes xml_string into the file of name out_xml.
     If the file does not exist, creates a new file.
 
@@ -2631,6 +2628,36 @@ def outprint(xml_string, out_xml):
     krona_write = open(out_xml, 'w')
     krona_write.write(xml_string)
     krona_write.close()
+
+
+def create_krona_html(krona_html_name, krona_xml_name):
+    """Runs script which creates Krona html file from krona xml file"""
+    command = 'ktImportXML -o %s %s' % (krona_html_name, krona_xml_name)
+    system(command)
+
+
+def prepare_taxonomy_dicts(opts, input_dict):
+    """
+    Prepares dicts with taxonomy stats. For more, check prepare_taxonomy_stats.
+    """
+    taxonomic_dbs = {'ITS': opts.db_taxonomy_ITS,
+                     '16S': opts.db_taxonomy_16S}
+
+    analysed_dict = {}
+    pure_tax = {}
+
+    for out_type in opts.output_type:
+        # Extracts from specially formatted FASTA file taxonomic data
+        # and returns them as hierarchically organised dict
+        SSU = SSU_read(taxonomic_dbs[out_type], out_type)
+
+        # Runs files analysis on data which were interpreted by SSU_read
+        # and then, creates dicts with summarized taxonomic data
+        all_dicts, all_tax_dict = dict_prepare(out_type, input_dict[out_type], SSU)
+        analysed_dict[out_type] = all_dicts
+        pure_tax.update(all_tax_dict)
+
+    return analysed_dict, pure_tax
 
 
 def prepare_taxonomy_stats(opts):
@@ -2647,7 +2674,7 @@ def prepare_taxonomy_stats(opts):
                 Allows to choice on which files the analysis will be
                 performed and also determines basenames of output files.
 
-                One of: ['ITS', '16S']
+                One of: ['ITS', '16S', 'txt']
 
             opts.mode:
                 A mode in which the program will be run.
@@ -2687,32 +2714,32 @@ def prepare_taxonomy_stats(opts):
             for ['ITS', '16S']:       ('ITS_16S.krona', 'ITS_16S.html')
 
     """
-    SSU = {}
-    # Extracts from specially formatted FASTA file taxonomical data
-    # and returns them as hierarchically organised dict
-    if '16S' in opts.output_type:
-        SSU['16S'] = SSU_read(opts.db_taxonomy_16S, '16S')
-    if 'ITS' in opts.output_type:
-        SSU['ITS'] = SSU_read(opts.db_taxonomy_ITS)
     # Generates list of locations were input files are located.
-    input_dic = input_locations(opts.mode, opts.output_type)
-    analysed_dict = {}
-    tax_dict = {}
-    pure_tax = {}
-    for out_type in opts.output_type:
-        # Runs files analysis on data which were interpreted by SSU_read
-        # and then, creates dicts with summarized taxonomic data
-        analysed_dicto, tax_dicto = dict_prepare(out_type, input_dic[out_type], SSU[out_type])
-        analysed_dict[out_type] = analysed_dicto
-        tax_dict[out_type] = tax_dicto
-        pure_tax.update(tax_dicto)
-    krona_xml_name, krona_html_name = out_namespace(opts.out_dir, opts.output_type)
-    xml_names, xml_dict, tax_tree, name_total_count = xml_format(analysed_dict, pure_tax)
-    krona_unit = 'reads'
+    input_dict = input_locations(opts.mode, opts.output_type)
+
+    if 'txt' in opts.output_type:
+        # no options alongside 'txt' allowed
+        assert len(opts.output_type) == 1
+
+        input_dict_for_txt = input_dict['txt']
+        xml_names, xml_dict, tax_tree, name_total_count = graphlan_to_krona(input_dict_for_txt)
+        units = 'processes'
+    else:
+        # only '16S' and 'ITS' allowed (if not 'txt')
+        assert len(set(opts.output_type) - {'16S', 'ITS'}) == 0
+
+        analysed_dict, pure_tax = prepare_taxonomy_dicts(opts, input_dict)
+        xml_names, xml_dict, tax_tree, name_total_count = xml_format(analysed_dict, pure_tax)
+        units = 'reads'
+
+    xml_string = xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, units)
+
+    xml_name, html_name = out_namespace(opts.out_dir, opts.output_type)
     chdir('../')
-    xml_string = xml_prepare(xml_names, xml_dict, tax_tree, name_total_count, krona_unit)
     # Writes xml_string into the file given by out_namespace
-    outprint(xml_string, krona_xml_name)
-    if opts.mode == 'run':
-        krona_to_html_comm = 'ktImportXML -o %s %s'%(krona_html_name, krona_xml_name)
-        system(krona_to_html_comm)
+    create_krona_xml(xml_string, xml_name)
+    if opts.mode != 'run':
+        return
+    create_krona_html(xml_name, html_name)
+
+
