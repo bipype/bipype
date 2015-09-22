@@ -1305,11 +1305,11 @@ def sample(opts):
                 List of adapter types: 16S, ITS or 'both'.
 
             opts.db_16S:
-                boolean parameter; if True, then Usearch is runned for 16S adapters
+                database of 16S adapters, which will be -db parameter for Usearch program
                 
 
             opts.db_ITS:
-                boolean parameter; if True, then Usearch is runned for ITS adapters
+                database of ITS adapters, which will be -db parameter for Usearch program
 
     GLOBALS:
         PATH_FQ2FA
