@@ -194,13 +194,13 @@ def parse_arguments(args=None):
         type=str,
         default=PATH_16S_DATABASE,
         help='location of 16S database used in taxonomy classification '
-             '(fasta with specially formatted headers)')
+             '(FASTA with specially formatted headers)')
     db_loc.add_argument(
         "--db_taxonomy_ITS",
         type=str,
         default=PATH_ITS_DATABASE,
         help='location of ITS database used in taxonomy classification '
-             '(fasta with specially formatted headers)')
+             '(FASTA with specially formatted headers)')
 
     metatr = parser.add_argument_group(
         'metatranscriptomics',
@@ -208,7 +208,7 @@ def parse_arguments(args=None):
     metatr.add_argument(
         "--metatr_config",
         type=str,
-        help='confriguration file which is necessary to launch '
+        help='configuration file which is necessary to launch '
              'metatranscriptomic part of bipype'),
     metatr.add_argument(
         "-mot", "--metatr_output_type",
