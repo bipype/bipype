@@ -184,14 +184,14 @@ def tax_id_reader():
     """
     print 'reading tax ids'
     gi_tax_dict = {}
-    #curr_t = datetime.now()
+
     with open(PATH_GI_TAX) as file_:
         counter = 0
         for line in file_:
             gi, tax = split(line)
             gi_tax_dict[int(gi)] = int(tax)
             counter += 1
-            if counter%1000000 == 0:
+            if counter % 1000000 == 0:
                 print "Added %i tax_ids"%(counter)
     file_.close()
     return gi_tax_dict
@@ -222,7 +222,6 @@ def tax_name_reader():
     """
     print 'reading tax names'
     tax_name_dict = {}
-    #curr_t1 = datetime.now()
     with open(PATH_TAX_NAME) as file_:
         counter = 0
         for line in file_:
@@ -235,7 +234,7 @@ def tax_name_reader():
                     tax_name = line_l[2]
                 tax_name_dict[int(tax_id)] = tax_name
             counter += 1
-            if counter%100000 == 0:
+            if counter % 100000 == 0:
                 print "Processed %i tax_name lines"%(counter)
     file_.close()
     return tax_name_dict
@@ -375,7 +374,7 @@ def refseq_ref_namespace(directory, seq, postfix, out_dir='in_situ', map_dir='in
         map_dir:   Path to directory, where file with
                    .map_count extension will be written. If map_dir is
                    'in_situ'(default),map_dir=out_dir.
-"""
+    """
     if out_dir == 'in_situ':
         out_dir = directory
     ref_namespace = {}
@@ -569,7 +568,7 @@ def bam_indexing(mode, sorted_bam): # multi
     Args:
         mode: string type
         sorted_bam: BAM file
-"""
+    """
     print 'samtools index %s'%(sorted_bam)
     if mode == 'run':
         system('samtools index %s'%(sorted_bam))
@@ -876,16 +875,19 @@ def MV(mode, e, k_mers, cat, pair, ins_len, rap=False):
         meta_run = PATH_METAVELVETG+' %s -ins_length %i | tee %s'%(tmp_out_dir, ins_len, log_loc)
         print velveth_run, '\n', velvetg_run, '\n', meta_run
         if e:
-            filelist = [pjoin(tmp_out_dir, 'meta-velvetg.contigs.fa')]
-            filelist.append(pjoin(tmp_out_dir, 'intermediates.tgz'))
-            filelist.append(pjoin(tmp_out_dir, 'Sequences'))
-            filelist.append(pjoin(tmp_out_dir, 'Roadmaps'))
-            filelist.append(pjoin(tmp_out_dir, 'Log'))
-            filelist.append(pjoin(tmp_out_dir, 'contigs.fa'))
-            filelist.append(pjoin(tmp_out_dir, 'Graph2'))
-            filelist.append(pjoin(tmp_out_dir, 'LastGraph'))
-            filelist.append(pjoin(tmp_out_dir, 'stats.txt'))
-            todo = exist_check('MV', filelist, todo)
+            file_list = [
+                'meta-velvetg.contigs.fa',
+                'intermediates.tgz',
+                'Sequences',
+                'Roadmaps',
+                'Log',
+                'contigs.fa',
+                'Graph2',
+                'LastGraph',
+                'stats.txt'
+                ]
+            file_list = [pjoin(tmp_out_dir, x) for x in file_list]
+            todo = exist_check('MV', file_list, todo)
         if mode == 'run':
             if 'velveth' in todo:
                 system(velveth_run)
@@ -896,7 +898,7 @@ def MV(mode, e, k_mers, cat, pair, ins_len, rap=False):
             gzip_MV(tmp_out_dir)
         if rap:
             rap_in = pjoin(tmp_out_dir, 'meta-velvetg.contigs.fa')
-            rap_f =  pair_uni_name(pair) + '.rapsearch'
+            rap_f = pair_uni_name(pair) + '.rapsearch'
             rap_out = pjoin(tmp_out_dir, rap_f)
             rapsearch(mode, e, rap_in,  rap_out)
 
@@ -921,12 +923,12 @@ def MH(mode, e, t, cat, pair, rap=False, presets='meta-large'):
     mega_hit_run = (PATH_MEGAHIT + ' -t ' + str(t) + ' -1 ' + pair[0] + ' -2 ' +
         pair[1] + ' -o ' + out_dir + ' --presets ' + presets)
     print mega_hit_run
-    if mode=="run":
+    if mode == 'run':
         system(mega_hit_run)
-        system('rm -r ' + pjoin(out_dir,'intermediate_contigs'))
+        system('rm -r ' + pjoin(out_dir, 'intermediate_contigs'))
     if rap:
         rap_in = pjoin(out_dir, 'final.contigs.fa')
-        rap_f =  pair_uni_name(pair) + '.rapsearch'
+        rap_f = pair_uni_name(pair) + '.rapsearch'
         rap_out = pjoin(out_dir, rap_f)
         rapsearch(mode, e, rap_in,  rap_out)
 
@@ -1047,7 +1049,7 @@ def cutadapt(mode, e, cat, R1_file, R2_file, adapter_file, usearch_16S=False, us
     """
     R1_fastq = pjoin(cat, R1_file)
     R2_fastq = pjoin(cat, R2_file)
-    if adapter_file == 'use_filenames': #WARNING HARDCODE
+    if adapter_file == 'use_filenames':  # WARNING HARDCODE
         adapter_1, adapter_2 = adapter_read(R1_file)
     elif adapter_file == 'use_paths':
         adapter_1, adapter_2 = adapter_read(R1_fastq)
@@ -1055,7 +1057,7 @@ def cutadapt(mode, e, cat, R1_file, R2_file, adapter_file, usearch_16S=False, us
         adapter_1, adapter_2 = adapter_read_bck(adapter_file, R1_file)
     outname_1 = '.'.join(split(R1_fastq, '.')[:-1]) + '.cutadapt.fastq'
     outname_2 = '.'.join(split(R2_fastq, '.')[:-1]) + '.cutadapt.fastq'
-    outname_uni_fastq_preflash = pair_uni_name([R1_file])+ '.amplicons.cutadapt.flash.merged.fastq'
+    outname_uni_fastq_preflash = pair_uni_name([R1_file]) + '.amplicons.cutadapt.flash.merged.fastq'
     outname_uni_fastq_postflash = outname_uni_fastq_preflash + '.extendedFrags.fastq'
     outname_uni_fasta = outname_uni_fastq_postflash[:-1] + 'a'
     names = [(outname_1, R1_fastq), (outname_2, R2_fastq)]
@@ -1161,7 +1163,7 @@ def reconstruct(mode, thr, e, pair, cat, prefix, rec_db_loc):
     alnsrt = pjoin(tmp_loc, 'aln.sorted')
     alnsrtbam = pjoin(tmp_loc, 'aln.sorted.bam')
     if prefix[-1] != '_':
-        prefix = prefix+'_'
+        prefix += '_'
     alnfastq = pjoin(cat, prefix + 'aln.fastq')
     pile_com = "samtools mpileup -uf %s %s |bcftools view -cg - |vcfutils.pl vcf2fq > %s"%(rec_db_loc, alnsrtbam, alnfastq)
     rm_tmp = "rm -rf %s"%(tmp_loc)
@@ -1187,21 +1189,21 @@ def reconstruct(mode, thr, e, pair, cat, prefix, rec_db_loc):
 
 def humann(mode, e, m8_dict, typ='m8'):
     """
-Copies humann to the current directory, moves input (*.m8) files to the input directory,
-copies hmp_metadata.dat file to the input directory
- and runs humann
+    Copies humann to the current directory, moves input (*.m8) files to the input directory,
+    copies hmp_metadata.dat file to the input directory
+     and runs humann
 
-GLOBALS:
-        - path to humann program: PATH_HUMANN
-        - path to data for humann: PATH_HUMANN_DATA
+    GLOBALS:
+            - path to humann program: PATH_HUMANN
+            - path to data for humann: PATH_HUMANN_DATA
 
-Args:
-    mode: if mode="run", then humann will be copied to the current directory
-    e: if e=True, then function checks existion of humann-0.99 results folder
-    m8_dict: the similarty search results folders
-    typ: default typ="m8", in that case new catalog humann-0.99 will be created in rapsearch result folder;
-         in other case humann analysis results will be added in rapsearch result folder
-"""
+    Args:
+        mode: if mode="run", then humann will be copied to the current directory
+        e: if e=True, then function checks existion of humann-0.99 results folder
+        m8_dict: the similarty search results folders
+        typ: default typ="m8", in that case new catalog humann-0.99 will be created in rapsearch result folder;
+             in other case humann analysis results will be added in rapsearch result folder
+    """
     for path in m8_dict:
         flag = True
         if typ == 'm8':
@@ -1319,9 +1321,9 @@ def sample(opts):
     if len(opts.db_refseq_fungi) == 1:
         opts.db_refseq_fungi += [False]
 
-    if opts.to_calculate == None:
+    if opts.to_calculate is None:
         opts.to_calculate = []
-    refseq_test = len(set(['f', 'b', 'p']) & set(opts.to_calculate))
+    refseq_test = len({'f', 'b', 'p'} & set(opts.to_calculate))
     if (refseq_test > 0) and opts.mode == 'run':
         if pexists(opts.db_NCBI_taxonomy):
             tax_id_dict, tax_name_dict = taxa_read('auto', opts.db_NCBI_taxonomy)
@@ -1336,7 +1338,7 @@ def sample(opts):
                 reconstruct(opts.mode, opts.threads, opts.e, pair, cat, opts.reconstruct, opts.db_reconstruct)
             if opts.assembler == ["MH"]:
                 MH(opts.mode, opts.e, opts.threads, cat, pair, ('rap_prot' in opts.to_calculate))
-            elif opts.assembler != None:
+            elif opts.assembler is not None:
                 MV(opts.mode, opts.e, opts.assembler, cat, pair, opts.ins_len, ('rap_prot' in opts.to_calculate))
             if ('f' in opts.to_calculate) or ('b' in opts.to_calculate):
                 postfix = opts.postfix + 'fungi'
@@ -1366,7 +1368,7 @@ def sample(opts):
                 else:
                     cutadapt(opts.mode, opts.e, cat, pair[0], pair[1], opts.cutadapt[0])
 
-    if opts.assembler != None:
+    if opts.assembler is not None:
         contig_dict = cat_read(opts.mode, 'fa', False)
         for cat in contig_dict:
             for contig in contig_dict[cat]:
@@ -1945,7 +1947,7 @@ def dict_prepare(typ, indict, SSU):
     for path in indict.keys():
         for plik in indict[path]:
             plik_id = '_'.join([typ, split(plik, '.')[0]])
-            analysed_dict, tax_dict = file_analysis(typ, pjoin(path,plik), SSU)
+            analysed_dict, tax_dict = file_analysis(typ, pjoin(path, plik), SSU)
             all_dicts[plik_id] = analysed_dict
             all_tax_dict[plik_id] = tax_dict
     return all_dicts, all_tax_dict
