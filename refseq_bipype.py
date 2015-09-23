@@ -443,8 +443,8 @@ def paired_end_match(seq_dict):
             seq1_u = set(split(seq1, '_'))
             seq2_u = set(split(seq2, '_'))
             # for format with dots, like output of metAMOS preprocessing
-            seq1_d = set(split(seq1, '_'))
-            seq2_d = set(split(seq2, '_'))
+            seq1_d = set(split(seq1, '.'))
+            seq2_d = set(split(seq2, '.'))
             if seq1_u ^ seq2_u == {'R1', 'R2'} or seq1_d ^ seq2_d == {'1', '2'}:
                 if directory in pe_dict:
                     pe_dict[directory].append((seq1, seq2))
