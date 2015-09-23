@@ -1307,11 +1307,13 @@ def sample(opts):
                 List of adapter types: 16S, ITS or 'both'.
 
             opts.db_16S:
-                database of 16S adapters, which will be -db parameter for Usearch program
+                database of 16S adapters, which will be -db parameter for Usearch program; if it isn`t empty,
+                then cutadapt function`s parameter usearch_16S will be True
                 
 
             opts.db_ITS:
-                database of ITS adapters, which will be -db parameter for Usearch program
+                database of ITS adapters, which will be -db parameter for Usearch program; if it isn`t empty,
+                then cutadapt function`s parameter usearch_ITS will be True
 
     GLOBALS:
         PATH_FQ2FA
