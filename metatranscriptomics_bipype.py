@@ -318,13 +318,15 @@ def rapsearch2(input_file, threads):
      '-v', '20', '-b', '1', '-t', 'n', '-a', 't'])
 
 
-def get_ko_fc(ko_dict, ref_cond, filepath):
+def get_ko_fc(ko_dict, ref_cond, filepath, deseq=False):
     """From given table file (SARTool), adds found fold changes to ko_dict.
 
         Args:
             ko_dict:    {KO_id:{cond1:value1, cond2:value2...}...} dict
             ref_cond:   reference condition (string)
             filepath:   filepath to output table file from edgeR or DESeq2
+            deseq:      True, if filepath points to DESeq2 table file
+                        False, if filepath points to edgeR table file
 
         Returns:
             ko_dict with added fold changes from table file
@@ -336,7 +338,10 @@ def get_ko_fc(ko_dict, ref_cond, filepath):
         else:
             cond = l_cond[1]
         file_content = _file.readlines()
-        fc_index = file_content[0].rstrip().split('\t').index('FC')
+        if deseq:
+            fc_index = file_content[0].rstrip().split('\t').index('FoldChange')
+        else:
+            fc_index = file_content[0].rstrip().split('\t').index('FC')
         for i in range(1, len(file_content)):
             line = file_content[i].rstrip().split('\t')
             KO = line[0]
@@ -636,7 +641,7 @@ def run_new_ko_remap(deseq_files, edger_files, kopath_values, all_conds, ref_con
     ko_dict_edger = {}
     for _file in deseq_files:
         if ref_cond in _file:
-            ko_dict_deseq = get_ko_fc(ko_dict_deseq, ref_cond, _file)
+            ko_dict_deseq = get_ko_fc(ko_dict_deseq, ref_cond, _file, True)
     for _file in edger_files:
         if ref_cond in _file:
             ko_dict_edger = get_ko_fc(ko_dict_edger, ref_cond, _file)
