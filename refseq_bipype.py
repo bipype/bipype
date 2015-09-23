@@ -1269,6 +1269,11 @@ def sample(opts):
                 Boolean attribute, which allows to run reconstruct function if True.
 
             opts.assembler:
+                Assembly program
+
+                One of: ['MH','MV']
+
+            opts.MV:
                 k-length nucleotids reads list or None
 
             opts.db_reconstruct:
@@ -1309,7 +1314,7 @@ def sample(opts):
             opts.db_16S:
                 database of 16S adapters, which will be -db parameter for Usearch program; if it isn`t empty,
                 then cutadapt function`s parameter usearch_16S will be True
-                
+
 
             opts.db_ITS:
                 database of ITS adapters, which will be -db parameter for Usearch program; if it isn`t empty,
@@ -1338,10 +1343,10 @@ def sample(opts):
         for pair in fastq_dict[cat]:
             if opts.reconstruct:
                 reconstruct(opts.mode, opts.threads, opts.e, pair, cat, opts.reconstruct, opts.db_reconstruct)
-            if opts.assembler == ["MH"]:
+            if opts.assembler == "MH":
                 MH(opts.mode, opts.e, opts.threads, cat, pair, ('rap_prot' in opts.to_calculate))
-            elif opts.assembler is not None:
-                MV(opts.mode, opts.e, opts.assembler, cat, pair, opts.ins_len, ('rap_prot' in opts.to_calculate))
+            elif opts.assembler == "MV":
+                MV(opts.mode, opts.e, opts.MV, cat, pair, opts.ins_len, ('rap_prot' in opts.to_calculate))
             if ('f' in opts.to_calculate) or ('b' in opts.to_calculate):
                 postfix = opts.postfix + 'fungi'
                 refseq_mapping(
@@ -1370,7 +1375,7 @@ def sample(opts):
                 else:
                     cutadapt(opts.mode, opts.e, cat, pair[0], pair[1], opts.cutadapt[0])
 
-    if opts.assembler is not None:
+    if opts.assembler != None:
         contig_dict = cat_read(opts.mode, 'fa', False)
         for cat in contig_dict:
             for contig in contig_dict[cat]:
@@ -3053,6 +3058,4 @@ def prepare_taxonomy_stats(opts):
     create_krona_xml(xml_string, xml_name)
     if opts.mode != 'run':
         return
-    create_krona_html(xml_name, html_name)
-
-
+    create_krona_html(html_name, xml_name)

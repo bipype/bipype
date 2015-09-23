@@ -120,10 +120,16 @@ def parse_arguments(args=None):
         'methods of contig reconstruction to be used during the run')
     contigs.add_argument(
         "-assembler",
-        default=None,   # It should be done in less 'sophisticated' way
-        help='"MH" for Megahit or (for MetaVelvet) '
-             '[initial k-mer size - default = 31, '
-             '[final k-mer size, [step - default=2 (odd numbers)]]]',
+        default=None,
+        type=str,
+        help='choose assembler: MH for Megahit, MV for MetaVelvet',
+        choices=['MH', 'MV', None])
+    contigs.add_argument(
+        "-MV",
+        default=None,
+        help="MetaVelvet's options:"
+             "[initial k-mer size - default = 31,"
+             "[final k-mer size, [step - default=2 (odd numbers)]]]",
         nargs='*')
     contigs.add_argument(
         "-reconstruct",
