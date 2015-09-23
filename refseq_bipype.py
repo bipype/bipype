@@ -1375,7 +1375,7 @@ def sample(opts):
                 else:
                     cutadapt(opts.mode, opts.e, cat, pair[0], pair[1], opts.cutadapt[0])
 
-    if opts.assembler != None:
+    if opts.assembler is not None:
         contig_dict = cat_read(opts.mode, 'fa', False)
         for cat in contig_dict:
             for contig in contig_dict[cat]:
