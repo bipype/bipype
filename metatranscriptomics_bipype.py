@@ -216,7 +216,7 @@ def m8_to_ko(file_, multi_id):
                 tmp_ko_dict[ko] = gid_clean[gid]
     comparison_time = time()
     print (file_, 'comparing time seconds', comparison_time-cleaning_time)
-    with open(outname.replace('m8', 'counts'), 'w') as out_file:
+    with open(outname, 'w') as out_file:
         for ko in tmp_ko_dict:
             to_print = '%s\t%i\n' % (ko, tmp_ko_dict[ko])
             out_file.write(to_print)
@@ -272,7 +272,7 @@ def out_content(filelist, kopath_values, path_names, method = 'DESeq2'):
             for line in filecontent:
                 Kid = line.rstrip().split('\t')[0]
                 Kids.add(Kid)
-        with open('ko_remap/' + outname, 'w') as outfile:
+        with open(outname, 'w') as outfile:
             outfile.write('ko_path_id;ko_path_name;percent common;common KOs\n')
             for (path, Kset,) in kopath_values.items():
                 common = Kids & Kset
@@ -289,16 +289,13 @@ def out_content(filelist, kopath_values, path_names, method = 'DESeq2'):
 
 
 def fastq_to_fasta(fastq):
-    """Runs fastq_to_fasta for _file and write output as out_file.
-
-        Writes output in "fasta/" directory.
+    """Runs fastq_to_fasta on fastq.
 
         GLOBAL:
             - path to fastq_to_fasta program:               PATH_FQ2FA
     """
     out_file = fastq.rsplit('.', 1)[0] + '.fasta'
     out_file = out_file.rsplit('/', 1)[-1]
-    out_file = 'fasta/' + out_file
     subprocess.check_call([PATH_FQ2FA, '-i', fastq, '-o', out_file, '-Q33'])
 
 
@@ -312,7 +309,6 @@ def rapsearch2(input_file, threads):
             - path to similarity search database:           PATH_REF_PROT_KO
     """
     out_name = input_file.replace('tmp.fasta', 'txt')
-    out_name = out_name.replace('fasta/', 'm8/')
     subprocess.check_call([PATH_RAPSEARCH,'-q', input_file, '-d',
      PATH_REF_PROT_KO, '-o', out_name, '-z', str(threads),
      '-v', '20', '-b', '1', '-t', 'n', '-a', 't'])
@@ -473,7 +469,8 @@ def mapper_write(ko_path_dict, all_conds, out_dir):
 
 
 def config_from_file(_file):
-    """Reads parameters from configuration _file. Prepares target.txt
+    """Reads parameters from configuration _file. Prepares target.txt &
+    templates for SARTools.
 
         Args:
             _file       configuration file for metatranscriptomic pipeline
@@ -530,9 +527,9 @@ def run_fastq_to_fasta(fastqs):
 
 
 def run_cat_pairing():
-    """Merges fasta files with paired-end reads in fasta/"""
-    for file_R1 in glob('fasta/*R1*fasta'):
-        for file_R2 in glob('fasta/*R2*fasta'):
+    """Merges fasta files with paired-end reads in cwd"""
+    for file_R1 in glob('*R1*fasta'):
+        for file_R2 in glob('*R2*fasta'):
             if file_R1.split('R1') == file_R2.split('R2'):
                 outname = file_R1.replace('R1_', '')
                 outname = outname.replace('.fasta', '.tmp.fasta')
@@ -545,13 +542,13 @@ def run_cat_pairing():
 
 
 def run_rapsearch(threads):
-    """Runs rapsearch2() for every .tmp.fasta in fasta/"""
-    for _file in glob('fasta/*tmp.fasta'):
+    """Runs rapsearch2() for every .tmp.fasta in cwd"""
+    for _file in glob('*tmp.fasta'):
         rapsearch2(_file, threads)
 
 
 def run_ko_map():
-    """Runs m8_to_ko() for every .m8 file in raw directory.
+    """Runs m8_to_ko() for every .m8 file in cwd.
 
         GLOBALS:
             - path to KO database:                                  PATH_KO_DB
@@ -559,7 +556,7 @@ def run_ko_map():
     """
     data = pickle_or_db(PATH_KO_PCKL, connect_db(PATH_KO_DB))
     p_list = []
-    for file_ in glob('m8/*m8'):
+    for file_ in glob('*m8'):
         p = Process(target=m8_to_ko, args=(file_, data))
         p.start()
         p_list.append(p)
@@ -597,10 +594,8 @@ def run_pre_ko_remap():
     cursor = connect_db(PATH_KO_DB)
     path_names = get_pathways(cursor)
     (kopath_keys, kopath_values,) = get_kopathways(cursor)
-    edger_files = glob('edger/tables/*.txt')
-    #edger_files = glob('edger/tables/*[pn].txt') change it after tests!!!!!
-    deseq_files = glob('deseq/tables/*.txt')
-    #deseq_files = glob('deseq/tables/*[pn].txt') change it after tests!!!!!
+    edger_files = glob('edger/tables/[pn]*.txt')
+    deseq_files = glob('deseq/tables/[pn]*.txt')
     return (path_names, kopath_keys, kopath_values, edger_files, deseq_files)
 
 
@@ -649,6 +644,8 @@ def run_new_ko_remap(deseq_files, edger_files, kopath_values, all_conds, ref_con
     ko_dict_edger = low_change(ko_dict_edger, all_conds)
     mapper_deseq = mapper(ko_dict_deseq, kopath_values)
     mapper_edger = mapper(ko_dict_edger, kopath_values)
+    system('mkdir new_ko_remap')
+    system('mkdir new_ko_remap/deseq new_ko_remap/edger')
     mapper_write(mapper_deseq, all_conds, 'new_ko_remap/deseq/')
     mapper_write(mapper_edger, all_conds, 'new_ko_remap/edger/')
     return (ko_dict_deseq, ko_dict_edger)
@@ -668,11 +665,11 @@ def run_ko_csv(ko_dict_deseq, ko_dict_edger, all_conds, kopath_keys, path_names,
             KO_id;Gene_name;paths ids;paths names;FC vs cond1;FC vs cond2;...;
 
         HARDCODED: Output files paths:
-                deseq: 'csv/deseq.csv'
-                edger: 'csv/edger.csv'
+                deseq: 'deseq.csv'
+                edger: 'edger.csv'
     """
-    for touple in [(ko_dict_deseq, 'csv/deseq.csv'),
-                   (ko_dict_edger, 'csv/edger.csv')]:
+    for touple in [(ko_dict_deseq, 'deseq.csv'),
+                   (ko_dict_edger, 'edger.csv')]:
         filepath = touple[1]
         ko_dict = touple[0]
         with open(filepath, 'wb') as _file:
@@ -727,50 +724,53 @@ def metatranscriptomics(opts):
         run_fastq_to_fasta(), run_rapsearch() run_ko_map(), run_SARTools(),
         run_pre_ko_remap(), run_ko_remap(), run_new_ko_remap(), run_ko_csv().
     """
+    assert opts.out_dir!='in_situ'
     before_cwd = getcwd()
-    chdir(dirname(realpath(__file__)))
-    timestamp = '_'.join(str(datetime.now()).split())
-    work_dir = 'metatr_results/metatr_results_' + timestamp + '/'
-    system('mkdir ' + work_dir)
-    system('cp -r metatr_results/metatr_pattern/* ' + work_dir)
-    chdir(work_dir)
+    tmp_dir = pjoin(opts.out_dir, '.meta_tmp_results')
+    if not pexists(tmp_dir) or not opts.e:
+        system('mkdir ' + tmp_dir)
+    chdir(tmp_dir)
+    for i in ('template_script_DESeq2.r','template_script_edgeR.r'):
+        system('cp '+pjoin(dirname(realpath(__file__)),i)+' .')
     ref_cond, all_conds, fastqs = config_from_file(opts.metatr_config)
     progress('configuration file reading', 15)
-    run_fastq_to_fasta(fastqs)
+    if (len(fastqs) > len(glob('*_R[12]_*.fasta'))) or not opts.e:
+        run_fastq_to_fasta(fastqs)
     progress('fastq_to_fasta', 25)
-    run_cat_pairing()
+    if (len(fastqs)/2 > len(glob('*.tmp.fasta'))) or not opts.e:
+        run_cat_pairing()
     progress('cat', 35)
-    run_rapsearch(opts.threads)
+    if (len(fastqs)/2 > len(glob('*.txt.m8'))) or not opts.e:
+        run_rapsearch(opts.threads)
     progress('rapsearch', 45)
-    run_ko_map()
+    if (len(fastqs)/2 > len(glob('*.count'))) or not opts.e:
+        run_ko_map()
     progress('KO mapping', 55)
-    run_SARTools()
+    if ('edger' not in glob('*')) or not opts.e:
+        system('mkdir deseq edger')
+        run_SARTools()
     progress('SARTools', 65)
     path_names, kopath_keys, kopath_values, edger_files, deseq_files = \
      run_pre_ko_remap()
     if opts.metatr_output_type != 'new':
-        run_ko_remap(deseq_files, edger_files, kopath_values, path_names)
+        if (len(all_conds)*(len(all_conds)-1) > len(glob('*.path_counts.csv'))\
+         or not opts.e):
+            run_ko_remap(deseq_files, edger_files, kopath_values, path_names)
     if opts.metatr_output_type != 'old':
-        ko_dict_deseq, ko_dict_edger = run_new_ko_remap(
-         deseq_files, edger_files, kopath_values, all_conds, ref_cond)
-    progress('pathway mapping', 75)
-    if opts.metatr_output_type != 'old':
-        run_ko_csv(ko_dict_deseq, ko_dict_edger, all_conds, kopath_keys,
-         path_names, ref_cond)
+        if ('edger.csv' not in glob('*')) or not opts.e:
+            ko_dict_deseq, ko_dict_edger = run_new_ko_remap(
+             deseq_files, edger_files, kopath_values, all_conds, ref_cond)
+            progress('pathway mapping', 75)
+            run_ko_csv(ko_dict_deseq, ko_dict_edger, all_conds, kopath_keys,
+             path_names, ref_cond)
     progress('generating summative CSV', 85)
-    if opts.out_dir == 'in_situ':
-        out_dir = before_cwd
-    else:
-        out_dir = opts.out_dir
-    system('mkdir out_dir')
     if opts.metatr_output_type != 'new':
-        old_path = out_dir + '/old'
-        system('mkdir '+old_path)
-        system('cp ko_remap/* '+old_path)
+        old_path = opts.out_dir + '/old'
+        system('mkdir ' + old_path)
+        system('cp *path_counts.csv ' + old_path)
     if opts.metatr_output_type != 'old':
-        system('cp csv/* '+out_dir)
-    system('cp edger/_report.html ' + out_dir + '/edger_report.html')
-    system('cp deseq/_report.html ' + out_dir + '/deseq_report.html')
-    system('rm -rf ../metatr_results_' + timestamp)
+        system('cp deseq.csv edger.csv ' + opts.out_dir)
+    system('cp edger/_report.html ' + opts.out_dir + '/edger_report.html')
+    system('cp deseq/_report.html ' + opts.out_dir + '/deseq_report.html')
     chdir(before_cwd)
     progress('METATRANSCRIPTOMIC WORKFLOW', 95)

@@ -16,7 +16,7 @@ projectName <- ""                                    # name of the project
 author <- ""                                         # author of the statistical analysis/report
 
 targetFile <- "../target.txt"                        # path to the design/target file
-rawDir <- "../counts"                                # path to the directory containing raw counts files
+rawDir <- "../../.meta_tmp_results"                                # path to the directory containing raw counts files
 featuresToRemove <- c("alignment_not_unique",        # names of the features to be removed
                       "ambiguous", "no_feature",     # (specific HTSeq-count information and rRNA for example)
                       "not_aligned", "too_low_aQual")
