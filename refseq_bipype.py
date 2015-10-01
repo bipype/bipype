@@ -819,6 +819,13 @@ def rapsearch(mode, e, contig_loc, rap_out, KEGG=None):
 
 
 def run_megan(out_dir, m8, contigs):
+    """Makes and launches scripts for MEGAN
+
+    Args:
+        out_dir:    output directory
+        m8:         list of m8 files
+        contigs:    contigs file
+    """
     print "MEGAN"
     for rma in [(".lite.rma","inOriginal","lite"),(".rma","inRMA","just")]:
         script = pjoin(out_dir,rma[-1]+'_megan_script.txt')

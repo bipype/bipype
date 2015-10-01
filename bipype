@@ -36,7 +36,8 @@ def parse_arguments(args=None):
         type=str,
         metavar='OUTPUT_DIRECTORY',
         default='in_situ',
-        help='directory for output files')
+        help='Directory for output files, '
+             'default value is not usable for metatranscriptomics')
     general.add_argument(
         "--input", "-i",
         nargs='*',
