@@ -114,6 +114,12 @@ def parse_arguments(args=None):
         action='append',
         const='f',
         default='f')
+    mappings.add_argument(
+        "-MEGAN",
+        help='generate .rma files using MEGAN',
+        dest='to_calculate',
+        action='append_const',
+        const='MEGAN')
 
     contigs = parser.add_argument_group(
         'contig reconstruction',

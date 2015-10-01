@@ -20,6 +20,7 @@ PATH_VELVETH = '/home/pszczesny/soft/Velvet/velveth'
 PATH_VELVETG = '/home/pszczesny/soft/Velvet/velvetg'
 PATH_METAVELVETG = '/home/pszczesny/soft/MetaVelvet/meta-velvetg'
 PATH_MEGAHIT = '/home/pszczesny/soft/megahit/megahit'
+PATH_MEGAN = '/home/pszczesny/soft/megan5/MEGAN'
 
 # bipype
 

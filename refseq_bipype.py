@@ -818,10 +818,33 @@ def rapsearch(mode, e, contig_loc, rap_out, KEGG=None):
         system(rap_com)
 
 
-def MV(mode, e, k_mers, cat, pair, ins_len, rap=False):
+def run_megan(out_dir, m8, contigs):
+    print "MEGAN"
+    for rma in [(".lite.rma","inOriginal","lite"),(".rma","inRMA","just")]:
+        script = pjoin(out_dir,rma[-1]+'_megan_script.txt')
+        with open(script, 'w') as f:
+            f.write("set useParseTextTaxonomy=false;\n")
+            f.write("load taxGIFile='/home/pszczesny/workingdata/mapping/gi_taxid_prot.dmp';\n")
+            f.write("set taxUseGIMap=true;\n")
+            for file_ in m8:
+                megan_file = pjoin(out_dir, (file_.split('/')[-1]) + rma[0])
+                f.write("import blastFile='" + file_ + "' ")
+                f.write("fastaFile='" + contigs + "' ")
+                f.write("meganFile='" + megan_file +"' ")
+                f.write("maxMatches=100 minScore=50.0 maxExpected=0.01 "+
+                        "topPercent=10.0 minSupport=50 minComplexity=0.44 "+
+                        "useMinimalCoverageHeuristic=false useSeed=true "+
+                        "useCOG=true useKegg=true paired=false "+
+                        "useIdentityFilter=false textStoragePolicy="+rma[1]+
+                        " blastFormat=BlastTAB mapping='Taxonomy:GI_MAP=true';\n")
+        system("xvfb-run --auto-servernum --server-num=1 " + PATH_MEGAN + " -g -E -c " + script)
+
+
+def MV(mode, e, global_out_dir, k_mers, cat, pair, ins_len, rap=False, megan=False):
     """Runs Velvet. Runs function gzip_MV on folder with Velvet results,
         which name was created with command pair_uni_name(pair) + '_velvh_out'
     If parameter rap is true, then the function also run function rapsearch.
+    If parameter megan is true, then the function also run function megan.
 
     Args:
         mode: if mode=="run" program runs velveth or velvetg or metavelvetg
@@ -831,6 +854,7 @@ def MV(mode, e, k_mers, cat, pair, ins_len, rap=False):
         pair: tuple of paired_end reads
         ins_len: If ins_len==9999, then ins_len is the output from ins_len_read function
         rap: If rap==True, then program runs rapsearch function. Default rap=False
+        megan: If true, then program runs megan function. Default megan=False
 
     GLOBALS:
         PATH_VELVETH
@@ -901,10 +925,18 @@ def MV(mode, e, k_mers, cat, pair, ins_len, rap=False):
             rap_f = pair_uni_name(pair) + '.rapsearch'
             rap_out = pjoin(tmp_out_dir, rap_f)
             rapsearch(mode, e, rap_in,  rap_out)
+    if megan and mode == 'run':
+        m8_dict = cat_read(mode, 'm8', False)
+        m8 = []
+        for dir_, files in m8_dict.items():
+            for file_ in files:
+                m8.append(pjoin(dir_, file_))
+        if (not e) or (len(glob(pjoin(global_out_dir, '*lite.rma')))>=len(m8)):
+            run_megan(global_out_dir, m8, pjoin(tmp_out_dir, 'meta-velvetg.contigs.fa'))
 
 
-def MH(mode, e, t, cat, pair, rap=False, presets='meta-large'):
-    """Runs Megahit. If rap=True, function also run rapsearch().
+def MH(mode, e, glob_out_dir, t, cat, pair, rap=False, presets='meta-large', megan=False):
+    """Runs Megahit (also rapsearch() and run_megan())
 
     Args:
         mode:    if mode!="run" program prints commands without running them
@@ -915,6 +947,7 @@ def MH(mode, e, t, cat, pair, rap=False, presets='meta-large'):
         pair:    tuple of paired_end reads
         rap:     if rap==True (default False), program runs rapsearch function.
         presets: argument for megahit (default 'meta-large')
+        megan:   if megan==True (default False), program runs megan function.
 
     GLOBAL:
         PATH_MEGAHIT
@@ -931,6 +964,14 @@ def MH(mode, e, t, cat, pair, rap=False, presets='meta-large'):
         rap_f = pair_uni_name(pair) + '.rapsearch'
         rap_out = pjoin(out_dir, rap_f)
         rapsearch(mode, e, rap_in,  rap_out)
+    if megan and mode == 'run':
+        m8_dict = cat_read(mode, 'm8', False)
+        m8 = []
+        for dir_, files in m8_dict.items():
+            for file_ in files:
+                m8.append(pjoin(dir_, file_))
+        if (not e) or (len(glob(pjoin(glob_out_dir, '*lite.rma')))>=len(m8)):
+            run_megan(glob_out_dir, m8, pjoin(out_dir,'final.contigs.fa'))
 
 
 def usearch(mode, e, search_type, infile, database, threads):
@@ -1315,7 +1356,6 @@ def sample(opts):
                 database of 16S adapters, which will be -db parameter for Usearch program; if it isn`t empty,
                 then cutadapt function`s parameter usearch_16S will be True
 
-
             opts.db_ITS:
                 database of ITS adapters, which will be -db parameter for Usearch program; if it isn`t empty,
                 then cutadapt function`s parameter usearch_ITS will be True
@@ -1344,9 +1384,9 @@ def sample(opts):
             if opts.reconstruct:
                 reconstruct(opts.mode, opts.threads, opts.e, pair, cat, opts.reconstruct, opts.db_reconstruct)
             if opts.assembler == "MH":
-                MH(opts.mode, opts.e, opts.threads, cat, pair, ('rap_prot' in opts.to_calculate))
+                MH(opts.mode, opts.e, opts.out_dir, opts.threads, cat, pair, ('rap_prot' in opts.to_calculate), 'meta-large', ('MEGAN' in opts.to_calculate))
             elif opts.assembler == "MV":
-                MV(opts.mode, opts.e, opts.MV, cat, pair, opts.ins_len, ('rap_prot' in opts.to_calculate))
+                MV(opts.mode, opts.e, opts.out_dir, opts.MV, cat, pair, opts.ins_len, ('rap_prot' in opts.to_calculate), ('MEGAN' in opts.to_calculate))
             if ('f' in opts.to_calculate) or ('b' in opts.to_calculate):
                 postfix = opts.postfix + 'fungi'
                 refseq_mapping(
