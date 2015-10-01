@@ -827,6 +827,7 @@ def run_megan(out_dir, m8, contigs):
         contigs:    contigs file
     """
     print "MEGAN"
+    if out_dir=='in_situ': out_dir = getcwd()
     for rma in [(".lite.rma","inOriginal","lite"),(".rma","inRMA","just")]:
         script = pjoin(out_dir,rma[-1]+'_megan_script.txt')
         with open(script, 'w') as f:
