@@ -828,7 +828,7 @@ def run_megan(out_dir, m8, contigs):
     """
     print "MEGAN"
     if out_dir=='in_situ': out_dir = getcwd()
-    for rma in [(".lite.rma","inOriginal","lite"),(".rma","inRMA","just")]:
+    for rma in [(".lite.rma","1","lite"),(".rma","0","just")]:
         script = pjoin(out_dir,rma[-1]+'_megan_script.txt')
         with open(script, 'w') as f:
             f.write("set useParseTextTaxonomy=false;\n")
@@ -845,6 +845,7 @@ def run_megan(out_dir, m8, contigs):
                         "useCOG=true useKegg=true paired=false "+
                         "useIdentityFilter=false textStoragePolicy="+rma[1]+
                         " blastFormat=BlastTAB mapping='Taxonomy:GI_MAP=true';\n")
+            f.write("quit;")
         system("xvfb-run --auto-servernum --server-num=1 " + PATH_MEGAN + " -g -E -c " + script)
 
 
@@ -949,7 +950,7 @@ def MH(mode, e, glob_out_dir, t, cat, pair, rap=False, presets='meta-large', meg
     Args:
         mode:    if mode!="run" program prints commands without running them
         e:       boolean parameter. If e==True, then program changes todo list
-                   with exist_check function. NOT YET !!!!!!!!!!!
+                   with exist_check function.
         t:       number of threads
         cat:     name of current folder
         pair:    tuple of paired_end reads
@@ -1387,41 +1388,47 @@ def sample(opts):
     else:
         tax_id_dict = tax_name_dict = {}
     fastq_dict = cat_read(opts.mode, 'fastq')
+    pairs=[] #Fast, but ugly fix. I'm sorry.
     for cat in fastq_dict:
         for pair in fastq_dict[cat]:
-            if opts.reconstruct:
-                reconstruct(opts.mode, opts.threads, opts.e, pair, cat, opts.reconstruct, opts.db_reconstruct)
-            if opts.assembler == "MH":
-                MH(opts.mode, opts.e, opts.out_dir, opts.threads, cat, pair, ('rap_prot' in opts.to_calculate), 'meta-large', ('MEGAN' in opts.to_calculate))
-            elif opts.assembler == "MV":
-                MV(opts.mode, opts.e, opts.out_dir, opts.MV, cat, pair, opts.ins_len, ('rap_prot' in opts.to_calculate), ('MEGAN' in opts.to_calculate))
-            if ('f' in opts.to_calculate) or ('b' in opts.to_calculate):
-                postfix = opts.postfix + 'fungi'
-                refseq_mapping(
-                    opts.mode, opts.e, cat, pair, postfix, opts.db_refseq_plant[0], tax_name_dict,
-                    tax_id_dict, opts.threads, opts.out_dir, opts.db_refseq_plant[1]
+	    pairs.append(pair)
+    for i in range(len(pairs)):
+        pair = pairs[i] 
+        if opts.reconstruct:
+            reconstruct(opts.mode, opts.threads, opts.e, pair, cat, opts.reconstruct, opts.db_reconstruct)
+        if opts.assembler == "MH":
+            MH(opts.mode, opts.e, opts.out_dir, opts.threads, cat, pair, ('rap_prot' in opts.to_calculate), 
+                'meta-large', ('MEGAN' in opts.to_calculate) and (i==len(pairs)-1))
+        elif opts.assembler == "MV":
+            MV(opts.mode, opts.e, opts.out_dir, opts.MV, cat, pair, opts.ins_len, ('rap_prot' in opts.to_calculate), 
+                ('MEGAN' in opts.to_calculate) and (i==len(pairs)-1))
+        if ('f' in opts.to_calculate) or ('b' in opts.to_calculate):
+            postfix = opts.postfix + 'fungi'
+            refseq_mapping(
+                opts.mode, opts.e, cat, pair, postfix, opts.db_refseq_plant[0], tax_name_dict,
+                tax_id_dict, opts.threads, opts.out_dir, opts.db_refseq_plant[1]
+                )
+        if ('p' in opts.to_calculate) or ('b' in opts.to_calculate):
+            postfix = opts.postfix + 'plant'
+            refseq_mapping(
+                opts.mode, opts.e, cat, pair, postfix, opts.db_refseq_fungi[0], tax_name_dict,
+                tax_id_dict, opts.threads, opts.out_dir, opts.db_refseq_fungi[1]
+                )
+        if opts.cutadapt != '':
+            if ('both' in opts.cutadapt) or (('16S' in opts.cutadapt) and ('ITS' in opts.cutadapt)):
+                cutadapt(opts.mode, opts.e, cat, pair[0], pair[1], opts.cutadapt[0],
+                    opts.db_16S, opts.db_ITS, opts.threads
                     )
-            if ('p' in opts.to_calculate) or ('b' in opts.to_calculate):
-                postfix = opts.postfix + 'plant'
-                refseq_mapping(
-                    opts.mode, opts.e, cat, pair, postfix, opts.db_refseq_fungi[0], tax_name_dict,
-                    tax_id_dict, opts.threads, opts.out_dir, opts.db_refseq_fungi[1]
+            elif '16S' in opts.cutadapt:
+                cutadapt(opts.mode, opts.e, cat, pair[0], pair[1], opts.cutadapt[0],
+                    opts.db_16S, False, opts.threads
                     )
-            if opts.cutadapt != '':
-                if ('both' in opts.cutadapt) or (('16S' in opts.cutadapt) and ('ITS' in opts.cutadapt)):
-                    cutadapt(opts.mode, opts.e, cat, pair[0], pair[1], opts.cutadapt[0],
-                        opts.db_16S, opts.db_ITS, opts.threads
-                        )
-                elif '16S' in opts.cutadapt:
-                    cutadapt(opts.mode, opts.e, cat, pair[0], pair[1], opts.cutadapt[0],
-                        opts.db_16S, False, opts.threads
-                        )
-                elif 'ITS' in opts.cutadapt:
-                    cutadapt(opts.mode, opts.e, cat, pair[0], pair[1], opts.cutadapt[0],
-                        False, opts.db_ITS, opts.threads
-                        )
-                else:
-                    cutadapt(opts.mode, opts.e, cat, pair[0], pair[1], opts.cutadapt[0])
+            elif 'ITS' in opts.cutadapt:
+                cutadapt(opts.mode, opts.e, cat, pair[0], pair[1], opts.cutadapt[0],
+                    False, opts.db_ITS, opts.threads
+                    )
+            else:
+                cutadapt(opts.mode, opts.e, cat, pair[0], pair[1], opts.cutadapt[0])
 
     if opts.assembler is not None:
         contig_dict = cat_read(opts.mode, 'fa', False)
