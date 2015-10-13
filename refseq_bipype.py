@@ -835,7 +835,7 @@ def run_megan(out_dir, m8, contigs):
             f.write("load taxGIFile='/home/pszczesny/workingdata/mapping/gi_taxid_prot.dmp';\n")
             f.write("set taxUseGIMap=true;\n")
             for file_ in m8:
-                megan_file = pjoin(out_dir, (file_.split('/')[-1]) + rma[0])
+                megan_file = pjoin(out_dir, 'megan' + rma[0])
                 f.write("import blastFile='" + file_ + "' ")
                 f.write("fastaFile='" + contigs + "' ")
                 f.write("meganFile='" + megan_file +"' ")
