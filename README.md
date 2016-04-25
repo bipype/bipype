@@ -40,4 +40,4 @@ To install it, clone the repository with command
 `git clone https://github.com/bipype/bipype.git`
 
 ## Usage
-Chack "bipype -h" for details about running bipype
+Check `bipype -h` for details about running bipype
