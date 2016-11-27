@@ -12,6 +12,7 @@ Contents:
    :maxdepth: 2
 
    code/index
+   cli/index
 
 Indices and tables
 ==================
