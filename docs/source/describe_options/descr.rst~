@@ -10,3 +10,23 @@ All of these analyses will be shown with Krona program, which allows to show hie
 
 bipype stands for bioinformatics-python-pipe.
 
+
+------------------------
+Proposed analysis
+------------------------
+
+Below are listed a few analysis which could be performed with bipype program.
+As input for all following analysis FASTA files should be given.
+
+^^^^^^^^^^^^^
+Metagenomics
+^^^^^^^^^^^^^
+
+output: krona.html
+
+* **Analysis 1**
+
+bipype -m run -rapsearch rap_KEGG -humann
+bipype -m -run --order prepare_taxonomy_stats -ot txt
+
+

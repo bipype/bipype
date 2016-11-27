@@ -18,4 +18,28 @@ Proposed analysis
 Below are listed a few analysis which could be performed with bipype program.
 As input for all following analysis FASTA files should be given.
 
+^^^^^^^^^^^^^
+Metagenomics
+^^^^^^^^^^^^^
+
+output: krona.html
+
+* **Analysis 1**
+
+..code-block:: bash
+	:linelos:
+	bipype -m run -rapsearch rap_KEGG -humann
+	bipype -m -run --order prepare_taxonomy_stats -ot txt
+
+* **Analysis 2**
+
+This analysis can be done in the same way as presented in case of analysis of amplicons.
+
+^^^^^^^^^
+Amplicons
+^^^^^^^^^
+
+* **Both (16S and ITS)**
+
+output: 16S_ITS.krona
 
