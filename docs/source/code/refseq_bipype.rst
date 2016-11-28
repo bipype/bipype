@@ -1,9 +1,9 @@
-======
+=============
 Refseq bipype
-======
+=============
 
-Code documentation
-------------------
+Module functions
+----------------
 .. automodule:: refseq_bipype
    :members:
 
