@@ -26,8 +26,8 @@ output: krona.html
 
 * **Analysis 1**
 
-..code-block:: bash
-	:linelos:
+.. code-block:: none
+	
 	bipype -m run -rapsearch rap_KEGG -humann
 	bipype -m -run --order prepare_taxonomy_stats -ot txt
 
