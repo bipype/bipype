@@ -264,14 +264,14 @@ def tax_name_reader():
 def idx_reader(file_path):
     """Reads file in samtools idxstats output format.
 
-    Arg:
+    Args:
         file_path:
             path to samtools idxstats output file.
 
             File is TAB-delimited with each line consisting of reference
             sequence name, sequence length, # mapped reads and # unmapped reads
 
-    Returns: dict:
+    Returns:
         a dict with ``{GI: #_mapped_reads}`` (keys and values are integers).
     """
     idx_file_dict = {}
