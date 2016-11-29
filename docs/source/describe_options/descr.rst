@@ -76,6 +76,10 @@ More detailed description of bipype workflow
 
 Bipype consists of three major, parts:
 * **sample**, which performs most analysis and runs other programs
+
 * **taxonomy_stats**, which generates taxonomy stats in Krona format
+
 * **metatranscriptomics** TODO
+
+
 
