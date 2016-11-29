@@ -75,11 +75,55 @@ More detailed description of bipype workflow
 ---------------------------------------------
 
 Bipype consists of three major, parts:
+
 * **sample**, which performs most analysis and runs other programs
 
 * **taxonomy_stats**, which generates taxonomy stats in Krona format
 
 * **metatranscriptomics** TODO
+
+^^^^^^^^^^
+Sample
+^^^^^^^^^^
+
+**General schema of workflow**
+
+1. Samples mapping
+2. Alignment reads to reference sequence(s)
+3. Determining the presence/absence and abundance of microbial pathways
+
+**Samples mapping**
+
+This step checks to which species and taxonomic group given sample belongs.
+It searches databases for fungi, plants or both, accordingly to value of <to_calculate> option:
+
+* p - plant,
+
+* f - fungi,
+
+* b - both
+
+**Taxonomy database loading**
+
+By default the taxonomy database is loaded from path defined by <db_NCBI_taxonomy> option. This should by a “pickle” file and by default it is:
+
+
+${PATH_NCBI_TAXA_DB}
+
+
+Databases will be loaded only if mode is “run”.
+
+**What if mentioned, default taxonomy database doesn’t exists?**
+
+Then, there are loaded other, also default databases:
+
++-------------------------+------------------------+
+| Database                | default path           |
++=========================+========================+
+| GI → TaxID              | ${PATH_GI_TAX}         |
++-------------------------+------------------------+
+| TaxID → scientific_name | ${PATH_TAX_NAME}       |
++-------------------------+------------------------+
 
 
 
