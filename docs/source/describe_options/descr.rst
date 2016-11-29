@@ -125,5 +125,31 @@ Then, there are loaded other, also default databases:
 | TaxID → scientific_name | ${PATH_TAX_NAME}       |
 +-------------------------+------------------------+
 
+Formatting of these databases are described in appendix “databases formatting”.
 
+**How to replace default taxonomy database?**
 
+To load your own database, you need to supersede the <db_NCBI_taxonomy> option with the path to file, where pickled dict with database is saved.
+
+One of possible ways to create this database:
+
+1. Modify databases: “GI → TaxID” and “TaxID → scientific_name”, (discussed below), and then
+2. Load modified databases and pickle them to new file (here: ‘new_db’), for example with use of the following python script:
+
+.. code-block:: python
+	
+	#!/usr/bin/python
+	from refseq_bipype import taxa_read
+	import cPickle as pickle
+	with open('new_db', 'wb') as output_file:
+		list_with_dicts = taxa_read("manual")
+		pickle.dump(list_with_dicts, output_file)
+
+**Getting input files**
+
+Finds in current working directory and subdirectories fastq files, which are “paired_end”.
+If mode is run, also unpacks compressed archives in search of input files.
+
+**Mapping**
+
+A list of path to refseq databases is given in db_refseq_fungi and db_refseq_plant parameters for plant and fungi analysis. Up to two paths are allowed, so for one path program will add “False”, as a second element.
