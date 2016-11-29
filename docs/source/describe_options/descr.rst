@@ -170,14 +170,23 @@ Parameter t (number of threads) is taken from reconstruct function (thr paramete
 
 Bwa samse command:
 
-+-----------+----------------------------------------------------------------------+
-| **samse** | bwa samse [-n maxOcc] <in.db.fasta> <in.sai> <in.fq> > <out.sam>     |
-+-----------+----------------------------------------------------------------------+
++-----------+----------------------------------------------------------------------------------+
+| **samse** | bwa samse [-n maxOcc] <in.db.fasta> <in.sai> <in.fq> > <out.sam>                 |
++-----------+----------------------------------------------------------------------------------+
 
 Generate alignments in the SAM format given single-end reads. Repetitive hits will be randomly chosen.
 All parameters will be default.
 Also SAMtools program is run. For example, we have reference sequences in ref.fa, indexed by samtools faidx, and position sorted alignment file aln.bam, the following command lines call SNPs and short INDELs:
 
 **samtools mpileup -uf ref.fa aln.bam | bcftools view -cg - | vcfutils.pl vcf2fq > cns.fq**
+
+**Alignment reads to reference sequence(s)**
+
+After choosing fungi or plant, program runs refseq_mapping function with appropriate parameters for this type of input. Biopype uses Bowtie 2 program to align reads to reference sequence(s). Firstly, Bowtie 2 aligns reads to reference sequence (or sequences, if refseq_2 is not False and merge output SAM files). Secondly, BAM files are made, sorted and indexed. Thirdly, Function launches 'samtools idxstats'. Finally, idx_map() function is called: parse data from samtools idxstats output file and writes data to outfile in key; value format, where:
+GI/TaxID/scientific name → number of mapped reads.
+For fungies and plants, different basenames of the indexes for the reference genome are used as refseq parameter for refseq_mapping function.
+
+There are values for adapters` list (cutadapt parameter): ‘both’, ‘ITS’, ‘16S’. If list of adapters types isn`t empty, then program searches for the adapters in reads from input files, removes them, when it finds them and writes to output files which have .cutadapt.fastq extension. Then function runs FLASH (software tool to merge paired-end reads) with cutadapt.fastq files as input and .amplicons.cutadapt.flash.merged.fastq files as output. These results are input for fastq_to_fasta which converts file format from fastq to fasta.
+If Velvet wasn`t choosen, then rapsearch option is available. RAPSearch will be run with default KEGG=None, if ‘rap_prot’ option is in to_calculate option. RAPSearch will be runned with options:
 
 
