@@ -165,4 +165,8 @@ Bwa aln command:
 |         | trimQual] <in.db.fasta> <in.query.fq> > <out.sai>                                   |
 +---------+-------------------------------------------------------------------------------------+
 
+Find the SA coordinates of the input reads. Maximum *maxSeedDiff* differences are allowed in the first *seedLen* subsequence and maximum *maxDiff* differences are allowed in the whole sequence.
+Parameter t (number of threads) is taken from reconstruct function (thr parameter), all others will be default.
+
+Bwa samse command:
 
