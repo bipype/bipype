@@ -153,3 +153,17 @@ If mode is run, also unpacks compressed archives in search of input files.
 **Mapping**
 
 A list of path to refseq databases is given in db_refseq_fungi and db_refseq_plant parameters for plant and fungi analysis. Up to two paths are allowed, so for one path program will add “False”, as a second element.
+
+**Reconstruct option:**
+
+If that option was chosen, bwa (Burrows-Wheeler Alignment Tool) program is run. The program finds the SA coordinates of the input reads and generates alignments in the SAM format given single-end reads. Repetitive hits will be randomly chosen. If mode “run” was chosen, commands "bwa aln", "bwa samse" and “samtools mpileup” were run.
+Bwa aln command:
+
++=========+=====================================================================================+
+| **aln** | bwa aln [-n maxDiff] [-o maxGapO] [-e maxGapE] [-d nDelTail] [-i nIndelEnd] [-k     |
+|         | maxSeedDiff] [-l seedLen] [-t nThrds] [-cRN] [-M misMsc] [-O gapOsc] [-E gapEsc] [-q|
+|         | trimQual] <in.db.fasta> <in.query.fq> > <out.sai>                                   |
++=========+=====================================================================================+
+
+
++=========+------------------------+
