@@ -189,4 +189,20 @@ For fungies and plants, different basenames of the indexes for the reference gen
 There are values for adapters` list (cutadapt parameter): ‘both’, ‘ITS’, ‘16S’. If list of adapters types isn`t empty, then program searches for the adapters in reads from input files, removes them, when it finds them and writes to output files which have .cutadapt.fastq extension. Then function runs FLASH (software tool to merge paired-end reads) with cutadapt.fastq files as input and .amplicons.cutadapt.flash.merged.fastq files as output. These results are input for fastq_to_fasta which converts file format from fastq to fasta.
 If Velvet wasn`t choosen, then rapsearch option is available. RAPSearch will be run with default KEGG=None, if ‘rap_prot’ option is in to_calculate option. RAPSearch will be runned with options:
 
+-z 10 -e 0.001 -b 100 -v 100 -g T -a T 1, if mode is ‘run’.
+If ‘rap_KEGG’ or ‘rap_KO’ are in to_calculate list, then all files .fastq will be changed for .fasta.
+If rap_KEGG is in to_calculate list, then rapsearch will be runned with KEGG=’masl’.
+In other case, rapsearch will be runned with KEGG=’KO’. With this parameter RAPSearch will be runned with options:
+-z 12 -v 20 -b 1 -t n -a t 1, if mode is ‘run’.
+
+**Determining the presence/absence and abundance of microbial pathways**
+
+HUMAnN
+If ‘humann’ is in to_calculate list, then program checks if m8 files exist. In that case humann function will be runned and new catalog humann-0.99 will be created in rapsearch result folder. This function copies HUMAnN program to the current directory, moves input (*.m8) files to the input directory, copies hmp_metadata.dat file to the input directory and runs HUMAnN. HUMAnN is a pipeline for efficiently and accurately determining the presence/absence and abundance of microbial pathways in a community from metagenomic data.
+
+
+In that case, human function will be runned and analysis results will be added in rapsearch result folder.
+If ‘16S’ or ‘ITS’ are in to_calculate list (or both of them), then usearch function will be runned for these types of sequences.
+Usearch function runned USEARCH command, if mode=’run’
+-usearch_local [katalog z USEARCH] -db [input file] -evalue 0.01 -id 0.9 -blast6out [output file] -strand both -threads [threads (integer)]
 
