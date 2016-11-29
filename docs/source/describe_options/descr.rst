@@ -29,7 +29,7 @@ output: krona.html
 .. code-block:: none
 	
 	bipype -m run -rapsearch rap_KEGG -humann
-	bipype -m -run --order prepare_taxonomy_stats -ot txt
+	bipype -m run --order prepare_taxonomy_stats -ot txt
 
 * **Analysis 2**
 
@@ -42,4 +42,40 @@ Amplicons
 * **Both (16S and ITS)**
 
 output: 16S_ITS.krona
+
+.. code-block:: none
+
+	bipype -m run --cutadapt use_filenames ITS 16S
+	bipype -m run --order taxonomy_stats -ot ITS 16S
+
+* **Only ITS**
+
+output: ITS.krona 
+
+.. code-block:: none
+
+	bipype -m run --cutadapt use_filenames ITS
+	bipype -m run --order taxonomy_stats -ot ITS
+
+* **Only 16S**
+
+output: 16S.krona
+
+.. code-block:: none
+
+	bipype -m run --cutadapt use_filenames 16S
+	bipype -m run --order taxonomy_stats -ot  16S
+
+^^^^^^^^^^^^^^^^^^^
+Metatranscriptomics
+^^^^^^^^^^^^^^^^^^^
+
+---------------------------------------------
+More detailed description of bipype workflow
+---------------------------------------------
+
+Bipype consists of three major, parts:
+* **sample**, which performs most analysis and runs other programs
+* **taxonomy_stats**, which generates taxonomy stats in Krona format
+* **metatranscriptomics** TODO
 
