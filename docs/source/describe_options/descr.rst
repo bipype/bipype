@@ -198,11 +198,12 @@ In other case, rapsearch will be runned with KEGG=’KO’. With this parameter 
 **Determining the presence/absence and abundance of microbial pathways**
 
 HUMAnN
-If ‘humann’ is in to_calculate list, then program checks if m8 files exist. In that case humann function will be runned and new catalog humann-0.99 will be created in rapsearch result folder. This function copies HUMAnN program to the current directory, moves input (*.m8) files to the input directory, copies hmp_metadata.dat file to the input directory and runs HUMAnN. HUMAnN is a pipeline for efficiently and accurately determining the presence/absence and abundance of microbial pathways in a community from metagenomic data.
+If ‘humann’ is in to_calculate list, then program checks if m8 files exist. In that case humann function will be runned and new catalog humann-0.99 will be created in rapsearch result folder. This function copies HUMAnN program to the current directory, moves input (\*.m8) files to the input directory, copies hmp_metadata.dat file to the input directory and runs HUMAnN. HUMAnN is a pipeline for efficiently and accurately determining the presence/absence and abundance of microbial pathways in a community from metagenomic data.
 
 
 In that case, human function will be runned and analysis results will be added in rapsearch result folder.
 If ‘16S’ or ‘ITS’ are in to_calculate list (or both of them), then usearch function will be runned for these types of sequences.
-Usearch function runned USEARCH command, if mode=’run’
+Usearch function runned USEARCH command, if mode=’run’:
+
 -usearch_local [katalog z USEARCH] -db [input file] -evalue 0.01 -id 0.9 -blast6out [output file] -strand both -threads [threads (integer)]
 
