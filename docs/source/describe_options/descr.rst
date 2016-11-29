@@ -170,3 +170,14 @@ Parameter t (number of threads) is taken from reconstruct function (thr paramete
 
 Bwa samse command:
 
++-----------+----------------------------------------------------------------------+
+| **samse** | bwa samse [-n maxOcc] <in.db.fasta> <in.sai> <in.fq> > <out.sam>     |
++-----------+----------------------------------------------------------------------+
+
+Generate alignments in the SAM format given single-end reads. Repetitive hits will be randomly chosen.
+All parameters will be default.
+Also SAMtools program is run. For example, we have reference sequences in ref.fa, indexed by samtools faidx, and position sorted alignment file aln.bam, the following command lines call SNPs and short INDELs:
+
+**samtools mpileup -uf ref.fa aln.bam | bcftools view -cg - | vcfutils.pl vcf2fq > cns.fq**
+
+
