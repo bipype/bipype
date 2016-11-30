@@ -227,7 +227,7 @@ Analysis will be performed on files, which simultaneously:
 
 * have suffixes of filenames equal to value of <output_type> option,
 
-* have suffixes of filenames equal to 'usearch_' + value of <output_type> option, but only if <output_type> is 'ITS' or '16S'.
+* have suffixes of filenames equal to \'usearch_' + value of <output_type> option, but only if <output_type> is 'ITS' or '16S'.
 
 **Output**
 
