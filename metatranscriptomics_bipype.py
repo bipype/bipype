@@ -336,7 +336,7 @@ def fastq_to_fasta(fastq):
 
 
 def rapsearch2(input_file, threads):
-    """Runs rapsearch2() for input_file in fasta format.
+    """Runs ``rapsearch2`` for `input_file` in fasta format.
 
     Writes outputs in "m8/" directory.
 
@@ -398,7 +398,7 @@ def get_ko_fc(ko_dict, ref_cond, filepath, deseq=False):
 
 
 def low_change(ko_dict, all_conds):
-    """For every KO adds condition:0, where condition is missing.
+    """For every KO adds condition: 0, if condition is missing.
 
     Args:
         ko_dict: ``{KO_id:{cond1:value1, cond2:value2...}...}`` dict
@@ -581,13 +581,13 @@ def config_from_file(_file):
 
 
 def run_fastq_to_fasta(fastqs):
-    """Runs fastq_to_fasta() for every .fastq in fastqs"""
+    """Runs :func:`fastq_to_fasta` for every .fastq in fastqs."""
     for fastq in fastqs:
         fastq_to_fasta(fastq)
 
 
 def run_cat_pairing():
-    """Merges fasta files with paired-end reads in cwd"""
+    """Merges fasta files with paired-end reads in cwd."""
     for file_R1 in glob('*R1*fasta'):
         for file_R2 in glob('*R2*fasta'):
             if file_R1.split('R1') == file_R2.split('R2'):
@@ -602,7 +602,7 @@ def run_cat_pairing():
 
 
 def run_rapsearch(threads):
-    """Runs rapsearch2() for every .tmp.fasta in cwd"""
+    """Runs :func:`rapsearch2` for every .tmp.fasta in cwd."""
     for _file in glob('*tmp.fasta'):
         rapsearch2(_file, threads)
 
@@ -637,7 +637,7 @@ def run_SARTools():
 
 
 def run_pre_ko_remap():
-    """Prepares args for func:`run_ko_remap` or :func:`run_new_ko_remap`
+    """Prepares args for :func:`run_ko_remap` or :func:`run_new_ko_remap`
 
     Returns:
         path_names:     ``{KEGG_Pathway_id:Name}`` dict
@@ -677,8 +677,9 @@ def run_ko_remap(deseq_files, edger_files, kopath_values, path_names):
 
 
 def run_new_ko_remap(deseq_files, edger_files, kopath_values, all_conds, ref_cond):
-    """Runs get_ko_fc(), low_change(), mapper() and mapper_write()
-    in appropriate way for files from deseq_files and edger_files.
+    """Runs :func:`get_ko_fc`, :func:`low_change`, :func:`mapper` and
+    :func:`mapper_write` in appropriate way for files from
+    `deseq_files` and `edger_files`.
 
     Args:
         deseq_diles:    list of DESeq outputs paths
