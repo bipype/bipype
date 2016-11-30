@@ -243,6 +243,15 @@ Examples:
 | ITS, 16S                | ITS_16S.krona          |  ITS_16S.html         |
 +-------------------------+------------------------+-----------------------+
 
+**Databases**
+
+Bipype gets two separate databases with taxonomy to use in this step - one for ITS and one for 16S sequences. Custom paths to these databases can be passed with --db_taxonomy_16S and --db_taxonomy_ITS parameters.
+
+
+Databases for this step should be specially formatted FASTA files, or - especially if you want to allow faster loading of this data - files including only header lines from these FASTA files.
+
+
+For more information, refer to “databases formatting” chapter.
 
 
 
