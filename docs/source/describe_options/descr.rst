@@ -207,3 +207,42 @@ Usearch function runned USEARCH command, if mode=’run’:
 
 -usearch_local [katalog z USEARCH] -db [input file] -evalue 0.01 -id 0.9 -blast6out [output file] -strand both -threads [threads (integer)]
 
+^^^^^^^^^^^^^^^^^^^^^^^^
+Preparing taxonomy stats
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Performs statistical analysis of taxonomy from appropriate files from current working directory: counts occurrences of different taxa and prepares the results to be presented in HTML format.
+
+
+Results will be converted to HTML (with the Krona program), but only when <mode> is set to 'run'.
+
+
+Takes following options: output_type, mode, out_dir.
+
+**Input**
+
+Analysis will be performed on files, which simultaneously:
+
+* are located in current working directory or in subdirectories,
+
+* have suffixes of filenames equal to value of <output_type> option,
+
+* have suffixes of filenames equal to 'usearch_' + value of <output_type> option, but only if <output_type> is 'ITS' or '16S'.
+
+**Output**
+
+Output files will be placed in <out_dir> directory, with basenames depending on <output_type>.
+        
+Examples:
+
++-------------------------+------------------------+-----------------------+
+| Given <output_type>     | Filename of krona file | Filename of html file |
++=========================+========================+=======================+
+| ITS                     | ITS.krona              |  ITS.html             |
++-------------------------+------------------------+-----------------------+
+| ITS, 16S                | ITS_16S.krona          |  ITS_16S.html         |
++-------------------------+------------------------+-----------------------+
+
+
+
+
