@@ -14,6 +14,7 @@ Contents:
    code/index
    cli/index
    describe_options/index
+   appendixes/index
 
 Indices and tables
 ==================
