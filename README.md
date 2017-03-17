@@ -1,3 +1,5 @@
+[![Documentation Status](https://readthedocs.org/projects/bipype/badge/?version=latest)](http://bipype.readthedocs.io/en/latest/?badge=latest)
+
 # bipype
 bipype stands for BioInformatics-PYthon-PipE.
 
